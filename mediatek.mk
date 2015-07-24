@@ -73,7 +73,7 @@ $(LINUX_PATH)/.config:
 linux-defconfig: $(LINUX_PATH)/.config
 linux-patched: $(LINUX_PATCH_PATH)/.patched
 
-linux: linux-defconfig linux-patched
+linux: linux-patched linux-defconfig
 	make -C $(LINUX_PATH) \
 		CROSS_COMPILE="$(CCACHE)$(AARCH64_NONE_CROSS_COMPILE)" \
 		LOCALVERSION= \
