@@ -1,0 +1,86 @@
+#!/usr/bin/expect -f
+#
+# This scripts starts QEMU, loads and boots Linux/OP-TEE, then runs
+# xtest in the guest. The return code is 0 for success, >0 for error.
+#
+# Options:
+#   --bios    Path to the binary to be run [../out/bios-qemu/bios.bin]
+#   -q        Suppress output to stdout (quiet)
+
+set bios "../out/bios-qemu/bios.bin"
+set cmd "xtest"
+set quiet 0
+
+# The time required to run some tests (e.g., key generation tests [4007.*])
+# can be significant and vary widely -- typically, from about one minute to
+# several minutes depending on the host machine.
+# So, set an infinite timeout.
+set timeout -1
+
+# Parse command line
+set myargs $argv
+while {[llength $myargs]} {
+	set myargs [lassign $myargs arg]
+	switch -exact -- $arg {
+		"--bios"	{set myargs [lassign $myargs ::bios]}
+		"-q"		{set ::quiet 1}
+	}
+}
+
+proc info arg {
+	if {$::quiet==1} { return }
+	puts -nonewline $arg
+	flush stdout
+}
+
+# Disable echoing of guest output
+log_user 0
+# Save guest console output to a file
+log_file -a -noappend "serial0.log"
+info "Starting QEMU..."
+spawn ../qemu/arm-softmmu/qemu-system-arm -machine virt -cpu cortex-a15 -m 1057 -serial stdio -serial file:serial1.log -bios $bios
+expect "*Please press Enter to activate this console. "
+send -- "\r"
+expect "root@Vexpress:/ "
+info " done, guest is booted.\nLoading OP-TEE driver and tee-supplicant..."
+send -- "modprobe optee_armtz\r"
+expect "root@Vexpress:/ "
+sleep 1
+send -- "tee-supplicant&\r"
+expect "root@Vexpress:/ "
+sleep 1
+info " done.\nRunning: $cmd...\n"
+send -- "$cmd\r"
+expect {
+	# Exit with error status as soon as a test fails
+	-re {  XTEST_TEE_([^ ]+) FAIL} {
+		info "$expect_out(1,string) FAIL"
+		exit 1
+	}
+	# Crude progress indicator: print one # when each test [sub]case starts
+	-re {([\*o]) XTEST_TEE_([^ ]+) } {
+		set casenum $expect_out(2,string)
+		if {$expect_out(1,string) == "o"} {
+			if {$star == 1} {
+				# Do not count first subcase ('o') since start
+				# of test ('*') was counted already
+				set star 0
+				exp_continue
+			}
+		} else {
+			set star 1
+		}
+		info "#"
+		incr ncases
+		exp_continue
+	}
+	# Exit when result separator is seen
+	"+-----------------------------------------------------\r\r" {}
+	timeout {
+		info "!!! Timeout\n"
+		info "TIMEOUT - test case too long or hung? ($casenum)\n"
+		exit 2
+	}
+}
+info "\nStatus: PASS ($ncases test cases)\n"
+

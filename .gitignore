@@ -1,2 +1,4 @@
 Makefile
 *.swp
+/serial0.log
+/serial1.log

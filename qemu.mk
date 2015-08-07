@@ -39,7 +39,8 @@ CCACHE ?= $(shell which ccache) # Don't remove this comment (space is needed)
 ################################################################################
 all: bios-qemu linux optee-os optee-client optee-linuxdriver qemu soc-term xtest
 all-clean: bios-qemu-clean busybox-clean linux-clean optee-os-clean \
-	optee-client-clean optee-linuxdriver-clean qemu-clean soc-term-clean
+	optee-client-clean optee-linuxdriver-clean qemu-clean soc-term-clean \
+	check-clean
 
 -include toolchain.mk
 
@@ -265,3 +266,16 @@ run-only:
 		-m 1057 \
 		-bios $(ROOT)/out/bios-qemu/bios.bin
 
+
+ifneq ($(filter check,$(MAKECMDGOALS)),)
+CHECK_DEPS := all
+endif
+
+check: $(CHECK_DEPS)
+	expect qemu-check.exp -- \
+		--bios $(ROOT)/out/bios-qemu/bios.bin
+
+check-only: check
+
+check-clean:
+	rm -f serial0.log serial1.log
