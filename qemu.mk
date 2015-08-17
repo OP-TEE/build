@@ -29,7 +29,7 @@ SOC_TERM_PATH			?= $(ROOT)/soc_term
 # defines, macros, configuration etc
 ################################################################################
 define KERNEL_VERSION
-$(shell cd $(LINUX_PATH) && make kernelversion)
+$(shell cd $(LINUX_PATH) && $(MAKE) --no-print-directory kernelversion)
 endef
 
 CCACHE ?= $(shell which ccache) # Don't remove this comment (space is needed)
