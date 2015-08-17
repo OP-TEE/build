@@ -1,5 +1,5 @@
 BASH := $(shell which bash)
-ROOT ?= $(subst /build/,,$(shell pwd)/)
+ROOT ?= $(shell pwd)/..
 
 ################################################################################
 # Paths to git projects and various binaries
