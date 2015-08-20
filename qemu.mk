@@ -217,9 +217,13 @@ ifneq ($(filter check,$(MAKECMDGOALS)),)
 CHECK_DEPS := all
 endif
 
+check-args := --bios $(ROOT)/out/bios-qemu/bios.bin
+ifneq ($(TIMEOUT),)
+check-args += --timeout $(TIMEOUT)
+endif
+
 check: $(CHECK_DEPS)
-	expect qemu-check.exp -- \
-		--bios $(ROOT)/out/bios-qemu/bios.bin || \
+	expect qemu-check.exp -- $(check-args) || \
 		(if [ "$(DUMP_LOGS_ON_ERROR)" ]; then \
 			echo "== $$PWD/serial0.log:"; \
 			cat serial0.log; \
