@@ -31,7 +31,7 @@ OPTEE_OS_PATH 			?= $(ROOT)/optee_os
 OPTEE_OS_BIN 			?= $(OPTEE_OS_PATH)/out/arm-plat-hikey/core/tee.bin
 
 OPTEE_CLIENT_PATH 		?= $(ROOT)/optee_client
-OPTEE_CLIENT_EXPORT             ?= $(OPTEE_CLIENT_PATH)/out/export
+OPTEE_CLIENT_EXPORT		?= $(OPTEE_CLIENT_PATH)/out/export
 OPTEE_LINUXDRIVER_PATH 		?= $(ROOT)/optee_linuxdriver
 
 OPTEE_TEST_PATH 		?= $(ROOT)/optee_test
@@ -71,6 +71,7 @@ cleaner: clean mcuimage-cleaner busybox-cleaner linux-cleaner strace-cleaner
 ################################################################################
 mcuimage:
 	@if [ ! -f "$(MCUIMAGE_BIN)" ]; then \
+		mkdir -p `dirname $(MCUIMAGE_BIN)` ; \
 		curl https://builds.96boards.org/releases/hikey/linaro/binaries/latest/mcuimage.bin -o $(MCUIMAGE_BIN); \
 	fi
 
