@@ -286,6 +286,19 @@ xtest-clean:
 		rm -rf $(OPTEE_TEST_OUT_PATH); \
 	fi
 
+xtest-patch: optee-os optee-client
+	@if [ -d "$(OPTEE_TEST_PATH)" ]; then \
+		make -C $(OPTEE_TEST_PATH) \
+		-j`getconf _NPROCESSORS_ONLN` \
+		CROSS_COMPILE_HOST="$(CCACHE)$(AARCH64_CROSS_COMPILE)" \
+		CROSS_COMPILE_TA="$(CCACHE)$(AARCH32_CROSS_COMPILE)" \
+		TA_DEV_KIT_DIR=$(OPTEE_OS_PATH)/out/arm-plat-hikey/export-user_ta \
+		CFG_DEV_PATH=$(ROOT) \
+		CFG_OPTEE_TEST_PATH=$(OPTEE_TEST_PATH) \
+		O=$(OPTEE_TEST_OUT_PATH) \
+			patch; \
+	fi
+
 ################################################################################
 # strace
 ################################################################################
