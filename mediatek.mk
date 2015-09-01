@@ -21,13 +21,6 @@ GEN_ROOTFS_FILELIST		?= $(GEN_ROOTFS_PATH)/filelist-tee.txt
 MTK_TOOLS_PATH 			?= $(ROOT)/mtk_tools
 
 ################################################################################
-# defines, macros, configuration etc
-################################################################################
-define KERNEL_VERSION
-$(shell cd $(LINUX_PATH) && make kernelversion)
-endef
-
-################################################################################
 # Targets
 ################################################################################
 all: linux optee-os optee-client optee-linuxdriver xtest
@@ -80,41 +73,25 @@ linux: linux-patched linux-defconfig
 # OP-TEE
 ################################################################################
 optee-os:
-	make -C $(OPTEE_OS_PATH) \
-		CROSS_COMPILE="$(CCACHE)$(AARCH32_CROSS_COMPILE)" \
-		CROSS_COMPILE_core="$(CCACHE)$(AARCH64_CROSS_COMPILE)" \
+	$(MAKE) \
 		CFG_ARM64_core=y \
 		PLATFORM=mediatek \
 		PLATFORM_FLAVOR=mt8173 \
 		CFG_TEE_CORE_LOG_LEVEL=4 \
-		DEBUG=0 \
-		-j`getconf _NPROCESSORS_ONLN`
+			optee-os-common
 
 optee-os-clean:
-	make -C $(OPTEE_OS_PATH) \
+	$(MAKE) \
 		PLATFORM=mediatek \
 		PLATFORM_FLAVOR=mt8173 \
-		clean
+			optee-os-clean-common
 
-optee-client:
-	make -C $(OPTEE_CLIENT_PATH) \
-		CROSS_COMPILE="$(CCACHE)$(AARCH64_CROSS_COMPILE)" \
-		-j`getconf _NPROCESSORS_ONLN`
+optee-client: optee-client-common
+optee-client-clean: optee-client-clean-common
 
-optee-client-clean:
-	make -C $(OPTEE_CLIENT_PATH) clean
-
-optee-linuxdriver: linux
-	make -C $(LINUX_PATH) \
-		V=0 \
-		ARCH=arm64 \
-		CROSS_COMPILE="$(CCACHE)$(AARCH64_CROSS_COMPILE)" \
-		LOCALVERSION= \
-		M=$(OPTEE_LINUXDRIVER_PATH) modules
-
-optee-linuxdriver-clean:
-	make -C $(LINUX_PATH) \
-		M=$(OPTEE_LINUXDRIVER_PATH) clean
+optee-linuxdriver:
+	$(MAKE) ARCH=arm64 optee-linuxdriver-common
+optee-linuxdriver-clean: optee-linuxdriver-clean-common
 
 ################################################################################
 # xtest / optee_test

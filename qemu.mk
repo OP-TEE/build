@@ -21,12 +21,7 @@ QEMU_PATH			?= $(ROOT)/qemu
 
 SOC_TERM_PATH			?= $(ROOT)/soc_term
 
-################################################################################
-# defines, macros, configuration etc
-################################################################################
-define KERNEL_VERSION
-$(shell cd $(LINUX_PATH) && $(MAKE) --no-print-directory kernelversion)
-endef
+DEBUG = 1
 
 ################################################################################
 # Targets
@@ -107,39 +102,23 @@ linux-clean:
 # OP-TEE
 ################################################################################
 optee-os:
-	make -C $(OPTEE_OS_PATH) \
-		CROSS_COMPILE="$(CCACHE)$(AARCH32_CROSS_COMPILE)" \
+	$(MAKE) \
 		PLATFORM=vexpress \
 		PLATFORM_FLAVOR=qemu_virt \
 		CFG_TEE_CORE_LOG_LEVEL=3 \
-		DEBUG=1 \
-		-j`getconf _NPROCESSORS_ONLN`
+			optee-os-common
 
 optee-os-clean:
-	make -C $(OPTEE_OS_PATH) \
+	$(MAKE) \
 		PLATFORM=vexpress \
 		PLATFORM_FLAVOR=qemu_virt \
-		clean
+			optee-os-clean-common
 
-optee-client:
-	make -C $(OPTEE_CLIENT_PATH) \
-		CROSS_COMPILE="$(CCACHE)$(AARCH32_CROSS_COMPILE)" \
-		-j`getconf _NPROCESSORS_ONLN`
-
-optee-client-clean:
-	make -C $(OPTEE_CLIENT_PATH) clean
-
-optee-linuxdriver: linux
-	make -C $(LINUX_PATH) \
-		V=0 \
-		ARCH=arm \
-		CROSS_COMPILE="$(CCACHE)$(AARCH32_CROSS_COMPILE)" \
-		LOCALVERSION= \
-		M=$(OPTEE_LINUXDRIVER_PATH) modules
-
-optee-linuxdriver-clean:
-	make -C $(LINUX_PATH) \
-		M=$(OPTEE_LINUXDRIVER_PATH) clean
+optee-client: optee-client-common
+optee-client-clean: optee-client-clean-common
+optee-linuxdriver:
+	$(MAKE)	ARCH=arm optee-linuxdriver-common
+optee-linuxdriver-clean: optee-linuxdriver-clean-common
 
 ################################################################################
 # Soc-term

@@ -2,7 +2,7 @@
 # Common definition to all platforms
 #
 
-BASH := $(shell which bash)
+BASH ?= bash
 ROOT ?= $(shell pwd)/..
 
 #
@@ -23,6 +23,45 @@ OPTEE_TEST_PATH			?= $(ROOT)/optee_test
 OPTEE_TEST_OUT_PATH 		?= $(ROOT)/optee_test/out
 
 CCACHE ?= $(shell which ccache) # Don't remove this comment (space is needed)
+
+################################################################################
+# defines, macros, configuration etc
+################################################################################
+define KERNEL_VERSION
+$(shell cd $(LINUX_PATH) && make --no-print-directory kernelversion)
+endef
+DEBUG ?= 0
+
+################################################################################
+# OP-TEE
+################################################################################
+optee-os-common:
+	make -C $(OPTEE_OS_PATH) \
+		CROSS_COMPILE=$(CROSS_COMPILE_S_USER) \
+		CROSS_COMPILE_core=$(CROSS_COMPILE_S_KERNEL) \
+		CFG_TEE_CORE_LOG_LEVEL=3 \
+		DEBUG=$(DEBUG) \
+
+optee-os-clean-common:
+	make -C $(OPTEE_OS_PATH) \
+		clean
+
+optee-client-common:
+	make -C $(OPTEE_CLIENT_PATH) \
+		CROSS_COMPILE=$(CROSS_COMPILE_NS_USER)
+
+optee-client-clean-common:
+	make -C $(OPTEE_CLIENT_PATH) clean
+
+optee-linuxdriver-common: linux
+	make -C $(LINUX_PATH) \
+		CROSS_COMPILE=$(CROSS_COMPILE_NS_KERNEL) \
+		LOCALVERSION= \
+		M=$(OPTEE_LINUXDRIVER_PATH) modules
+
+optee-linuxdriver-clean-common:
+	make -C $(LINUX_PATH) \
+		M=$(OPTEE_LINUXDRIVER_PATH) clean
 
 ################################################################################
 # xtest / optee_test
