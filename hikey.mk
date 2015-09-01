@@ -1,5 +1,15 @@
-BASH := $(shell which bash)
-ROOT ?= $(subst /build/,,$(shell pwd)/)
+-include common.mk
+
+################################################################################
+# Mandatory definition to use common.mk
+################################################################################
+CROSS_COMPILE_NS_USER		?= "$(CCACHE)$(AARCH64_CROSS_COMPILE)"
+CROSS_COMPILE_NS_KERNEL		?= "$(CCACHE)$(AARCH64_CROSS_COMPILE)"
+CROSS_COMPILE_S_USER		?= "$(CCACHE)$(AARCH32_CROSS_COMPILE)"
+CROSS_COMPILE_S_KERNEL		?= "$(CCACHE)$(AARCH64_CROSS_COMPILE)"
+OPTEE_OS_BIN 			?= $(OPTEE_OS_PATH)/out/arm-plat-hikey/core/tee.bin
+OPTEE_OS_TA_DEV_KIT_DIR		?= $(OPTEE_OS_PATH)/out/arm-plat-hikey/export-user_ta
+
 DEBUG = 0
 
 ################################################################################
@@ -27,16 +37,6 @@ endif
 LINUX_PATH 			?= $(ROOT)/linux
 LINUX_CONFIG_ADDLIST		?= $(LINUX_PATH)/kernel.config
 
-OPTEE_OS_PATH 			?= $(ROOT)/optee_os
-OPTEE_OS_BIN 			?= $(OPTEE_OS_PATH)/out/arm-plat-hikey/core/tee.bin
-
-OPTEE_CLIENT_PATH 		?= $(ROOT)/optee_client
-OPTEE_CLIENT_EXPORT		?= $(OPTEE_CLIENT_PATH)/out/export
-OPTEE_LINUXDRIVER_PATH 		?= $(ROOT)/optee_linuxdriver
-
-OPTEE_TEST_PATH 		?= $(ROOT)/optee_test
-OPTEE_TEST_OUT_PATH 		?= $(ROOT)/out/optee_test
-
 GEN_ROOTFS_PATH 		?= $(ROOT)/gen_rootfs
 GEN_ROOTFS_FILELIST 		?= $(GEN_ROOTFS_PATH)/filelist-tee.txt
 
@@ -52,8 +52,6 @@ LLOADER_PATH			?=$(ROOT)/l-loader
 define KERNEL_VERSION
 $(shell cd $(LINUX_PATH) && make kernelversion)
 endef
-
-CCACHE ?= $(shell which ccache) # Don't remove this comment (space is needed)
 
 ################################################################################
 # Targets
@@ -271,33 +269,9 @@ optee-linuxdriver-clean:
 ################################################################################
 # xtest / optee_test
 ################################################################################
-xtest: optee-os optee-client
-	@if [ -d "$(OPTEE_TEST_PATH)" ]; then \
-		make -C $(OPTEE_TEST_PATH) \
-		-j`getconf _NPROCESSORS_ONLN` \
-		CROSS_COMPILE_HOST="$(CCACHE)$(AARCH64_CROSS_COMPILE)" \
-		CROSS_COMPILE_TA="$(CCACHE)$(AARCH32_CROSS_COMPILE)" \
-		TA_DEV_KIT_DIR=$(OPTEE_OS_PATH)/out/arm-plat-hikey/export-user_ta \
-		O=$(OPTEE_TEST_OUT_PATH); \
-	fi
-
-xtest-clean:
-	@if [ -d "$(OPTEE_TEST_PATH)" ]; then \
-		rm -rf $(OPTEE_TEST_OUT_PATH); \
-	fi
-
-xtest-patch: optee-os optee-client
-	@if [ -d "$(OPTEE_TEST_PATH)" ]; then \
-		make -C $(OPTEE_TEST_PATH) \
-		-j`getconf _NPROCESSORS_ONLN` \
-		CROSS_COMPILE_HOST="$(CCACHE)$(AARCH64_CROSS_COMPILE)" \
-		CROSS_COMPILE_TA="$(CCACHE)$(AARCH32_CROSS_COMPILE)" \
-		TA_DEV_KIT_DIR=$(OPTEE_OS_PATH)/out/arm-plat-hikey/export-user_ta \
-		CFG_DEV_PATH=$(ROOT) \
-		CFG_OPTEE_TEST_PATH=$(OPTEE_TEST_PATH) \
-		O=$(OPTEE_TEST_OUT_PATH) \
-			patch; \
-	fi
+xtest: xtest-common
+xtest-clean: xtest-clean-common
+xtest-patch: xtest-patch-common
 
 ################################################################################
 # strace

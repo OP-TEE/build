@@ -1,26 +1,22 @@
-BASH := $(shell which bash)
-ROOT ?= $(shell pwd)/..
+-include common.mk
+
+################################################################################
+# Mandatory definition to use common.mk
+################################################################################
+CROSS_COMPILE_NS_USER		?= "$(CCACHE)$(AARCH32_CROSS_COMPILE)"
+CROSS_COMPILE_NS_KERNEL		?= "$(CCACHE)$(AARCH32_CROSS_COMPILE)"
+CROSS_COMPILE_S_USER		?= "$(CCACHE)$(AARCH32_CROSS_COMPILE)"
+CROSS_COMPILE_S_KERNEL		?= "$(CCACHE)$(AARCH32_CROSS_COMPILE)"
+OPTEE_OS_BIN			?= $(OPTEE_OS_PATH)/out/arm-plat-vexpress/core/tee.bin
+OPTEE_OS_TA_DEV_KIT_DIR		?= $(OPTEE_OS_PATH)/out/arm-plat-vexpress/export-user_ta
 
 ################################################################################
 # Paths to git projects and various binaries
 ################################################################################
-LINUX_PATH 			?= $(ROOT)/linux
-
-OPTEE_OS_PATH 			?= $(ROOT)/optee_os
-OPTEE_OS_BIN 			?= $(OPTEE_OS_PATH)/out/arm-plat-vexpress/core/tee.bin
-
-OPTEE_CLIENT_PATH 		?= $(ROOT)/optee_client
-OPTEE_CLIENT_EXPORT		?= $(OPTEE_CLIENT_PATH)/out/export
-OPTEE_LINUXDRIVER_PATH 		?= $(ROOT)/optee_linuxdriver
-
-OPTEE_TEST_PATH 		?= $(ROOT)/optee_test
-OPTEE_TEST_OUT_PATH 		?= $(ROOT)/out/optee_test
-
-GEN_ROOTFS_PATH 		?= $(ROOT)/gen_rootfs
-GEN_ROOTFS_FILELIST 		?= $(GEN_ROOTFS_PATH)/filelist-tee.txt
+GEN_ROOTFS_PATH			?= $(ROOT)/gen_rootfs
+GEN_ROOTFS_FILELIST		?= $(GEN_ROOTFS_PATH)/filelist-tee.txt
 
 BIOS_QEMU_PATH			?= $(ROOT)/bios_qemu_tz_arm
-
 QEMU_PATH			?= $(ROOT)/qemu
 
 SOC_TERM_PATH			?= $(ROOT)/soc_term
@@ -31,8 +27,6 @@ SOC_TERM_PATH			?= $(ROOT)/soc_term
 define KERNEL_VERSION
 $(shell cd $(LINUX_PATH) && $(MAKE) --no-print-directory kernelversion)
 endef
-
-CCACHE ?= $(shell which ccache) # Don't remove this comment (space is needed)
 
 ################################################################################
 # Targets
@@ -159,44 +153,15 @@ soc-term-clean:
 ################################################################################
 # xtest / optee_test
 ################################################################################
-xtest: optee-os optee-client
-	@if [ -d "$(OPTEE_TEST_PATH)" ]; then \
-		make -C $(OPTEE_TEST_PATH) \
-		-j`getconf _NPROCESSORS_ONLN` \
-		CROSS_COMPILE_HOST="$(CCACHE)$(AARCH32_CROSS_COMPILE)" \
-		CROSS_COMPILE_TA="$(CCACHE)$(AARCH32_CROSS_COMPILE)" \
-		TA_DEV_KIT_DIR=$(OPTEE_OS_PATH)/out/arm-plat-vexpress/export-user_ta \
-		CFG_ARM32=y \
-		CFG_DEV_PATH=$(ROOT) \
-		O=$(OPTEE_TEST_OUT_PATH); \
-	fi
+xtest:
+	$(MAKE) xtest-common CFG_ARM32=y
 
 xtest-clean:
-	@if [ -d "$(OPTEE_TEST_PATH)" ]; then \
-		make -C $(OPTEE_TEST_PATH) \
-		-j`getconf _NPROCESSORS_ONLN` \
-		CROSS_COMPILE_HOST="$(CCACHE)$(AARCH32_CROSS_COMPILE)" \
-		CROSS_COMPILE_TA="$(CCACHE)$(AARCH32_CROSS_COMPILE)" \
-		TA_DEV_KIT_DIR=$(OPTEE_OS_PATH)/out/arm-plat-vexpress/export-user_ta \
-		CFG_ARM32=y \
-		CFG_DEV_PATH=$(ROOT) \
-		O=$(OPTEE_TEST_OUT_PATH) \
-			clean; \
-	fi
+	$(MAKE) xtest-clean-common CFG_ARM32=y
 
-xtest-patch: optee-os optee-client
-	@if [ -d "$(OPTEE_TEST_PATH)" ]; then \
-		make -C $(OPTEE_TEST_PATH) \
-		-j`getconf _NPROCESSORS_ONLN` \
-		CROSS_COMPILE_HOST="$(CCACHE)$(AARCH32_CROSS_COMPILE)" \
-		CROSS_COMPILE_TA="$(CCACHE)$(AARCH32_CROSS_COMPILE)" \
-		TA_DEV_KIT_DIR=$(OPTEE_OS_PATH)/out/arm-plat-vexpress/export-user_ta \
-		CFG_ARM32=y \
-		CFG_DEV_PATH=$(ROOT) \
-		CFG_OPTEE_TEST_PATH=$(OPTEE_TEST_PATH) \
-		O=$(OPTEE_TEST_OUT_PATH) \
-			patch; \
-	fi
+xtest-patch:
+	$(MAKE) xtest-patch-common CFG_ARM32=y
+
 
 ################################################################################
 # Root FS
