@@ -38,11 +38,24 @@ log_user 0
 # Save guest console output to a file
 log_file -a -noappend "serial0.log"
 info "Starting QEMU..."
-spawn ../qemu/arm-softmmu/qemu-system-arm -machine virt -cpu cortex-a15 -m 1057 -serial stdio -serial file:serial1.log -bios $bios
-expect "*Please press Enter to activate this console. "
+spawn ../qemu/arm-softmmu/qemu-system-arm -nographic -monitor none -machine virt -cpu cortex-a15 -m 1057 -serial stdio -serial file:serial1.log -bios $bios
+expect {
+	"Kernel panic" {
+		info "!!! Kernel panic\n"
+		exit 1
+	}
+	timeout {
+		info "!!! Timeout\n"
+		exit 1
+	}
+	"Please press Enter to activate this console. "
+}
 send -- "\r"
 expect "root@Vexpress:/ "
 info " done, guest is booted.\nLoading OP-TEE driver and tee-supplicant..."
+# Toolchain libraries might be here or there
+send -- "export LD_LIBRARY_PATH=/lib:/lib/arm-linux-gnueabihf\r"
+expect "root@Vexpress:/ "
 send -- "modprobe optee_armtz\r"
 expect "root@Vexpress:/ "
 sleep 1
@@ -51,10 +64,15 @@ expect "root@Vexpress:/ "
 sleep 1
 info " done.\nRunning: $cmd...\n"
 send -- "$cmd\r"
+set casenum "none"
 expect {
 	# Exit with error status as soon as a test fails
 	-re {  XTEST_TEE_([^ ]+) FAIL} {
-		info "$expect_out(1,string) FAIL"
+		info " $expect_out(1,string) FAIL\n"
+		exit 1
+	}
+	-re {rcu_sched detected stalls} {
+		info " Kernel error: '$expect_out(0,string)'\n"
 		exit 1
 	}
 	# Crude progress indicator: print one # when each test [sub]case starts
@@ -72,13 +90,14 @@ expect {
 		}
 		info "#"
 		incr ncases
+		if {$ncases % 50 == 0} { info "\n" }
 		exp_continue
 	}
 	# Exit when result separator is seen
 	"+-----------------------------------------------------\r\r" {}
 	timeout {
 		info "!!! Timeout\n"
-		info "TIMEOUT - test case too long or hung? ($casenum)\n"
+		info "TIMEOUT - test case too long or hung? (last test started: $casenum)\n"
 		exit 2
 	}
 }
