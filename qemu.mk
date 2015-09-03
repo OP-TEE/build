@@ -3,10 +3,17 @@
 ################################################################################
 # Mandatory definition to use common.mk
 ################################################################################
+ifneq ($(CROSS_COMPILE),)
+CROSS_COMPILE_NS_USER		?= "$(CROSS_COMPILE)"
+CROSS_COMPILE_NS_KERNEL		?= "$(CROSS_COMPILE)"
+CROSS_COMPILE_S_USER		?= "$(CROSS_COMPILE)"
+CROSS_COMPILE_S_KERNEL		?= "$(CROSS_COMPILE)"
+else
 CROSS_COMPILE_NS_USER		?= "$(CCACHE)$(AARCH32_CROSS_COMPILE)"
 CROSS_COMPILE_NS_KERNEL		?= "$(CCACHE)$(AARCH32_CROSS_COMPILE)"
 CROSS_COMPILE_S_USER		?= "$(CCACHE)$(AARCH32_CROSS_COMPILE)"
 CROSS_COMPILE_S_KERNEL		?= "$(CCACHE)$(AARCH32_CROSS_COMPILE)"
+endif
 OPTEE_OS_BIN			?= $(OPTEE_OS_PATH)/out/arm-plat-vexpress/core/tee.bin
 OPTEE_OS_TA_DEV_KIT_DIR		?= $(OPTEE_OS_PATH)/out/arm-plat-vexpress/export-user_ta
 
@@ -26,7 +33,7 @@ DEBUG = 1
 ################################################################################
 # Targets
 ################################################################################
-all: bios-qemu linux optee-os optee-client optee-linuxdriver qemu soc-term xtest
+all: bios-qemu qemu soc-term
 all-clean: bios-qemu-clean busybox-clean linux-clean optee-os-clean \
 	optee-client-clean optee-linuxdriver-clean qemu-clean soc-term-clean \
 	check-clean
@@ -37,8 +44,8 @@ all-clean: bios-qemu-clean busybox-clean linux-clean optee-os-clean \
 # QEMU
 ################################################################################
 define bios-qemu-common
-	make -C $(BIOS_QEMU_PATH) \
-		CROSS_COMPILE="$(CCACHE)$(AARCH32_CROSS_COMPILE)" \
+	+$(MAKE) -C $(BIOS_QEMU_PATH) \
+		CROSS_COMPILE=$(CROSS_COMPILE_NS_USER) \
 		O=$(ROOT)/out/bios-qemu \
 		BIOS_NSEC_BLOB=$(LINUX_PATH)/arch/arm/boot/zImage \
 		BIOS_NSEC_ROOTFS=$(GEN_ROOTFS_PATH)/filesystem.cpio.gz \
@@ -46,7 +53,7 @@ define bios-qemu-common
 		PLATFORM_FLAVOR=virt
 endef
 
-bios-qemu: linux update_rootfs optee-os
+bios-qemu: update_rootfs optee-os
 	$(call bios-qemu-common)
 
 bios-qemu-clean:
@@ -54,11 +61,10 @@ bios-qemu-clean:
 
 qemu:
 	cd $(QEMU_PATH); ./configure --target-list=arm-softmmu --cc="$(CCACHE)gcc"
-	make -C $(QEMU_PATH) \
-		-j`getconf _NPROCESSORS_ONLN`
+	$(MAKE) -C $(QEMU_PATH)
 
 qemu-clean:
-	make -C $(QEMU_PATH) distclean
+	$(MAKE) -C $(QEMU_PATH) distclean
 
 ################################################################################
 # Busybox
@@ -82,20 +88,19 @@ busybox-clean:
 $(LINUX_PATH)/.config:
 	# Temporary fix until we have the driver integrated in the kernel
 	sed -i '/config ARM$$/a select DMA_SHARED_BUFFER' $(LINUX_PATH)/arch/arm/Kconfig;
-	make -C $(LINUX_PATH) ARCH=arm vexpress_defconfig
+	$(MAKE) -C $(LINUX_PATH) ARCH=arm vexpress_defconfig
 
 linux-defconfig: $(LINUX_PATH)/.config
 
 linux: linux-defconfig
-	make -C $(LINUX_PATH) \
-		CROSS_COMPILE="$(CCACHE)$(AARCH32_CROSS_COMPILE)" \
+	$(MAKE) -C $(LINUX_PATH) \
+		CROSS_COMPILE=$(CROSS_COMPILE_NS_KERNEL) \
 		LOCALVERSION= \
-		ARCH=arm \
-		-j`getconf _NPROCESSORS_ONLN`
+		ARCH=arm
 
 linux-clean:
-	make -C $(LINUX_PATH) \
-		CROSS_COMPILE="$(CCACHE)$(AARCH32_CROSS_COMPILE)" \
+	$(MAKE) -C $(LINUX_PATH) \
+		CROSS_COMPILE=$(CROSS_COMPILE_NS_KERNEL) \
 		mrproper
 
 ################################################################################
@@ -121,10 +126,10 @@ optee-linuxdriver-clean: optee-linuxdriver-clean-common
 # Soc-term
 ################################################################################
 soc-term:
-	make -C $(SOC_TERM_PATH)
+	$(MAKE) -C $(SOC_TERM_PATH)
 
 soc-term-clean:
-	make -C $(SOC_TERM_PATH) clean
+	$(MAKE) -C $(SOC_TERM_PATH) clean
 
 ################################################################################
 # xtest / optee_test
@@ -142,7 +147,7 @@ xtest-patch: xtest-patch-common
 # Root FS
 ################################################################################
 .PHONY: filelist-tee
-filelist-tee:
+filelist-tee: xtest
 	@echo "# xtest / optee_test" > $(GEN_ROOTFS_FILELIST)
 	@find $(OPTEE_TEST_OUT_PATH) -type f -name "xtest" | sed 's/\(.*\)/file \/bin\/xtest \1 755 0 0/g' >> $(GEN_ROOTFS_FILELIST)
 	@echo "# TAs" >> $(GEN_ROOTFS_FILELIST)
@@ -164,7 +169,7 @@ filelist-tee:
 	@echo "slink /lib/arm-linux-gnueabihf/libteec.so.1 libteec.so.1.0 755 0 0" >> $(GEN_ROOTFS_FILELIST)
 	@echo "slink /lib/arm-linux-gnueabihf/libteec.so libteec.so.1 755 0 0" >> $(GEN_ROOTFS_FILELIST)
 
-update_rootfs: busybox optee-client optee-linuxdriver xtest filelist-tee
+update_rootfs: busybox optee-client optee-linuxdriver filelist-tee
 	cat $(GEN_ROOTFS_PATH)/filelist-final.txt $(GEN_ROOTFS_PATH)/filelist-tee.txt > $(GEN_ROOTFS_PATH)/filelist.tmp
 	cd $(GEN_ROOTFS_PATH); \
 		$(LINUX_PATH)/usr/gen_init_cpio $(GEN_ROOTFS_PATH)/filelist.tmp | gzip > $(GEN_ROOTFS_PATH)/filesystem.cpio.gz
@@ -214,7 +219,15 @@ endif
 
 check: $(CHECK_DEPS)
 	expect qemu-check.exp -- \
-		--bios $(ROOT)/out/bios-qemu/bios.bin
+		--bios $(ROOT)/out/bios-qemu/bios.bin || \
+		(if [ "$(DUMP_LOGS_ON_ERROR)" ]; then \
+			echo "== $$PWD/serial0.log:"; \
+			cat serial0.log; \
+			echo "== end of $$PWD/serial0.log:"; \
+			echo "== $$PWD/serial1.log:"; \
+			cat serial1.log; \
+			echo "== end of $$PWD/serial1.log:"; \
+		fi; false)
 
 check-only: check
 
