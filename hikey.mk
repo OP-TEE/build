@@ -221,23 +221,20 @@ linux-cleaner: linux-defconfig-clean
 ################################################################################
 # OP-TEE
 ################################################################################
-optee-os:
-	$(MAKE) \
-		CFG_ARM64_core=y \
-		PLATFORM=hikey \
-		CFG_TEE_CORE_LOG_LEVEL=3 \
-			optee-os-common
+OPTEE_OS_COMMON_FLAGS += PLATFORM=hikey CFG_ARM64_core=y
+optee-os: optee-os-common
 
-optee-os-clean:
-	$(MAKE) \
-                CFG_ARM64_core=y \
-                PLATFORM=hikey \
-			optee-os-clean-common
+OPTEE_OS_CLEAN_COMMON_FLAGS += PLATFORM=hikey CFG_ARM64_core=y
+optee-os-clean: optee-os-clean-common
 
 optee-client: optee-client-common
+
 optee-client-clean: optee-client-clean-common
-optee-linuxdriver:
-	$(MAKE) ARCH=arm64 optee-linuxdriver-common
+
+OPTEE_LINUXDRIVER_COMMON_FLAGS += ARCH=arm64
+optee-linuxdriver: optee-linuxdriver-common
+
+OPTEE_LINUXDRIVER_CLEAN_COMMON_FLAGS += ARCH=arm64
 optee-linuxdriver-clean: optee-linuxdriver-clean-common
 
 ################################################################################

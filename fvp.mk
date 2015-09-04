@@ -117,23 +117,20 @@ linux: linux-defconfig
 ################################################################################
 # OP-TEE
 ################################################################################
-optee-os:
-	$(MAKE) \
-		PLATFORM=vexpress \
-		PLATFORM_FLAVOR=fvp \
-		CFG_TEE_CORE_LOG_LEVEL=3 \
-			optee-os-common
+OPTEE_OS_COMMON_FLAGS += PLATFORM=vexpress-fvp
+optee-os: optee-os-common
 
-optee-os-clean:
-	$(MAKE) \
-		PLATFORM=vexpress \
-		PLATFORM_FLAVOR=fvp \
-			optee-os-clean-common
+OPTEE_OS_CLEAN_COMMON_FLAGS += PLATFORM=vexpress-fvp
+optee-os-clean: optee-os-clean-common
 
 optee-client: optee-client-common
+
 optee-client-clean: optee-client-clean-common
-optee-linuxdriver:
-	$(MAKE) ARCH=arm64 optee-linuxdriver-common
+
+OPTEE_LINUXDRIVER_COMMON_FLAGS += ARCH=arm64
+optee-linuxdriver: optee-linuxdriver-common
+
+OPTEE_LINUXDRIVER_CLEAN_COMMON_FLAGS += ARCH=arm64
 optee-linuxdriver-clean: optee-linuxdriver-clean-common
 
 generate-dtb:
@@ -146,8 +143,13 @@ generate-dtb:
 ################################################################################
 # xtest / optee_test
 ################################################################################
+XTEST_COMMON_FLAGS += CFG_ARM32=y
 xtest: xtest-common
+
+XTEST_CLEAN_COMMON_FLAGS += CFG_ARM32=y
 xtest-clean: xtest-clean-common
+
+XTEST_PATCH_COMMON_FLAGS += CFG_ARM32=y
 xtest-patch: xtest-patch-common
 
 ################################################################################

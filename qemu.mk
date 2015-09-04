@@ -101,23 +101,20 @@ linux-clean:
 ################################################################################
 # OP-TEE
 ################################################################################
-optee-os:
-	$(MAKE) \
-		PLATFORM=vexpress \
-		PLATFORM_FLAVOR=qemu_virt \
-		CFG_TEE_CORE_LOG_LEVEL=3 \
-			optee-os-common
+OPTEE_OS_COMMON_FLAGS += PLATFORM=vexpress-qemu_virt
+optee-os: optee-os-common
 
-optee-os-clean:
-	$(MAKE) \
-		PLATFORM=vexpress \
-		PLATFORM_FLAVOR=qemu_virt \
-			optee-os-clean-common
+OPTEE_OS_CLEAN_COMMON_FLAGS += PLATFORM=vexpress-qemu_virt
+optee-os-clean: optee-os-clean-common
 
 optee-client: optee-client-common
+
 optee-client-clean: optee-client-clean-common
-optee-linuxdriver:
-	$(MAKE)	ARCH=arm optee-linuxdriver-common
+
+OPTEE_LINUXDRIVER_COMMON_FLAGS += ARCH=arm
+optee-linuxdriver: optee-linuxdriver-common
+
+OPTEE_LINUXDRIVER_CLEAN_COMMON_FLAGS += ARCH=arm
 optee-linuxdriver-clean: optee-linuxdriver-clean-common
 
 ################################################################################
@@ -132,15 +129,14 @@ soc-term-clean:
 ################################################################################
 # xtest / optee_test
 ################################################################################
-xtest:
-	$(MAKE) xtest-common CFG_ARM32=y
+XTEST_COMMON_FLAGS += CFG_ARM32=y
+xtest: xtest-common
 
-xtest-clean:
-	$(MAKE) xtest-clean-common CFG_ARM32=y
+XTEST_CLEAN_COMMON_FLAGS += CFG_ARM32=y
+xtest-clean: xtest-clean-common
 
-xtest-patch:
-	$(MAKE) xtest-patch-common CFG_ARM32=y
-
+XTEST_PATCH_COMMON_FLAGS += CFG_ARM32=y
+xtest-patch: xtest-patch-common
 
 ################################################################################
 # Root FS
@@ -195,7 +191,8 @@ endef
 
 .PHONY: run
 # This target enforces updating root fs etc
-run: | bios-qemu run-only
+run: all
+	$(MAKE) run-only
 
 .PHONY: run-only
 run-only:

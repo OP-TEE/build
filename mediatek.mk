@@ -72,25 +72,20 @@ linux: linux-patched linux-defconfig
 ################################################################################
 # OP-TEE
 ################################################################################
-optee-os:
-	$(MAKE) \
-		CFG_ARM64_core=y \
-		PLATFORM=mediatek \
-		PLATFORM_FLAVOR=mt8173 \
-		CFG_TEE_CORE_LOG_LEVEL=4 \
-			optee-os-common
+OPTEE_OS_COMMON_FLAGS += PLATFORM=mediatek-mt8173 CFG_ARM64_core=y
+optee-os: optee-os-common
 
-optee-os-clean:
-	$(MAKE) \
-		PLATFORM=mediatek \
-		PLATFORM_FLAVOR=mt8173 \
-			optee-os-clean-common
+OPTEE_OS_CLEAN_COMMON_FLAGS += PLATFORM=mediatek-mt8173 CFG_ARM64_core=y
+optee-os-clean: optee-os-clean-common
 
 optee-client: optee-client-common
+
 optee-client-clean: optee-client-clean-common
 
-optee-linuxdriver:
-	$(MAKE) ARCH=arm64 optee-linuxdriver-common
+OPTEE_LINUXDRIVER_COMMON_FLAGS += ARCH=arm64
+optee-linuxdriver: optee-linuxdriver-common
+
+OPTEE_LINUXDRIVER_CLEAN_COMMON_FLAGS += ARCH=arm64
 optee-linuxdriver-clean: optee-linuxdriver-clean-common
 
 ################################################################################
