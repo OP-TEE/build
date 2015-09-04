@@ -54,7 +54,7 @@ $(LINUX_PATCH_PATH)/.patched:
 		$(LINUX_PATCH_PATH)/patch-all.sh
 	touch $@
 
-$(LINUX_PATH)/.config:
+$(LINUX_PATH)/.config: $(LINUX_PATCH_PATH)/.patched
 	# Temporary fix until we have the driver integrated in the kernel
 	sed -i '/config ARM64$$/a select DMA_SHARED_BUFFER' $(LINUX_PATH)/arch/arm64/Kconfig;
 	make -C $(LINUX_PATH) ARCH=arm64 defconfig
