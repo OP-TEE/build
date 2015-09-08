@@ -76,13 +76,14 @@ busybox-clean:
 # Make sure edksetup.sh only will be called once and that we don't rebuild
 # BaseTools again and again.
 $(EDK2_PATH)/Conf/target.txt:
-	cd $(EDK2_PATH); $(BASH) edksetup.sh; \
-		make -C $(EDK2_PATH)/BaseTools clean; \
-		make -C $(EDK2_PATH)/BaseTools;  \
+	set -e && \
+	cd $(EDK2_PATH) && \
+	$(BASH) edksetup.sh && \
+	$(MAKE) -j1 -C $(EDK2_PATH)/BaseTools
 
 define edk2-common
 	GCC49_AARCH64_PREFIX=$(AARCH64_NONE_CROSS_COMPILE) \
-	     make -C $(EDK2_PATH) \
+	     $(MAKE) -j1 -C $(EDK2_PATH) \
 	     -f ArmPlatformPkg/Scripts/Makefile EDK2_ARCH=AARCH64 \
 	     EDK2_DSC=ArmPlatformPkg/ArmVExpressPkg/ArmVExpress-FVP-AArch64.dsc \
 	     EDK2_TOOLCHAIN=GCC49 EDK2_BUILD=RELEASE \
@@ -90,12 +91,18 @@ define edk2-common
 endef
 
 edk2: $(EDK2_PATH)/Conf/target.txt
+	set -e && \
+	cd $(EDK2_PATH) && \
+	$(BASH) edksetup.sh && \
 	$(call edk2-common)
 
 edk2-clean:
-	$(call edk2-common) clean
-	cd $(EDK2_PATH); \
-		make -C BaseTools clean
+	set -e && \
+	cd $(EDK2_PATH) && \
+	$(BASH) edksetup.sh && \
+	$(call edk2-common) clean && \
+	$(MAKE) -j1 -C $(EDK2_PATH)/BaseTools clean && \
+	rm -f $(EDK2_PATH)/Conf/target.txt
 
 ################################################################################
 # Linux kernel
@@ -133,7 +140,7 @@ optee-linuxdriver: optee-linuxdriver-common
 OPTEE_LINUXDRIVER_CLEAN_COMMON_FLAGS += ARCH=arm64
 optee-linuxdriver-clean: optee-linuxdriver-clean-common
 
-generate-dtb:
+generate-dtb: linux
 	$(LINUX_PATH)/scripts/dtc/dtc \
 		-O dtb \
 		-o $(FOUNDATION_PATH)/fdt.dtb \
@@ -187,7 +194,9 @@ update_rootfs: busybox optee-client optee-linuxdriver xtest filelist-tee
 # Run targets
 ################################################################################
 # This target enforces updating root fs etc
-run: | update_rootfs run-only
+run: all
+	$(MAKE) update_rootfs
+	$(MAKE) run-only
 
 run-only:
 	@ln -sf $(LINUX_PATH)/arch/arm64/boot/Image $(FOUNDATION_PATH)
