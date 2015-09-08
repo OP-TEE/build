@@ -33,6 +33,25 @@ endef
 DEBUG ?= 0
 
 ################################################################################
+# EDK2 / Tianocore
+################################################################################
+# Make sure edksetup.sh only will be called once and that we don't rebuild
+# BaseTools again and again.
+$(EDK2_PATH)/Conf/target.txt:
+	set -e && cd $(EDK2_PATH) && $(BASH) edksetup.sh && \
+	$(MAKE) -j1 -C $(EDK2_PATH)/BaseTools
+
+edk2-common: $(EDK2_PATH)/Conf/target.txt
+	set -e && cd $(EDK2_PATH) && $(BASH) edksetup.sh && \
+	$(call edk2-call)
+
+edk2-clean-common:
+	set -e && cd $(EDK2_PATH) && $(BASH) edksetup.sh && \
+	$(call edk2-call) clean && \
+	$(MAKE) -j1 -C $(EDK2_PATH)/BaseTools clean && \
+	rm -f $(EDK2_PATH)/Conf/target.txt
+
+################################################################################
 # OP-TEE
 ################################################################################
 OPTEE_OS_COMMON_FLAGS ?= CROSS_COMPILE=$(CROSS_COMPILE_S_USER) \

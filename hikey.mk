@@ -119,36 +119,17 @@ busybox-cleaner:
 ################################################################################
 # EDK2 / Tianocore
 ################################################################################
-# Make sure edksetup.sh only will be called once and that we don't rebuild
-# BaseTools again and again.
-$(EDK2_PATH)/Conf/target.txt:
-	set -e; \
-	cd $(EDK2_PATH); $(BASH) edksetup.sh; \
-	make -C $(EDK2_PATH)/BaseTools clean; \
-	make -C $(EDK2_PATH)/BaseTools; \
-
-define edk2-common
+define edk2-call
 	GCC49_AARCH64_PREFIX=$(AARCH64_CROSS_COMPILE) \
-	make -C $(EDK2_PATH) \
+	$(MAKE) -j1 -C $(EDK2_PATH) \
 		-f HisiPkg/HiKeyPkg/Makefile EDK2_ARCH=AARCH64 \
 		EDK2_DSC=HisiPkg/HiKeyPkg/HiKey.dsc \
 		EDK2_TOOLCHAIN=GCC49 EDK2_BUILD=$(EDK2_BUILD)
 endef
 
-edk2: $(EDK2_PATH)/Conf/target.txt
-	@if [ ! -f "$(EDK2_BIN)" ]; then \
-		set -e; \
-		cd $(EDK2_PATH); \
-		$(BASH) edksetup.sh; \
-		$(call edk2-common); \
-	fi
+edk2: edk2-common
 
-edk2-clean:
-	set -e; \
-	cd $(EDK2_PATH); \
-	$(BASH) edksetup.sh; \
-	$(call edk2-common) clean; \
-	make -C $(EDK2_PATH)/BaseTools clean;
+edk2-clean: edk2-clean-common
 
 ################################################################################
 # Linux kernel

@@ -24,6 +24,9 @@ GEN_ROOTFS_PATH		?= $(ROOT)/gen_rootfs
 GEN_ROOTFS_FILELIST	?= $(GEN_ROOTFS_PATH)/filelist-tee.txt
 
 FOUNDATION_PATH		?= $(ROOT)/Foundation_Platformpkg
+ifeq ($(wildcard $(FOUNDATION_PATH)),)
+$(error $(FOUNDATION_PATH) does not exist)
+endif
 
 ################################################################################
 # Targets
@@ -73,15 +76,7 @@ busybox-clean:
 ################################################################################
 # EDK2 / Tianocore
 ################################################################################
-# Make sure edksetup.sh only will be called once and that we don't rebuild
-# BaseTools again and again.
-$(EDK2_PATH)/Conf/target.txt:
-	set -e && \
-	cd $(EDK2_PATH) && \
-	$(BASH) edksetup.sh && \
-	$(MAKE) -j1 -C $(EDK2_PATH)/BaseTools
-
-define edk2-common
+define edk2-call
 	GCC49_AARCH64_PREFIX=$(AARCH64_NONE_CROSS_COMPILE) \
 	     $(MAKE) -j1 -C $(EDK2_PATH) \
 	     -f ArmPlatformPkg/Scripts/Makefile EDK2_ARCH=AARCH64 \
@@ -90,19 +85,9 @@ define edk2-common
 	     EDK2_MACROS="-n 6 -D ARM_FOUNDATION_FVP=1"
 endef
 
-edk2: $(EDK2_PATH)/Conf/target.txt
-	set -e && \
-	cd $(EDK2_PATH) && \
-	$(BASH) edksetup.sh && \
-	$(call edk2-common)
+edk2: edk2-common
 
-edk2-clean:
-	set -e && \
-	cd $(EDK2_PATH) && \
-	$(BASH) edksetup.sh && \
-	$(call edk2-common) clean && \
-	$(MAKE) -j1 -C $(EDK2_PATH)/BaseTools clean && \
-	rm -f $(EDK2_PATH)/Conf/target.txt
+edk2-clean: edk2-clean-common
 
 ################################################################################
 # Linux kernel
