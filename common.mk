@@ -15,6 +15,8 @@ ROOT ?= $(shell pwd)/..
 #
 
 LINUX_PATH			?= $(ROOT)/linux
+GEN_ROOTFS_PATH			?= $(ROOT)/gen_rootfs
+GEN_ROOTFS_FILELIST		?= $(GEN_ROOTFS_PATH)/filelist-tee.txt
 OPTEE_OS_PATH			?= $(ROOT)/optee_os
 OPTEE_CLIENT_PATH		?= $(ROOT)/optee_client
 OPTEE_CLIENT_EXPORT		?= $(OPTEE_CLIENT_PATH)/out/export
@@ -31,6 +33,29 @@ define KERNEL_VERSION
 $(shell cd $(LINUX_PATH) && $(MAKE) --no-print-directory kernelversion)
 endef
 DEBUG ?= 0
+
+################################################################################
+# Busybox
+################################################################################
+BUSYBOX_COMMON_TARGET		?= TOBEDEFINED
+BUSYBOX_CLEAN_COMMON_TARGET	?= TOBEDEFINED
+BUSYBOX_COMMON_CCDIR		?= TOBEDEFINED
+
+busybox-common: linux
+	cd $(GEN_ROOTFS_PATH) &&  \
+		CC_DIR=$(BUSYBOX_COMMON_CCDIR) \
+		PATH=${PATH}:$(LINUX_PATH)/usr \
+		$(GEN_ROOTFS_PATH)/generate-cpio-rootfs.sh \
+			$(BUSYBOX_COMMON_TARGET)
+
+busybox-clean-common:
+	cd $(GEN_ROOTFS_PATH) && \
+	$(GEN_ROOTFS_PATH)/generate-cpio-rootfs.sh  \
+		$(BUSYBOX_CLEAN_COMMON_TARGET)
+
+busybox-cleaner-common:
+	rm -rf $(GEN_ROOTFS_PATH)/build
+	rm -rf $(GEN_ROOTFS_PATH)/filelist-final.txt
 
 ################################################################################
 # EDK2 / Tianocore

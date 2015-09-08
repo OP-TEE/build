@@ -14,10 +14,6 @@ OPTEE_OS_TA_DEV_KIT_DIR		?= $(OPTEE_OS_PATH)/out/arm-plat-mediatek/export-user_t
 # Paths to git projects and various binaries
 ################################################################################
 LINUX_PATCH_PATH 		?= $(ROOT)/patches-upstream
-
-GEN_ROOTFS_PATH 		?= $(ROOT)/gen_rootfs
-GEN_ROOTFS_FILELIST		?= $(GEN_ROOTFS_PATH)/filelist-tee.txt
-
 MTK_TOOLS_PATH 			?= $(ROOT)/mtk_tools
 
 ################################################################################
@@ -33,17 +29,15 @@ all-clean: busybox-clean optee-os-clean \
 ################################################################################
 # Busybox
 ################################################################################
-busybox:
-	@if [ ! -d "$(GEN_ROOTFS_PATH)/build" ]; then \
-		cd $(GEN_ROOTFS_PATH); \
-		CC_DIR=$(AARCH64_PATH) \
-		PATH=${PATH}:$(LINUX_PATH)/usr \
-		$(GEN_ROOTFS_PATH)/generate-cpio-rootfs.sh mt8173-evb; \
-	fi
+BUSYBOX_COMMON_TARGET = mt8173-evb
+BUSYBOX_CLEAN_COMMON_TARGET = mt8173-evb clean
+BUSYBOX_COMMON_CCDIR = $(AARCH64_PATH)
 
-busybox-clean:
-	cd $(GEN_ROOTFS_PATH); \
-		$(GEN_ROOTFS_PATH)/generate-cpio-rootfs.sh mt8173-evb clean
+busybox: busybox-common
+
+busybox-clean: busybox-clean-common
+
+busybox-cleaner: busybox-cleaner-common
 
 ################################################################################
 # Linux kernel

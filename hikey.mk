@@ -32,11 +32,7 @@ EDK2_BIN 			?= $(EDK2_PATH)/Build/HiKey/RELEASE_GCC49/FV/BL33_AP_UEFI.fd
 EDK2_BUILD			?= RELEASE
 endif
 
-LINUX_PATH 			?= $(ROOT)/linux
 LINUX_CONFIG_ADDLIST		?= $(LINUX_PATH)/kernel.config
-
-GEN_ROOTFS_PATH 		?= $(ROOT)/gen_rootfs
-GEN_ROOTFS_FILELIST 		?= $(GEN_ROOTFS_PATH)/filelist-tee.txt
 
 MCUIMAGE_BIN			?=$(ROOT)/out/mcuimage.bin
 USBNETSH_PATH			?=$(ROOT)/out/usbnet.sh
@@ -100,21 +96,16 @@ arm-tf-clean:
 
 ################################################################################
 # Busybox
-################################################################################
-busybox:
-	@if [ ! -d "$(GEN_ROOTFS_PATH)/build" ]; then \
-		cd $(GEN_ROOTFS_PATH); \
-		CC_DIR=$(AARCH64_PATH) \
-		$(GEN_ROOTFS_PATH)/generate-cpio-rootfs.sh hikey nocpio; \
-	fi
+################################################################################*
+BUSYBOX_COMMON_TARGET = hikey nocpio
+BUSYBOX_CLEAN_COMMON_TARGET = hikey clean
+BUSYBOX_COMMON_CCDIR = $(AARCH64_PATH)
 
-busybox-clean:
-	cd $(GEN_ROOTFS_PATH); \
-	$(GEN_ROOTFS_PATH)/generate-cpio-rootfs.sh hikey clean
+busybox: busybox-common
 
-busybox-cleaner:
-	rm -rf $(GEN_ROOTFS_PATH)/build
-	rm -rf $(GEN_ROOTFS_PATH)/filelist-final.txt
+busybox-clean: busybox-clean-common
+
+busybox-cleaner: busybox-cleaner-common
 
 ################################################################################
 # EDK2 / Tianocore

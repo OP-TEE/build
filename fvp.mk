@@ -20,9 +20,6 @@ ARM_TF_PATH		?= $(ROOT)/arm-trusted-firmware
 EDK2_PATH		?= $(ROOT)/edk2
 EDK2_BIN		?= $(EDK2_PATH)/Build/ArmVExpress-FVP-AArch64/RELEASE_GCC49/FV/FVP_AARCH64_EFI.fd
 
-GEN_ROOTFS_PATH		?= $(ROOT)/gen_rootfs
-GEN_ROOTFS_FILELIST	?= $(GEN_ROOTFS_PATH)/filelist-tee.txt
-
 FOUNDATION_PATH		?= $(ROOT)/Foundation_Platformpkg
 ifeq ($(wildcard $(FOUNDATION_PATH)),)
 $(error $(FOUNDATION_PATH) does not exist)
@@ -61,17 +58,15 @@ arm-tf-clean:
 ################################################################################
 # Busybox
 ################################################################################
-busybox:
-	@if [ ! -d "$(GEN_ROOTFS_PATH)/build" ]; then \
-		cd $(GEN_ROOTFS_PATH); \
-		CC_DIR=$(AARCH64_PATH) \
-		PATH=${PATH}:$(LINUX_PATH)/usr \
-		$(GEN_ROOTFS_PATH)/generate-cpio-rootfs.sh fvp-aarch64; \
-	fi
+BUSYBOX_COMMON_TARGET = fvp-aarch64
+BUSYBOX_CLEAN_COMMON_TARGET = fvp-aarch64 clean
+BUSYBOX_COMMON_CCDIR = $(AARCH64_PATH)
 
-busybox-clean:
-	cd $(GEN_ROOTFS_PATH); \
-		$(GEN_ROOTFS_PATH)/generate-cpio-rootfs.sh fvp-aarch64 clean
+busybox: busybox-common
+
+busybox-clean: busybox-clean-common
+
+busybox-cleaner: busybox-cleaner-common
 
 ################################################################################
 # EDK2 / Tianocore

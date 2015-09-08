@@ -20,9 +20,6 @@ OPTEE_OS_TA_DEV_KIT_DIR		?= $(OPTEE_OS_PATH)/out/arm-plat-vexpress/export-user_t
 ################################################################################
 # Paths to git projects and various binaries
 ################################################################################
-GEN_ROOTFS_PATH			?= $(ROOT)/gen_rootfs
-GEN_ROOTFS_FILELIST		?= $(GEN_ROOTFS_PATH)/filelist-tee.txt
-
 BIOS_QEMU_PATH			?= $(ROOT)/bios_qemu_tz_arm
 QEMU_PATH			?= $(ROOT)/qemu
 
@@ -69,18 +66,15 @@ qemu-clean:
 ################################################################################
 # Busybox
 ################################################################################
-busybox: linux
-	@if [ ! -d "$(GEN_ROOTFS_PATH)/build" ]; then \
-		cd $(GEN_ROOTFS_PATH); \
-			CC_DIR=$(AARCH32_PATH) \
-			PATH=${PATH}:$(LINUX_PATH)/usr \
-			$(GEN_ROOTFS_PATH)/generate-cpio-rootfs.sh vexpress; \
-	fi
+BUSYBOX_COMMON_TARGET = vexpress
+BUSYBOX_CLEAN_COMMON_TARGET = vexpress clean
+BUSYBOX_COMMON_CCDIR = $(AARCH32_PATH)
 
-busybox-clean:
-	cd $(GEN_ROOTFS_PATH); \
-		$(GEN_ROOTFS_PATH)/generate-cpio-rootfs.sh vexpress clean
+busybox: busybox-common
 
+busybox-clean: busybox-clean-common
+
+busybox-cleaner: busybox-cleaner-common
 
 ################################################################################
 # Linux kernel
