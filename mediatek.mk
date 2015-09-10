@@ -54,14 +54,20 @@ $(LINUX_PATH)/.config: $(LINUX_PATCH_PATH)/.patched
 	make -C $(LINUX_PATH) ARCH=arm64 defconfig
 
 linux-defconfig: $(LINUX_PATH)/.config
-linux-patched: $(LINUX_PATCH_PATH)/.patched
 
-linux: linux-patched linux-defconfig
-	make -C $(LINUX_PATH) \
-		CROSS_COMPILE="$(CCACHE)$(AARCH64_NONE_CROSS_COMPILE)" \
-		LOCALVERSION= \
-		ARCH=arm64 \
-		-j`getconf _NPROCESSORS_ONLN`
+LINUX_COMMON_FLAGS += ARCH=arm64
+
+linux: linux-common
+
+linux-defconfig-clean: linux-defconfig-clean-common
+
+LINUX_CLEAN_COMMON_FLAGS += ARCH=arm64
+
+linux-clean: linux-clean-common
+
+LINUX_CLEANER_COMMON_FLAGS += ARCH=arm64
+
+linux-cleaner: linux-cleaner-common
 
 ################################################################################
 # OP-TEE

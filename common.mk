@@ -56,6 +56,30 @@ busybox-clean-common:
 busybox-cleaner-common:
 	rm -rf $(GEN_ROOTFS_PATH)/build
 	rm -rf $(GEN_ROOTFS_PATH)/filelist-final.txt
+	
+################################################################################
+# Linux
+################################################################################
+LINUX_COMMON_FLAGS ?= LOCALVERSION= CROSS_COMPILE=$(CROSS_COMPILE_NS_KERNEL)
+
+linux-common: linux-defconfig
+	$(MAKE) -C $(LINUX_PATH) $(LINUX_COMMON_FLAGS)
+
+linux-defconfig-clean-common:
+	@if [ -f "$(LINUX_PATH)/.config" ]; then \
+		rm -f $(LINUX_PATH)/.config; \
+	fi
+
+LINUX_CLEAN_COMMON_FLAGS ?= $(LINUX_COMMON_FLAGS)
+	
+linux-clean-common: linux-defconfig-clean
+	$(MAKE) -C $(LINUX_PATH) $(LINUX_CLEAN_COMMON_FLAGS) clean
+
+LINUX_CLEANER_COMMON_FLAGS ?= $(LINUX_COMMON_FLAGS)
+
+linux-cleaner-common: linux-defconfig-clean
+	$(MAKE) -C $(LINUX_PATH) $(LINUX_CLEAN_COMMON_FLAGS) distclean
+
 
 ################################################################################
 # EDK2 / Tianocore

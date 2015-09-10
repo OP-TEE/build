@@ -153,42 +153,27 @@ linux-defconfig: $(LINUX_PATH)/.config
 
 linux-gen_init_cpio: linux-defconfig
 	make -C $(LINUX_PATH)/usr \
-		CROSS_COMPILE="$(CCACHE)$(AARCH64_CROSS_COMPILE)" \
+		CROSS_COMPILE=$(CROSS_COMPILE_NS_KERNEL) \
 		ARCH=arm64 \
 		LOCALVERSION= \
 		gen_init_cpio
 
-linux: linux-defconfig
-	make -C $(LINUX_PATH) \
-		CROSS_COMPILE="$(CCACHE)$(AARCH64_CROSS_COMPILE)" \
-		ARCH=arm64 \
-		LOCALVERSION= \
-		-j`getconf _NPROCESSORS_ONLN` \
-		Image modules dtbs
+LINUX_COMMON_FLAGS += ARCH=arm64 Image modules dtbs
 
-linux-defconfig-clean:
-	@if [ -f "$(LINUX_PATH)/.config" ]; then \
-		rm $(LINUX_PATH)/.config; \
-	fi
+linux: linux-common
+
+linux-defconfig-clean: linux-defconfig-clean-common
 	@if [ -f "$(LINUX_CONFIG_ADDLIST)" ]; then \
 		rm $(LINUX_CONFIG_ADDLIST); \
 	fi
 
-linux-clean: linux-defconfig-clean
-	make -C $(LINUX_PATH) \
-		CROSS_COMPILE="$(CCACHE)$(AARCH64_CROSS_COMPILE)" \
-		ARCH=arm64 \
-		LOCALVERSION= \
-		-j`getconf _NPROCESSORS_ONLN` \
-		clean
+LINUX_CLEAN_COMMON_FLAGS += ARCH=arm64
 
-linux-cleaner: linux-defconfig-clean
-	make -C $(LINUX_PATH) \
-		CROSS_COMPILE="$(CCACHE)$(AARCH64_CROSS_COMPILE)" \
-		ARCH=arm64 \
-		LOCALVERSION= \
-		-j`getconf _NPROCESSORS_ONLN` \
-		distclean
+linux-clean: linux-clean-common
+
+LINUX_CLEANER_COMMON_FLAGS += ARCH=arm64
+
+linux-cleaner: linux-cleaner-common
 
 ################################################################################
 # OP-TEE

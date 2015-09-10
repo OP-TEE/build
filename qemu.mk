@@ -86,16 +86,19 @@ $(LINUX_PATH)/.config:
 
 linux-defconfig: $(LINUX_PATH)/.config
 
-linux: linux-defconfig
-	$(MAKE) -C $(LINUX_PATH) \
-		CROSS_COMPILE=$(CROSS_COMPILE_NS_KERNEL) \
-		LOCALVERSION= \
-		ARCH=arm
+LINUX_COMMON_FLAGS += ARCH=arm
 
-linux-clean:
-	$(MAKE) -C $(LINUX_PATH) \
-		CROSS_COMPILE=$(CROSS_COMPILE_NS_KERNEL) \
-		mrproper
+linux: linux-common
+
+linux-defconfig-clean: linux-defconfig-clean-common
+
+LINUX_CLEAN_COMMON_FLAGS += ARCH=arm
+
+linux-clean: linux-clean-common
+
+LINUX_CLEANER_COMMON_FLAGS += ARCH=arm
+
+linux-cleaner: linux-cleaner-common
 
 ################################################################################
 # OP-TEE
