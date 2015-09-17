@@ -191,6 +191,11 @@ define run-help
 	@echo xtest 2001
 endef
 
+define launch-terminal
+	@nc -z  127.0.0.1 $(1) || \
+	gnome-terminal -e "$(BASH) -c '$(SOC_TERM_PATH)/soc_term $(1); exec /bin/bash -i'" --title=$(2)
+endef
+
 .PHONY: run
 # This target enforces updating root fs etc
 run: all
@@ -199,8 +204,8 @@ run: all
 .PHONY: run-only
 run-only:
 	$(call run-help)
-	@gnome-terminal -e "$(BASH) -c '$(SOC_TERM_PATH)/soc_term 54320; exec /bin/bash -i'" --title="Normal world"
-	@gnome-terminal -e "$(BASH) -c '$(SOC_TERM_PATH)/soc_term 54321; exec /bin/bash -i'" --title="Secure world"
+	$(call launch-terminal,54320,"Normal World")
+	$(call launch-terminal,54321,"Secure World")
 	@sleep 1
 	$(QEMU_PATH)/arm-softmmu/qemu-system-arm \
 		-nographic \
