@@ -145,22 +145,14 @@ XTEST_COMMON_FLAGS ?= CROSS_COMPILE_HOST=$(CROSS_COMPILE_NS_USER)\
 	O=$(OPTEE_TEST_OUT_PATH)
 
 xtest-common: optee-os optee-client
-	@if [ -d "$(OPTEE_TEST_PATH)" ]; then \
-		$(MAKE) -C $(OPTEE_TEST_PATH) $(XTEST_COMMON_FLAGS); \
-	fi
+	$(MAKE) -C $(OPTEE_TEST_PATH) $(XTEST_COMMON_FLAGS)
 
 XTEST_CLEAN_COMMON_FLAGS ?= $(XTEST_COMMON_FLAGS)
 
 xtest-clean-common:
-	@if [ -d "$(OPTEE_TEST_PATH)" ]; then \
-		$(MAKE) -C $(OPTEE_TEST_PATH) $(XTEST_CLEAN_COMMON_FLAGS) clean; \
-	fi
+	$(MAKE) -C $(OPTEE_TEST_PATH) $(XTEST_CLEAN_COMMON_FLAGS) clean
 
-XTEST_PATCH_COMMON_FLAGS ?= $(XTEST_COMMON_FLAGS) \
-	CFG_OPTEE_TEST_PATH=$(OPTEE_TEST_PATH)
+XTEST_PATCH_COMMON_FLAGS ?= $(XTEST_COMMON_FLAGS)
 
-xtest-patch-common: optee-os optee-client
-	@if [ -d "$(OPTEE_TEST_PATH)" ]; then \
-		$(MAKE) -C $(OPTEE_TEST_PATH) $(XTEST_PATCH_COMMON_FLAGS) \
-			patch; \
-	fi
+xtest-patch-common:
+	$(MAKE) -C $(OPTEE_TEST_PATH) $(XTEST_PATCH_COMMON_FLAGS) patch
