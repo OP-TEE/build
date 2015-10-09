@@ -139,13 +139,10 @@ generate-dtb: linux
 ################################################################################
 # xtest / optee_test
 ################################################################################
-XTEST_COMMON_FLAGS += CFG_ARM32=y
 xtest: xtest-common
 
-XTEST_CLEAN_COMMON_FLAGS += CFG_ARM32=y
 xtest-clean: xtest-clean-common
 
-XTEST_PATCH_COMMON_FLAGS += CFG_ARM32=y
 xtest-patch: xtest-patch-common
 
 ################################################################################
