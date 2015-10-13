@@ -38,22 +38,24 @@ all-clean: arm-tf-clean busybox-clean edk2-clean optee-os-clean \
 ################################################################################
 # ARM Trusted Firmware
 ################################################################################
-arm-tf: optee-os edk2
+ARM_TF_EXPORTS ?= \
 	CFLAGS="-O0 -gdwarf-2" \
-	CROSS_COMPILE="$(CCACHE)$(AARCH64_NONE_CROSS_COMPILE)" \
+	CROSS_COMPILE="$(CCACHE)$(AARCH64_NONE_CROSS_COMPILE)"
+
+ARM_TF_FLAGS ?= \
 	BL32=$(OPTEE_OS_BIN) \
 	BL33=$(EDK2_BIN) \
-	make -C $(ARM_TF_PATH) \
-	       -j`getconf _NPROCESSORS_ONLN` \
-	       DEBUG=0 \
-	       FVP_TSP_RAM_LOCATION=tdram \
-	       FVP_SHARED_DATA_LOCATION=tdram \
-	       PLAT=fvp \
-	       SPD=opteed \
-	       all fip
+	DEBUG=0 \
+	FVP_TSP_RAM_LOCATION=tdram \
+	FVP_SHARED_DATA_LOCATION=tdram \
+	PLAT=fvp \
+	SPD=opteed
+
+arm-tf: optee-os edk2
+	$(ARM_TF_EXPORTS) $(MAKE) -C $(ARM_TF_PATH) $(ARM_TF_FLAGS) all fip
 
 arm-tf-clean:
-	make -C $(ARM_TF_PATH) clean
+	$(ARM_TF_EXPORTS) $(MAKE) -C $(ARM_TF_PATH) $(ARM_TF_FLAGS) clean
 
 ################################################################################
 # Busybox

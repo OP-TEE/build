@@ -68,34 +68,24 @@ mcuimage-cleaner:
 ################################################################################
 # ARM Trusted Firmware
 ################################################################################
-arm-tf: mcuimage optee-os edk2
+ARM_TF_EXPORTS ?= \
 	CFLAGS="-O0 -gdwarf-2" \
-	CROSS_COMPILE="$(CCACHE)$(AARCH64_CROSS_COMPILE)" \
+	CROSS_COMPILE="$(CCACHE)$(AARCH64_CROSS_COMPILE)"
+
+ARM_TF_FLAGS ?= \
 	BL32=$(OPTEE_OS_BIN) \
 	BL33=$(EDK2_BIN) \
 	NEED_BL30=yes \
 	BL30=$(MCUIMAGE_BIN) \
-	make -C $(ARM_TF_PATH) \
-	       -j`getconf _NPROCESSORS_ONLN` \
-	       DEBUG=$(DEBUG) \
-	       PLAT=hikey \
-	       SPD=opteed \
-	       all fip
+	DEBUG=$(DEBUG) \
+	PLAT=hikey \
+	SPD=opteed
 
-.PHONY: arm-tf-clean
+arm-tf: mcuimage optee-os edk2
+	$(ARM_TF_EXPORTS) $(MAKE) -C $(ARM_TF_PATH) $(ARM_TF_FLAGS) all fip
+
 arm-tf-clean:
-	CFLAGS="-O0 -gdwarf-2" \
-        CROSS_COMPILE="$(CCACHE)$(AARCH64_CROSS_COMPILE)" \
-        BL32=$(OPTEE_OS_BIN) \
-        BL33=$(EDK2_BIN) \
-        NEED_BL30=yes \
-        BL30=$(MCUIMAGE_BIN) \
-        make -C $(ARM_TF_PATH) \
-               -j`getconf _NPROCESSORS_ONLN` \
-               DEBUG=$(DEBUG) \
-               PLAT=hikey \
-               SPD=opteed \
-               clean
+	$(ARM_TF_EXPORTS) $(MAKE) -C $(ARM_TF_PATH) $(ARM_TF_FLAGS) clean
 
 ################################################################################
 # Busybox

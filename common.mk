@@ -66,9 +66,7 @@ linux-common: linux-defconfig
 	$(MAKE) -C $(LINUX_PATH) $(LINUX_COMMON_FLAGS)
 
 linux-defconfig-clean-common:
-	@if [ -f "$(LINUX_PATH)/.config" ]; then \
-		rm -f $(LINUX_PATH)/.config; \
-	fi
+	@rm -f $(LINUX_PATH)/.config
 
 LINUX_CLEAN_COMMON_FLAGS ?= $(LINUX_COMMON_FLAGS)
 	
@@ -79,7 +77,6 @@ LINUX_CLEANER_COMMON_FLAGS ?= $(LINUX_COMMON_FLAGS)
 
 linux-cleaner-common: linux-defconfig-clean
 	$(MAKE) -C $(LINUX_PATH) $(LINUX_CLEAN_COMMON_FLAGS) distclean
-
 
 ################################################################################
 # EDK2 / Tianocore
@@ -113,7 +110,7 @@ optee-os-common:
 
 OPTEE_OS_CLEAN_COMMON_FLAGS ?= $(OPTEE_OS_COMMON_FLAGS)
 
-optee-os-clean-common:
+optee-os-clean-common: xtest-clean
 	$(MAKE) -C $(OPTEE_OS_PATH) $(OPTEE_OS_CLEAN_COMMON_FLAGS) clean
 
 OPTEE_CLIENT_COMMON_FLAGS ?= CROSS_COMPILE=$(CROSS_COMPILE_NS_USER)
