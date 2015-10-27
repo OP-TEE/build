@@ -193,7 +193,7 @@ endef
 
 define launch-terminal
 	@nc -z  127.0.0.1 $(1) || \
-	gnome-terminal -e "$(BASH) -c '$(SOC_TERM_PATH)/soc_term $(1); exec /bin/bash -i'" --title=$(2)
+	xterm -title $(2) -e $(BASH) -c "$(SOC_TERM_PATH)/soc_term $(1)" &
 endef
 
 .PHONY: run
