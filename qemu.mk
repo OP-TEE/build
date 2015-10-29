@@ -216,7 +216,7 @@ run-only:
 		-serial tcp:localhost:54320 -serial tcp:localhost:54321 \
 		-s -S -machine virt -cpu cortex-a15 \
 		-m 1057 \
-		-bios $(ROOT)/out/bios-qemu/bios.bin
+		-bios $(ROOT)/out/bios-qemu/bios.bin $(QEMU_EXTRA_ARGS)
 
 
 ifneq ($(filter check,$(MAKECMDGOALS)),)
