@@ -196,6 +196,10 @@ define launch-terminal
 	xterm -title $(2) -e $(BASH) -c "$(SOC_TERM_PATH)/soc_term $(1)" &
 endef
 
+define wait-for-ports
+       @while ! nc -z 127.0.0.1 $(1) || ! nc -z 127.0.0.1 $(2); do sleep 1; done
+endef
+
 .PHONY: run
 # This target enforces updating root fs etc
 run: all
@@ -206,7 +210,7 @@ run-only:
 	$(call run-help)
 	$(call launch-terminal,54320,"Normal World")
 	$(call launch-terminal,54321,"Secure World")
-	@sleep 1
+	$(call wait-for-ports,54320,54321)
 	$(QEMU_PATH)/arm-softmmu/qemu-system-arm \
 		-nographic \
 		-serial tcp:localhost:54320 -serial tcp:localhost:54321 \
