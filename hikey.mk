@@ -251,7 +251,7 @@ filelist-tee: xtest strace
 
 	@echo "# Script called by udhcpc (DHCP client) to update the network configuration" >> $(GEN_ROOTFS_FILELIST)
 	@echo "dir /etc/udhcp 755 0 0" >> $(GEN_ROOTFS_FILELIST)
-	@echo "file /etc/udhcp/simple.script $(GEN_ROOTFS_PATH)/busybox/examples/udhcp/simple.script 755 0 0" >> $(GEN_ROOTFS_FILELIST)
+	@echo "file /etc/udhcp/simple.script $(ROOT)/busybox/examples/udhcp/simple.script 755 0 0" >> $(GEN_ROOTFS_FILELIST)
 	@echo "" >> $(GEN_ROOTFS_FILELIST)
 
 	@echo "# Run this manually after plugging a USB to ethernet adapter" >> $(GEN_ROOTFS_FILELIST)
