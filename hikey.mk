@@ -316,6 +316,11 @@ boot-img: linux update_rootfs
 	sudo cp $(LINUX_PATH)/arch/arm64/boot/Image $(LINUX_PATH)/arch/arm64/boot/dts/hi6220-hikey.dtb .tmpbootimg/
 	sudo cp $(GEN_ROOTFS_PATH)/filesystem.cpio.gz .tmpbootimg/initrd.img
 	sudo cp $(EDK2_PATH)/Build/HiKey/$(EDK2_BUILD)_GCC49/AARCH64/AndroidFastbootApp.efi .tmpbootimg/fastboot.efi
+	# We cannot figure out why we need the sleep here, but from time to time
+	# we can see that we get "device/resource busy" when trying to unmount
+	# .tmpbootimg below. A short sleep seems to solve the problem and has to
+	# be here until we figure out why this happens.
+	sleep 3
 	sudo umount .tmpbootimg
 	sudo rm -rf .tmpbootimg
 
