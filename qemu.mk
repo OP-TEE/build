@@ -57,7 +57,7 @@ bios-qemu-clean:
 	$(call bios-qemu-common) clean
 
 qemu:
-	cd $(QEMU_PATH); ./configure --target-list=arm-softmmu --cc="$(CCACHE)gcc"
+	cd $(QEMU_PATH); ./configure --target-list=arm-softmmu --cc="$(CCACHE)gcc" --extra-cflags="-Wno-error"
 	$(MAKE) -C $(QEMU_PATH)
 
 qemu-clean:
