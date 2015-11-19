@@ -79,10 +79,12 @@ busybox-cleaner: busybox-cleaner-common
 ################################################################################
 # Linux kernel
 ################################################################################
-$(LINUX_PATH)/.config:
+$(LINUX_PATH)/.config: kconfig_preempt.conf
 	# Temporary fix until we have the driver integrated in the kernel
 	sed -i '/config ARM$$/a select DMA_SHARED_BUFFER' $(LINUX_PATH)/arch/arm/Kconfig;
-	$(MAKE) -C $(LINUX_PATH) ARCH=arm vexpress_defconfig
+	cd $(LINUX_PATH) && ARCH=arm scripts/kconfig/merge_config.sh \
+		arch/arm/configs/vexpress_defconfig \
+		$(CURDIR)/kconfig_preempt.conf
 
 linux-defconfig: $(LINUX_PATH)/.config
 
