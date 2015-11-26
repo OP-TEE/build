@@ -121,29 +121,9 @@ edk2-clean: edk2-clean-common
 ################################################################################
 # Linux kernel
 ################################################################################
-$(LINUX_PATH)/.config:
-	echo "# This file is merged with the kernel's default configuration" > $(LINUX_CONFIG_ADDLIST)
-	echo "# Disabling BTRFS gets rid of the RAID6 performance tests at boot time." >> $(LINUX_CONFIG_ADDLIST)
-	echo "# This shaves off a few seconds." >> $(LINUX_CONFIG_ADDLIST)
-	echo "CONFIG_USB_NET_DM9601=y" >> $(LINUX_CONFIG_ADDLIST)
-	echo "# CONFIG_BTRFS_FS is not set" >> $(LINUX_CONFIG_ADDLIST)
-	echo "" >> $(LINUX_CONFIG_ADDLIST)
-	echo "# Enable ftrace as per https://github.com/OP-TEE/optee_os/blob/master/documentation/debug.md#2-ftrace" >> $(LINUX_CONFIG_ADDLIST)
-	echo "CONFIG_GENERIC_TRACER=y" >> $(LINUX_CONFIG_ADDLIST)
-	echo "CONFIG_FTRACE=y" >> $(LINUX_CONFIG_ADDLIST)
-	echo "CONFIG_FUNCTION_TRACER=y" >> $(LINUX_CONFIG_ADDLIST)
-	echo "CONFIG_FUNCTION_GRAPH_TRACER=y" >> $(LINUX_CONFIG_ADDLIST)
-	echo "CONFIG_FTRACE_SYSCALLS=y" >> $(LINUX_CONFIG_ADDLIST)
-	echo "CONFIG_BRANCH_PROFILE_NONE=y" >> $(LINUX_CONFIG_ADDLIST)
-	echo "CONFIG_STACK_TRACER=y" >> $(LINUX_CONFIG_ADDLIST)
-	echo "CONFIG_DYNAMIC_FTRACE=y" >> $(LINUX_CONFIG_ADDLIST)
-	echo "CONFIG_FUNCTION_PROFILER=y" >> $(LINUX_CONFIG_ADDLIST)
-	echo "CONFIG_FTRACE_MCOUNT_RECORD=y" >> $(LINUX_CONFIG_ADDLIST)
-	cd $(LINUX_PATH); \
-	LOCALVERSION= \
-	CROSS_COMPILE="$(CCACHE)$(AARCH64_CROSS_COMPILE)" \
-	ARCH=arm64 scripts/kconfig/merge_config.sh \
-    		arch/arm64/configs/defconfig $(LINUX_CONFIG_ADDLIST);
+LINUX_DEFCONFIG_COMMON_ARCH ?= arm64
+LINUX_DEFCONFIG_COMMON_FILES ?= $(LINUX_PATH)/arch/arm64/configs/defconfig \
+				$(CURDIR)/kconfigs/hikey.conf
 
 linux-defconfig: $(LINUX_PATH)/.config
 

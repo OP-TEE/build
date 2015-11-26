@@ -70,6 +70,11 @@ LINUX_COMMON_FLAGS ?= LOCALVERSION= CROSS_COMPILE=$(CROSS_COMPILE_NS_KERNEL)
 linux-common: linux-defconfig
 	$(MAKE) -C $(LINUX_PATH) $(LINUX_COMMON_FLAGS)
 
+$(LINUX_PATH)/.config: $(LINUX_DEFCONFIG_COMMON_FILES)
+	cd $(LINUX_PATH) && \
+		ARCH=$(LINUX_DEFCONFIG_COMMON_ARCH) \
+		scripts/kconfig/merge_config.sh $(LINUX_DEFCONFIG_COMMON_FILES)
+
 linux-defconfig-clean-common:
 	@rm -f $(LINUX_PATH)/.config
 

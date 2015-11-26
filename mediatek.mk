@@ -48,10 +48,12 @@ $(LINUX_PATCH_PATH)/.patched:
 		$(LINUX_PATCH_PATH)/patch-all.sh
 	touch $@
 
+LINUX_DEFCONFIG_COMMON_ARCH := arm64
+LINUX_DEFCONFIG_COMMON_FILES := \
+                $(LINUX_PATH)/arch/arm64/configs/defconfig \
+                $(CURDIR)/kconfigs/mediatek.conf
+
 $(LINUX_PATH)/.config: $(LINUX_PATCH_PATH)/.patched
-	# Temporary fix until we have the driver integrated in the kernel
-	sed -i '/config ARM64$$/a select DMA_SHARED_BUFFER' $(LINUX_PATH)/arch/arm64/Kconfig;
-	make -C $(LINUX_PATH) ARCH=arm64 defconfig
 
 linux-defconfig: $(LINUX_PATH)/.config
 

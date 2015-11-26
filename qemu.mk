@@ -79,13 +79,10 @@ busybox-cleaner: busybox-cleaner-common
 ################################################################################
 # Linux kernel
 ################################################################################
-KCONFIGS := kconfig_preempt.conf kconfig_no_jffs2.conf
-$(LINUX_PATH)/.config: $(KCONFIGS)
-	# Temporary fix until we have the driver integrated in the kernel
-	sed -i '/config ARM$$/a select DMA_SHARED_BUFFER' $(LINUX_PATH)/arch/arm/Kconfig;
-	cd $(LINUX_PATH) && ARCH=arm scripts/kconfig/merge_config.sh \
-		arch/arm/configs/vexpress_defconfig \
-		$(patsubst %,$(CURDIR)/%,$(KCONFIGS))
+LINUX_DEFCONFIG_COMMON_ARCH := arm
+LINUX_DEFCONFIG_COMMON_FILES := \
+		$(LINUX_PATH)/arch/arm/configs/vexpress_defconfig \
+		$(CURDIR)/kconfigs/qemu.conf
 
 linux-defconfig: $(LINUX_PATH)/.config
 
