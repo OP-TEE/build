@@ -78,15 +78,17 @@ $(LINUX_PATH)/.config: $(LINUX_DEFCONFIG_COMMON_FILES)
 linux-defconfig-clean-common:
 	@rm -f $(LINUX_PATH)/.config
 
-LINUX_CLEAN_COMMON_FLAGS ?= $(LINUX_COMMON_FLAGS)
-	
+# LINUX_CLEAN_COMMON_FLAGS can be defined in specific makefiles (hikey.mk,...)
+# if necessary
+
 linux-clean-common: linux-defconfig-clean
 	$(MAKE) -C $(LINUX_PATH) $(LINUX_CLEAN_COMMON_FLAGS) clean
 
-LINUX_CLEANER_COMMON_FLAGS ?= $(LINUX_COMMON_FLAGS)
+# LINUX_CLEANER_COMMON_FLAGS can be defined in specific makefiles (hikey.mk,...) 
+# if necessary
 
 linux-cleaner-common: linux-defconfig-clean
-	$(MAKE) -C $(LINUX_PATH) $(LINUX_CLEAN_COMMON_FLAGS) distclean
+	$(MAKE) -C $(LINUX_PATH) $(LINUX_CLEANER_COMMON_FLAGS) distclean
 
 ################################################################################
 # EDK2 / Tianocore
@@ -118,7 +120,8 @@ OPTEE_OS_COMMON_FLAGS ?= CROSS_COMPILE=$(CROSS_COMPILE_S_USER) \
 optee-os-common:
 	$(MAKE) -C $(OPTEE_OS_PATH) $(OPTEE_OS_COMMON_FLAGS)
 
-OPTEE_OS_CLEAN_COMMON_FLAGS ?= $(OPTEE_OS_COMMON_FLAGS)
+# OPTEE_OS_CLEAN_COMMON_FLAGS can be defined in specific makefiles
+# (hikey.mk,...) if necessary
 
 optee-os-clean-common: xtest-clean
 	$(MAKE) -C $(OPTEE_OS_PATH) $(OPTEE_OS_CLEAN_COMMON_FLAGS) clean
@@ -128,7 +131,8 @@ OPTEE_CLIENT_COMMON_FLAGS ?= CROSS_COMPILE=$(CROSS_COMPILE_NS_USER)
 optee-client-common:
 	$(MAKE) -C $(OPTEE_CLIENT_PATH) $(OPTEE_CLIENT_COMMON_FLAGS)
 
-OPTEE_CLIENT_CLEAN_COMMON_FLAGS ?= $(OPTEE_CLIENT_COMMON_FLAGS)
+# OPTEE_CLIENT_CLEAN_COMMON_FLAGS can be defined in specific makefiles
+# (hikey.mk,...) if necessary
 
 optee-client-clean-common:
 	$(MAKE) -C $(OPTEE_CLIENT_PATH) $(OPTEE_CLIENT_CLEAN_COMMON_FLAGS) \
@@ -140,7 +144,8 @@ OPTEE_LINUXDRIVER_COMMON_FLAGS ?= CROSS_COMPILE=$(CROSS_COMPILE_NS_KERNEL) \
 optee-linuxdriver-common: linux
 	$(MAKE) -C $(LINUX_PATH) $(OPTEE_LINUXDRIVER_COMMON_FLAGS) modules
 
-OPTEE_LINUXDRIVER_CLEAN_COMMON_FLAGS ?= $(OPTEE_LINUXDRIVER_COMMON_FLAGS)
+# OPTEE_LINUXDRIVER_CLEAN_COMMON_FLAGS can be defined in specific makefiles
+# (hikey.mk,...) if necessary
 
 optee-linuxdriver-clean-common:
 	$(MAKE) -C $(LINUX_PATH) $(OPTEE_LINUXDRIVER_CLEAN_COMMON_FLAGS) clean
@@ -157,7 +162,7 @@ XTEST_COMMON_FLAGS ?= CROSS_COMPILE_HOST=$(CROSS_COMPILE_NS_USER)\
 xtest-common: optee-os optee-client
 	$(MAKE) -C $(OPTEE_TEST_PATH) $(XTEST_COMMON_FLAGS)
 
-XTEST_CLEAN_COMMON_FLAGS ?= $(XTEST_COMMON_FLAGS)
+XTEST_CLEAN_COMMON_FLAGS ?= TA_DEV_KIT_DIR=$(OPTEE_OS_TA_DEV_KIT_DIR)
 
 xtest-clean-common:
 	$(MAKE) -C $(OPTEE_TEST_PATH) $(XTEST_CLEAN_COMMON_FLAGS) clean
