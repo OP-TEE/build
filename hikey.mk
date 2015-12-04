@@ -1,6 +1,7 @@
 ################################################################################
 # User-defined variables
 # Edit so these match your target
+# NOTE: If making changes after a build, please clean before rebuilding!
 ################################################################################
 # Non-secure user mode (root fs binaries): 32 or 64-bit [default 64]
 NSU ?= 64
@@ -8,6 +9,10 @@ NSU ?= 64
 SK ?= 64
 # Secure user mode (Trusted Apps): 32 or 64-bit [default 32, requires SK=64 for 64]
 SU ?= 32
+
+# Normal/secure world console UARTs: 3 or 0 [default 3]
+CFG_NW_CONSOLE_UART ?= 3
+CFG_SW_CONSOLE_UART ?= 3
 
 ################################################################################
 # Includes
@@ -107,6 +112,12 @@ ARM_TF_FLAGS ?= \
 	PLAT=hikey \
 	SPD=opteed
 
+ARM_TF_CONSOLE_UART ?= $(CFG_SW_CONSOLE_UART)
+ifeq ($(ARM_TF_CONSOLE_UART),0)
+	ARM_TF_FLAGS += CONSOLE_BASE=PL011_UART0_BASE \
+			CRASH_CONSOLE_BASE=PL011_UART0_BASE
+endif
+
 arm-tf: optee-os edk2
 	$(ARM_TF_EXPORTS) $(MAKE) -C $(ARM_TF_PATH) $(ARM_TF_FLAGS) all fip
 
@@ -136,12 +147,20 @@ busybox-cleaner: busybox-clean-common busybox-cleaner-common
 ################################################################################
 # EDK2 / Tianocore
 ################################################################################
+EDK2_VARS ?= EDK2_ARCH=AARCH64 \
+		EDK2_DSC=HisiPkg/HiKeyPkg/HiKey.dsc \
+		EDK2_TOOLCHAIN=GCC49 \
+		EDK2_BUILD=$(EDK2_BUILD)
+
+EDK2_CONSOLE_UART ?= $(CFG_NW_CONSOLE_UART)
+ifeq ($(EDK2_CONSOLE_UART),0)
+	EDK2_VARS += EDK2_MACROS="-DSERIAL_BASE=0xF8015000"
+endif
+
 define edk2-call
 	GCC49_AARCH64_PREFIX=$(AARCH64_CROSS_COMPILE) \
 	$(MAKE) -j1 -C $(EDK2_PATH) \
-		-f HisiPkg/HiKeyPkg/Makefile EDK2_ARCH=AARCH64 \
-		EDK2_DSC=HisiPkg/HiKeyPkg/HiKey.dsc \
-		EDK2_TOOLCHAIN=GCC49 EDK2_BUILD=$(EDK2_BUILD)
+		-f HisiPkg/HiKeyPkg/Makefile $(EDK2_VARS)
 endef
 
 edk2: edk2-common
@@ -195,8 +214,9 @@ linux-cleaner: linux-cleaner-common
 ################################################################################
 # OP-TEE
 ################################################################################
-OPTEE_OS_COMMON_FLAGS += PLATFORM=hikey CFG_TEE_TA_LOG_LEVEL=3
-OPTEE_OS_CLEAN_COMMON_FLAGS += PLATFORM=hikey CFG_TEE_TA_LOG_LEVEL=3
+OPTEE_OS_COMMON_FLAGS += PLATFORM=hikey CFG_TEE_TA_LOG_LEVEL=3 CFG_CONSOLE_UART=$(CFG_SW_CONSOLE_UART)
+OPTEE_OS_CLEAN_COMMON_FLAGS += PLATFORM=hikey
+
 ifeq ($(SK),64)
 OPTEE_OS_COMMON_FLAGS += CFG_ARM64_core=y
 OPTEE_OS_CLEAN_COMMON_FLAGS += CFG_ARM64_core=y
@@ -344,6 +364,13 @@ grub-cleaner: grub-clean
 ################################################################################
 # Boot Image
 ################################################################################
+LINUX_CONSOLE_UART ?= $(CFG_NW_CONSOLE_UART)
+ifeq ($(LINUX_CONSOLE_UART),3)
+GRUBCFG = $(PATCHES_PATH)/grub/grub_uart3.cfg
+else
+GRUBCFG = $(PATCHES_PATH)/grub/grub_uart0.cfg
+endif
+
 boot-img: linux update_rootfs edk2 grub
 	sudo -p "[sudo] Password:" true
 	if [ -d .tmpbootimg ] ; then sudo rm -rf .tmpbootimg ; fi
@@ -353,7 +380,8 @@ boot-img: linux update_rootfs edk2 grub
 	sudo mount -o loop,rw,sync $(BOOT_IMG) .tmpbootimg
 	sudo cp $(LINUX_PATH)/arch/arm64/boot/Image $(DTB) .tmpbootimg/
 	sudo mkdir -p .tmpbootimg/EFI/BOOT
-	sudo cp $(OUT_PATH)/grubaa64.efi $(PATCHES_PATH)/grub/grub_uart3.cfg .tmpbootimg/EFI/BOOT/
+	sudo cp $(OUT_PATH)/grubaa64.efi .tmpbootimg/EFI/BOOT/
+	sudo cp $(GRUBCFG) .tmpbootimg/EFI/BOOT/grub.cfg
 	sudo cp $(GEN_ROOTFS_PATH)/filesystem.cpio.gz .tmpbootimg/initrd.img
 	sudo cp $(EDK2_PATH)/Build/HiKey/$(EDK2_BUILD)_GCC49/AARCH64/AndroidFastbootApp.efi .tmpbootimg/EFI/BOOT/fastboot.efi
 	# We cannot figure out why we need the sleep here, but from time to time
