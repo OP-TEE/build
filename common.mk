@@ -114,6 +114,8 @@ edk2-clean-common:
 ################################################################################
 OPTEE_OS_COMMON_FLAGS ?= CROSS_COMPILE=$(CROSS_COMPILE_S_USER) \
 	CROSS_COMPILE_core=$(CROSS_COMPILE_S_KERNEL) \
+	CROSS_COMPILE_ta_arm64=$(AARCH64_CROSS_COMPILE) \
+	CROSS_COMPILE_ta_arm32=$(AARCH32_CROSS_COMPILE) \
 	CFG_TEE_CORE_LOG_LEVEL=3 \
 	DEBUG=$(DEBUG)
 

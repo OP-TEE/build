@@ -1,12 +1,28 @@
+################################################################################
+# User-defined variables
+# Edit so these match your target
+################################################################################
+# Non-secure user mode (root fs binaries): 32 or 64-bit [default 64]
 NSU ?= 64
-SU ?= 32
+# Secure kernel (OP-TEE OS): 32 or 64-bit [default 64]
 SK ?= 64
+# Secure user mode (Trusted Apps): 32 or 64-bit [default 32, requires SK=64 for 64]
+SU ?= 32
 
+################################################################################
+# Includes
+################################################################################
 -include common.mk
 
 ################################################################################
 # Mandatory definition to use common.mk
 ################################################################################
+ifeq ($(SK),32)
+ifeq ($(SU),64)
+$(error 64-bit secure user mode requires 64-bit secure kernel, i.e. SK=64)
+endif
+endif
+
 ifeq ($(NSU),64)
 CROSS_COMPILE_NS_USER		?= "$(CCACHE)$(AARCH64_CROSS_COMPILE)"
 MULTIARCH			:= aarch64-linux-gnu
@@ -26,7 +42,7 @@ else
 CROSS_COMPILE_S_KERNEL		?= "$(CCACHE)$(AARCH32_CROSS_COMPILE)"
 endif
 OPTEE_OS_BIN 			?= $(OPTEE_OS_PATH)/out/arm-plat-hikey/core/tee.bin
-OPTEE_OS_TA_DEV_KIT_DIR		?= $(OPTEE_OS_PATH)/out/arm-plat-hikey/export-user_ta
+OPTEE_OS_TA_DEV_KIT_DIR		?= $(OPTEE_OS_PATH)/out/arm-plat-hikey/export-ta_arm$(SU)
 
 ################################################################################
 # Paths to git projects and various binaries
