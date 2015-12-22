@@ -13,14 +13,13 @@ OPTEE_OS_TA_DEV_KIT_DIR		?= $(OPTEE_OS_PATH)/out/arm-plat-mediatek/export-ta_arm
 ################################################################################
 # Paths to git projects and various binaries
 ################################################################################
-LINUX_PATCH_PATH 		?= $(ROOT)/patches-upstream
 MTK_TOOLS_PATH 			?= $(ROOT)/mtk_tools
 
 ################################################################################
 # Targets
 ################################################################################
 all: linux optee-os optee-client optee-linuxdriver xtest
-all-clean: busybox-clean optee-os-clean \
+all-clean: linux-clean busybox-clean optee-os-clean \
 	optee-client-clean optee-linuxdriver-clean
 
 
@@ -42,18 +41,10 @@ busybox-cleaner: busybox-cleaner-common
 ################################################################################
 # Linux kernel
 ################################################################################
-.ONESHELL:
-$(LINUX_PATCH_PATH)/.patched:
-	cd $(LINUX_PATH); \
-		$(LINUX_PATCH_PATH)/patch-all.sh
-	touch $@
-
 LINUX_DEFCONFIG_COMMON_ARCH := arm64
 LINUX_DEFCONFIG_COMMON_FILES := \
                 $(LINUX_PATH)/arch/arm64/configs/defconfig \
                 $(CURDIR)/kconfigs/mediatek.conf
-
-$(LINUX_PATH)/.config: $(LINUX_PATCH_PATH)/.patched
 
 linux-defconfig: $(LINUX_PATH)/.config
 
