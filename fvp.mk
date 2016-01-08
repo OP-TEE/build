@@ -46,8 +46,7 @@ ARM_TF_FLAGS ?= \
 	BL32=$(OPTEE_OS_BIN) \
 	BL33=$(EDK2_BIN) \
 	DEBUG=0 \
-	FVP_TSP_RAM_LOCATION=tdram \
-	FVP_SHARED_DATA_LOCATION=tdram \
+	ARM_TSP_RAM_LOCATION=tdram \
 	PLAT=fvp \
 	SPD=opteed
 
@@ -188,7 +187,7 @@ run-only:
 	@ln -sf $(LINUX_PATH)/arch/arm64/boot/Image $(FOUNDATION_PATH)
 	@ln -sf $(GEN_ROOTFS_PATH)/filesystem.cpio.gz $(FOUNDATION_PATH)
 	@cd $(FOUNDATION_PATH); \
-	$(FOUNDATION_PATH)/models/Linux64_GCC-4.1/Foundation_Platform \
+	$(FOUNDATION_PATH)/models/Linux64_GCC-4.7/Foundation_Platform \
 	--cores=4 \
 	--secure-memory \
 	--visualization \
