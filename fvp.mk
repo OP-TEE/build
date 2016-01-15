@@ -7,10 +7,10 @@ DEBUG ?= 1
 ################################################################################
 CROSS_COMPILE_NS_USER	?= "$(CCACHE)$(AARCH64_CROSS_COMPILE)"
 CROSS_COMPILE_NS_KERNEL	?= "$(CCACHE)$(AARCH64_CROSS_COMPILE)"
-CROSS_COMPILE_S_USER	?= "$(CCACHE)$(AARCH32_CROSS_COMPILE)"
-CROSS_COMPILE_S_KERNEL	?= "$(CCACHE)$(AARCH32_CROSS_COMPILE)"
+CROSS_COMPILE_S_USER	?= "$(CCACHE)$(AARCH64_CROSS_COMPILE)"
+CROSS_COMPILE_S_KERNEL	?= "$(CCACHE)$(AARCH64_CROSS_COMPILE)"
 OPTEE_OS_BIN		?= $(OPTEE_OS_PATH)/out/arm-plat-vexpress/core/tee.bin
-OPTEE_OS_TA_DEV_KIT_DIR	?= $(OPTEE_OS_PATH)/out/arm-plat-vexpress/export-ta_arm32
+OPTEE_OS_TA_DEV_KIT_DIR	?= $(OPTEE_OS_PATH)/out/arm-plat-vexpress/export-ta_arm64
 
 ################################################################################
 # Paths to git projects and various binaries
@@ -112,7 +112,7 @@ linux-cleaner: linux-cleaner-common
 ################################################################################
 # OP-TEE
 ################################################################################
-OPTEE_OS_COMMON_FLAGS += PLATFORM=vexpress-fvp
+OPTEE_OS_COMMON_FLAGS += PLATFORM=vexpress-fvp CFG_ARM64_core=y
 optee-os: optee-os-common
 
 OPTEE_OS_CLEAN_COMMON_FLAGS += PLATFORM=vexpress-fvp
