@@ -420,9 +420,32 @@ nvme-cleaner:
 ################################################################################
 # Flash
 ################################################################################
+define flash_help
+	@read -r -p "1. Connect USB OTG cable, the micro USB cable (press any key)" dummy
+	@read -r -p "2. Connect HiKey to power up (press any key)" dummy
+endef
+
+.PHONY: recovery
+recovery:
+	@echo "Enter recovery mode to flash a new bootloader"
+	@echo "Jumper 1-2: Closed (Auto power up = Boot up when power is applied)"
+	@echo "       3-4: Closed (Boot Select = Recovery: program eMMC from USB OTG)"
+	$(call flash_help)
+	sudo python $(ROOT)/burn-boot/hisi-idt.py --img1=$(LLOADER_PATH)/l-loader.bin
+	@$(MAKE) --no-print flash FROM_RECOVERY=1
+
 .PHONY: flash
 flash:
-	sudo python $(ROOT)/burn-boot/hisi-idt.py --img1=$(LLOADER_PATH)/l-loader.bin
+ifneq ($(FROM_RECOVERY),1)
+	@echo "Flash binaries using fastboot"
+	@echo "Jumper 1-2: Closed (Auto power up = Boot up when power is applied)"
+	@echo "       3-4: Open   (Boot Select = Boot from eMMC)"
+	@echo "       5-6: Closed (GPIO3-1 = Low: UEFI runs Fastboot app)"
+	$(call flash_help)
+	@echo "3. Wait until you see the (UART) message"
+	@echo "    \"Android Fastboot mode - version x.x Press any key to quit.\""
+	@read -r -p "   Then press any key to continue flashing" dummy
+endif
 	fastboot flash ptable $(LLOADER_PATH)/ptable-linux-4g.img
 	fastboot flash fastboot $(ARM_TF_PATH)/build/hikey/$(ARM_TF_BUILD)/fip.bin
 	fastboot flash nvme $(NVME_IMG)
