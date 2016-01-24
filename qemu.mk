@@ -214,7 +214,7 @@ run-only:
 	$(QEMU_PATH)/arm-softmmu/qemu-system-arm \
 		-nographic \
 		-serial tcp:localhost:54320 -serial tcp:localhost:54321 \
-		-s -S -machine virt -cpu cortex-a15 \
+		-s -S -machine virt -machine secure=on -cpu cortex-a15 \
 		-m 1057 \
 		-bios $(ROOT)/out/bios-qemu/bios.bin $(QEMU_EXTRA_ARGS)
 
