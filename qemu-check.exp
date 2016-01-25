@@ -39,7 +39,7 @@ log_user 0
 # Save guest console output to a file
 log_file -a -noappend "serial0.log"
 info "Starting QEMU..."
-spawn ../qemu/arm-softmmu/qemu-system-arm -nographic -monitor none -machine virt -machine secure=on virt -cpu cortex-a15 -m 1057 -serial stdio -serial file:serial1.log -bios $bios
+spawn ../qemu/arm-softmmu/qemu-system-arm -nographic -monitor none -machine virt -machine secure=on -cpu cortex-a15 -m 1057 -serial stdio -serial file:serial1.log -bios $bios
 expect {
 	"Kernel panic" {
 		info "!!! Kernel panic\n"
