@@ -20,7 +20,6 @@ GEN_ROOTFS_FILELIST		?= $(GEN_ROOTFS_PATH)/filelist-tee.txt
 OPTEE_OS_PATH			?= $(ROOT)/optee_os
 OPTEE_CLIENT_PATH		?= $(ROOT)/optee_client
 OPTEE_CLIENT_EXPORT		?= $(OPTEE_CLIENT_PATH)/out/export
-OPTEE_LINUXDRIVER_PATH		?= $(ROOT)/optee_linuxdriver
 OPTEE_TEST_PATH			?= $(ROOT)/optee_test
 OPTEE_TEST_OUT_PATH 		?= $(ROOT)/optee_test/out
 
@@ -139,18 +138,6 @@ optee-client-common:
 optee-client-clean-common:
 	$(MAKE) -C $(OPTEE_CLIENT_PATH) $(OPTEE_CLIENT_CLEAN_COMMON_FLAGS) \
 		clean
-
-OPTEE_LINUXDRIVER_COMMON_FLAGS ?= CROSS_COMPILE=$(CROSS_COMPILE_NS_KERNEL) \
-	LOCALVERSION= M=$(OPTEE_LINUXDRIVER_PATH)
-
-optee-linuxdriver-common: linux
-	$(MAKE) -C $(LINUX_PATH) $(OPTEE_LINUXDRIVER_COMMON_FLAGS) modules
-
-# OPTEE_LINUXDRIVER_CLEAN_COMMON_FLAGS can be defined in specific makefiles
-# (hikey.mk,...) if necessary
-
-optee-linuxdriver-clean-common:
-	$(MAKE) -C $(LINUX_PATH) $(OPTEE_LINUXDRIVER_CLEAN_COMMON_FLAGS) clean
 
 ################################################################################
 # xtest / optee_test
