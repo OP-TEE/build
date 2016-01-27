@@ -84,7 +84,7 @@ SHAPERF_PATH			?=$(ROOT)/sha-perf
 ################################################################################
 all: prepare arm-tf boot-img lloader nvme
 
-clean: arm-tf-clean busybox-clean edk2-clean linux-clean optee-os-clean optee-client-clean optee-linuxdriver-clean xtest-clean strace-clean update_rootfs-clean boot-img-clean lloader-clean aes-perf-clean sha-perf-clean grub-clean
+clean: arm-tf-clean busybox-clean edk2-clean linux-clean optee-os-clean optee-client-clean xtest-clean strace-clean update_rootfs-clean boot-img-clean lloader-clean aes-perf-clean sha-perf-clean grub-clean
 
 cleaner: clean prepare-cleaner busybox-cleaner linux-cleaner strace-cleaner nvme-cleaner grub-cleaner
 
@@ -232,13 +232,6 @@ optee-client: optee-client-common
 .PHONY: optee-client-clean
 optee-client-clean: optee-client-clean-common
 
-OPTEE_LINUXDRIVER_COMMON_FLAGS += ARCH=arm64
-optee-linuxdriver: optee-linuxdriver-common
-
-OPTEE_LINUXDRIVER_CLEAN_COMMON_FLAGS += ARCH=arm64
-.PHONY: optee-linuxdriver-clean
-optee-linuxdriver-clean: optee-linuxdriver-clean-common
-
 ################################################################################
 # xtest / optee_test
 ################################################################################
@@ -318,7 +311,7 @@ filelist-all: busybox
 	find $(OPTEE_TEST_OUT_PATH) -name "*.ta" | \
 		sed 's/\(.*\)\/\(.*\)/file \/lib\/optee_armtz\/\2 \1\/\2 444 0 0/g' >> $(GEN_ROOTFS_PATH)/filelist-all.txt
 
-update_rootfs: optee-client optee-linuxdriver xtest aes-perf sha-perf strace filelist-all linux-gen_init_cpio
+update_rootfs: optee-client xtest aes-perf sha-perf strace filelist-all linux-gen_init_cpio
 	cd $(GEN_ROOTFS_PATH); \
 	        $(LINUX_PATH)/usr/gen_init_cpio $(GEN_ROOTFS_PATH)/filelist-all.txt | gzip > $(GEN_ROOTFS_PATH)/filesystem.cpio.gz
 
