@@ -57,9 +57,6 @@ info " done, guest is booted.\nLoading OP-TEE driver and tee-supplicant..."
 # Toolchain libraries might be here or there
 send -- "export LD_LIBRARY_PATH=/lib:/lib/arm-linux-gnueabihf\r"
 expect "root@Vexpress:/ "
-send -- "modprobe optee_armtz\r"
-expect "root@Vexpress:/ "
-sleep 1
 send -- "tee-supplicant&\r"
 expect "root@Vexpress:/ "
 sleep 1
