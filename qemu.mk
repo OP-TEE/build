@@ -173,8 +173,6 @@ define run-help
 	@echo attach a debugger and continue from there.
 	@echo
 	@echo To run xtest paste the following on the serial 0 prompt
-	@echo modprobe optee_armtz
-	@echo sleep 0.1
 	@echo tee-supplicant\&
 	@echo sleep 0.1
 	@echo xtest
