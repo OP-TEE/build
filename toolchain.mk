@@ -21,14 +21,14 @@ SRC_AARCH64_NONE_GCC 		?= http://releases.linaro.org/14.07/components/toolchain/
 
 toolchains:
 	mkdir -p $(AARCH32_PATH)
-	curl $(SRC_AARCH32_GCC) -o $(TOOLCHAIN_ROOT)/$(AARCH32_GCC_VERSION).tar.xz
+	curl -L $(SRC_AARCH32_GCC) -o $(TOOLCHAIN_ROOT)/$(AARCH32_GCC_VERSION).tar.xz
 	tar xf $(TOOLCHAIN_ROOT)/$(AARCH32_GCC_VERSION).tar.xz -C $(AARCH32_PATH) --strip-components=1
 
 	mkdir -p $(AARCH64_PATH)
-	curl $(SRC_AARCH64_GCC) -o $(TOOLCHAIN_ROOT)/$(AARCH64_GCC_VERSION).tar.xz
+	curl -L $(SRC_AARCH64_GCC) -o $(TOOLCHAIN_ROOT)/$(AARCH64_GCC_VERSION).tar.xz
 	tar xf $(TOOLCHAIN_ROOT)/$(AARCH64_GCC_VERSION).tar.xz -C $(AARCH64_PATH) --strip-components=1
 
 	mkdir -p $(AARCH64_NONE_PATH)
-	curl $(SRC_AARCH64_NONE_GCC) -o $(TOOLCHAIN_ROOT)/$(AARCH64_NONE_GCC_VERSION).tar.xz
+	curl -L $(SRC_AARCH64_NONE_GCC) -o $(TOOLCHAIN_ROOT)/$(AARCH64_NONE_GCC_VERSION).tar.xz
 	tar xf $(TOOLCHAIN_ROOT)/$(AARCH64_NONE_GCC_VERSION).tar.xz -C $(AARCH64_NONE_PATH) --strip-components=1
 
