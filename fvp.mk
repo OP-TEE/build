@@ -1,25 +1,25 @@
 DEBUG ?= 1
 
+################################################################################
+# Following variables defines how the NS_USER (Non Secure User - Client
+# Application), NS_KERNEL (Non Secure Kernel), S_KERNEL (Secure Kernel) and
+# S_USER (Secure User - TA) are compiled
+################################################################################
+
+COMPILE_NS_USER   := 64
+COMPILE_NS_KERNEL := 64
+COMPILE_S_USER    ?= 64
+COMPILE_S_KERNEL  ?= 64
+
 -include common.mk
 
-################################################################################
-# Mandatory definition to use common.mk
-################################################################################
-CROSS_COMPILE_NS_USER	?= "$(CCACHE)$(AARCH64_CROSS_COMPILE)"
-CROSS_COMPILE_NS_KERNEL	?= "$(CCACHE)$(AARCH64_CROSS_COMPILE)"
-CROSS_COMPILE_S_USER	?= "$(CCACHE)$(AARCH64_CROSS_COMPILE)"
-CROSS_COMPILE_S_KERNEL	?= "$(CCACHE)$(AARCH64_CROSS_COMPILE)"
-OPTEE_OS_BIN		?= $(OPTEE_OS_PATH)/out/arm-plat-vexpress/core/tee.bin
-OPTEE_OS_TA_DEV_KIT_DIR	?= $(OPTEE_OS_PATH)/out/arm-plat-vexpress/export-ta_arm64
 
 ################################################################################
 # Paths to git projects and various binaries
 ################################################################################
 ARM_TF_PATH		?= $(ROOT)/arm-trusted-firmware
-
 EDK2_PATH		?= $(ROOT)/edk2
 EDK2_BIN		?= $(EDK2_PATH)/Build/ArmVExpress-FVP-AArch64/RELEASE_GCC49/FV/FVP_AARCH64_EFI.fd
-
 FOUNDATION_PATH		?= $(ROOT)/Foundation_Platformpkg
 ifeq ($(wildcard $(FOUNDATION_PATH)),)
 $(error $(FOUNDATION_PATH) does not exist)
@@ -112,7 +112,7 @@ linux-cleaner: linux-cleaner-common
 ################################################################################
 # OP-TEE
 ################################################################################
-OPTEE_OS_COMMON_FLAGS += PLATFORM=vexpress-fvp CFG_ARM64_core=y
+OPTEE_OS_COMMON_FLAGS += PLATFORM=vexpress-fvp 
 optee-os: optee-os-common
 
 OPTEE_OS_CLEAN_COMMON_FLAGS += PLATFORM=vexpress-fvp

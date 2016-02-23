@@ -26,6 +26,98 @@ OPTEE_TEST_OUT_PATH 		?= $(ROOT)/optee_test/out
 
 CCACHE ?= $(shell which ccache) # Don't remove this comment (space is needed)
 
+
+################################################################################
+# Check coherency of compilation mode
+################################################################################
+
+ifneq ($(COMPILE_NS_USER),)
+ifeq ($(COMPILE_NS_KERNEL),)
+$(error COMPILE_NS_KERNEL must be defined as COMPILE_NS_USER=$(COMPILE_NS_USER) is defined)
+endif
+ifeq (,$(filter $(COMPILE_NS_USER),32 64))
+$(error COMPILE_NS_USER=$(COMPILE_NS_USER) - Should be 32 or 64)
+endif
+endif
+
+ifneq ($(COMPILE_NS_KERNEL),)
+ifeq ($(COMPILE_NS_USER),)
+$(error COMPILE_NS_USER must be defined as COMPILE_NS_KERNEL=$(COMPILE_NS_KERNEL) is defined)
+endif
+ifeq (,$(filter $(COMPILE_NS_KERNEL),32 64))
+$(error COMPILE_NS_KERNEL=$(COMPILE_NS_KERNEL) - Should be 32 or 64)
+endif
+endif
+
+ifeq ($(COMPILE_NS_KERNEL),32)
+ifneq ($(COMPILE_NS_USER),32)
+$(error COMPILE_NS_USER=$(COMPILE_NS_USER) - Should be 32 as COMPILE_NS_KERNEL=$(COMPILE_NS_KERNEL))
+endif
+endif
+
+ifneq ($(COMPILE_S_USER),)
+ifeq ($(COMPILE_S_KERNEL),)
+$(error COMPILE_S_KERNEL must be defined as COMPILE_S_USER=$(COMPILE_S_USER) is defined)
+endif
+ifeq (,$(filter $(COMPILE_S_USER),32 64))
+$(error COMPILE_S_USER=$(COMPILE_S_USER) - Should be 32 or 64)
+endif
+endif
+
+ifneq ($(COMPILE_S_KERNEL),)
+OPTEE_OS_COMMON_EXTRA_FLAGS ?= O=out/arm
+OPTEE_OS_BIN		    ?= $(OPTEE_OS_PATH)/out/arm/core/tee.bin
+ifeq ($(COMPILE_S_USER),)
+$(error COMPILE_S_USER must be defined as COMPILE_S_KERNEL=$(COMPILE_S_KERNEL) is defined)
+endif
+ifeq (,$(filter $(COMPILE_S_KERNEL),32 64))
+$(error COMPILE_S_KERNEL=$(COMPILE_S_KERNEL) - Should be 32 or 64)
+endif
+endif
+
+ifeq ($(COMPILE_S_KERNEL),32)
+ifneq ($(COMPILE_S_USER),32)
+$(error COMPILE_S_USER=$(COMPILE_S_USER) - Should be 32 as COMPILE_S_KERNEL=$(COMPILE_S_KERNEL))
+endif
+endif
+
+
+################################################################################
+# set the compiler when COMPILE_xxx are defined
+################################################################################
+
+ifeq ($(COMPILE_NS_USER),32)
+CROSS_COMPILE_NS_USER	?= "$(CCACHE)$(AARCH32_CROSS_COMPILE)"
+endif
+ifeq ($(COMPILE_NS_USER),64)
+CROSS_COMPILE_NS_USER	?= "$(CCACHE)$(AARCH64_CROSS_COMPILE)"
+endif
+
+ifeq ($(COMPILE_NS_KERNEL),32)
+CROSS_COMPILE_NS_KERNEL	?= "$(CCACHE)$(AARCH32_CROSS_COMPILE)"
+endif
+ifeq ($(COMPILE_NS_KERNEL),64)
+CROSS_COMPILE_NS_KERNEL	?= "$(CCACHE)$(AARCH64_CROSS_COMPILE)"
+endif
+
+ifeq ($(COMPILE_S_USER),32)
+CROSS_COMPILE_S_USER	?= "$(CCACHE)$(AARCH32_CROSS_COMPILE)"
+OPTEE_OS_TA_DEV_KIT_DIR	?= $(OPTEE_OS_PATH)/out/arm/export-ta_arm32
+endif
+ifeq ($(COMPILE_S_USER),64)
+CROSS_COMPILE_S_USER	?= "$(CCACHE)$(AARCH64_CROSS_COMPILE)"
+OPTEE_OS_TA_DEV_KIT_DIR	?= $(OPTEE_OS_PATH)/out/arm/export-ta_arm64
+endif
+
+ifeq ($(COMPILE_S_KERNEL),32)
+CROSS_COMPILE_S_KERNEL	?= "$(CCACHE)$(AARCH32_CROSS_COMPILE)"
+endif
+ifeq ($(COMPILE_S_KERNEL),64)
+CROSS_COMPILE_S_KERNEL		?= "$(CCACHE)$(AARCH64_CROSS_COMPILE)"
+OPTEE_OS_COMMON_EXTRA_FLAGS	+= CFG_ARM64_core=y
+endif
+
+
 ################################################################################
 # defines, macros, configuration etc
 ################################################################################
@@ -112,7 +204,9 @@ edk2-clean-common:
 ################################################################################
 # OP-TEE
 ################################################################################
-OPTEE_OS_COMMON_FLAGS ?= CROSS_COMPILE=$(CROSS_COMPILE_S_USER) \
+OPTEE_OS_COMMON_FLAGS ?= \
+	$(OPTEE_OS_COMMON_EXTRA_FLAGS) \
+	CROSS_COMPILE=$(CROSS_COMPILE_S_USER) \
 	CROSS_COMPILE_core=$(CROSS_COMPILE_S_KERNEL) \
 	CROSS_COMPILE_ta_arm64=$(AARCH64_CROSS_COMPILE) \
 	CROSS_COMPILE_ta_arm32=$(AARCH32_CROSS_COMPILE) \
@@ -122,8 +216,7 @@ OPTEE_OS_COMMON_FLAGS ?= CROSS_COMPILE=$(CROSS_COMPILE_S_USER) \
 optee-os-common:
 	$(MAKE) -C $(OPTEE_OS_PATH) $(OPTEE_OS_COMMON_FLAGS)
 
-# OPTEE_OS_CLEAN_COMMON_FLAGS can be defined in specific makefiles
-# (hikey.mk,...) if necessary
+OPTEE_OS_CLEAN_COMMON_FLAGS ?= $(OPTEE_OS_COMMON_EXTRA_FLAGS)
 
 optee-os-clean-common: xtest-clean
 	$(MAKE) -C $(OPTEE_OS_PATH) $(OPTEE_OS_CLEAN_COMMON_FLAGS) clean
@@ -159,6 +252,7 @@ XTEST_COMMON_FLAGS ?= CROSS_COMPILE_HOST=$(CROSS_COMPILE_NS_USER)\
 	CROSS_COMPILE_TA=$(CROSS_COMPILE_S_USER) \
 	TA_DEV_KIT_DIR=$(OPTEE_OS_TA_DEV_KIT_DIR) \
 	CFG_DEV_PATH=$(ROOT) \
+	COMPILE_NS_USER=$(COMPILE_NS_USER) \
 	O=$(OPTEE_TEST_OUT_PATH)
 
 xtest-common: optee-os optee-client
