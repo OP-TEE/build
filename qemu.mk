@@ -1,21 +1,14 @@
--include common.mk
+################################################################################
+# Following variables defines how the NS_USER (Non Secure User - Client
+# Application), NS_KERNEL (Non Secure Kernel), S_KERNEL (Secure Kernel) and
+# S_USER (Secure User - TA) are compiled
+################################################################################
+override COMPILE_NS_USER   := 32
+override COMPILE_NS_KERNEL := 32
+override COMPILE_S_USER    := 32
+override COMPILE_S_KERNEL  := 32
 
-################################################################################
-# Mandatory definition to use common.mk
-################################################################################
-ifneq ($(CROSS_COMPILE),)
-CROSS_COMPILE_NS_USER		?= "$(CROSS_COMPILE)"
-CROSS_COMPILE_NS_KERNEL		?= "$(CROSS_COMPILE)"
-CROSS_COMPILE_S_USER		?= "$(CROSS_COMPILE)"
-CROSS_COMPILE_S_KERNEL		?= "$(CROSS_COMPILE)"
-else
-CROSS_COMPILE_NS_USER		?= "$(CCACHE)$(AARCH32_CROSS_COMPILE)"
-CROSS_COMPILE_NS_KERNEL		?= "$(CCACHE)$(AARCH32_CROSS_COMPILE)"
-CROSS_COMPILE_S_USER		?= "$(CCACHE)$(AARCH32_CROSS_COMPILE)"
-CROSS_COMPILE_S_KERNEL		?= "$(CCACHE)$(AARCH32_CROSS_COMPILE)"
-endif
-OPTEE_OS_BIN			?= $(OPTEE_OS_PATH)/out/arm-plat-vexpress/core/tee.bin
-OPTEE_OS_TA_DEV_KIT_DIR		?= $(OPTEE_OS_PATH)/out/arm-plat-vexpress/export-ta_arm32
+-include common.mk
 
 ################################################################################
 # Paths to git projects and various binaries
@@ -68,7 +61,6 @@ qemu-clean:
 ################################################################################
 BUSYBOX_COMMON_TARGET = vexpress
 BUSYBOX_CLEAN_COMMON_TARGET = vexpress clean
-BUSYBOX_COMMON_CCDIR = $(AARCH32_PATH)
 
 busybox: busybox-common
 
@@ -131,13 +123,10 @@ soc-term-clean:
 ################################################################################
 # xtest / optee_test
 ################################################################################
-XTEST_COMMON_FLAGS += CFG_ARM32=y
 xtest: xtest-common
 
-XTEST_CLEAN_COMMON_FLAGS += CFG_ARM32=y
 xtest-clean: xtest-clean-common
 
-XTEST_PATCH_COMMON_FLAGS += CFG_ARM32=y
 xtest-patch: xtest-patch-common
 
 ################################################################################

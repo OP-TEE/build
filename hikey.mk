@@ -1,14 +1,12 @@
 ################################################################################
-# User-defined variables
-# Edit so these match your target
-# NOTE: If making changes after a build, please clean before rebuilding!
+# Following variables defines how the NS_USER (Non Secure User - Client
+# Application), NS_KERNEL (Non Secure Kernel), S_KERNEL (Secure Kernel) and
+# S_USER (Secure User - TA) are compiled
 ################################################################################
-# Non-secure user mode (root fs binaries): 32 or 64-bit [default 64]
-NSU ?= 64
-# Secure kernel (OP-TEE OS): 32 or 64-bit [default 64]
-SK ?= 64
-# Secure user mode (Trusted Apps): 32 or 64-bit [default 32, requires SK=64 for 64]
-SU ?= 32
+COMPILE_NS_USER   ?= 64
+override COMPILE_NS_KERNEL := 64
+COMPILE_S_USER    ?= 32
+COMPILE_S_KERNEL  ?= 64
 
 # Normal/secure world console UARTs: 3 or 0 [default 3]
 CFG_NW_CONSOLE_UART ?= 3
@@ -22,32 +20,11 @@ CFG_SW_CONSOLE_UART ?= 3
 ################################################################################
 # Mandatory definition to use common.mk
 ################################################################################
-ifeq ($(SK),32)
-ifeq ($(SU),64)
-$(error 64-bit secure user mode requires 64-bit secure kernel, i.e. SK=64)
-endif
-endif
-
-ifeq ($(NSU),64)
-CROSS_COMPILE_NS_USER		?= "$(CCACHE)$(AARCH64_CROSS_COMPILE)"
+ifeq ($(COMPILE_NS_USER),64)
 MULTIARCH			:= aarch64-linux-gnu
 else
-CROSS_COMPILE_NS_USER		?= "$(CCACHE)$(AARCH32_CROSS_COMPILE)"
 MULTIARCH			:= arm-linux-gnueabihf
 endif
-CROSS_COMPILE_NS_KERNEL		?= "$(CCACHE)$(AARCH64_CROSS_COMPILE)"
-ifeq ($(SU),64)
-CROSS_COMPILE_S_USER		?= "$(CCACHE)$(AARCH64_CROSS_COMPILE)"
-else
-CROSS_COMPILE_S_USER		?= "$(CCACHE)$(AARCH32_CROSS_COMPILE)"
-endif
-ifeq ($(SK),64)
-CROSS_COMPILE_S_KERNEL		?= "$(CCACHE)$(AARCH64_CROSS_COMPILE)"
-else
-CROSS_COMPILE_S_KERNEL		?= "$(CCACHE)$(AARCH32_CROSS_COMPILE)"
-endif
-OPTEE_OS_BIN 			?= $(OPTEE_OS_PATH)/out/arm-plat-hikey/core/tee.bin
-OPTEE_OS_TA_DEV_KIT_DIR		?= $(OPTEE_OS_PATH)/out/arm-plat-hikey/export-ta_arm$(SU)
 
 ################################################################################
 # Paths to git projects and various binaries
@@ -130,11 +107,6 @@ arm-tf-clean:
 ################################################################################
 BUSYBOX_COMMON_TARGET = hikey nocpio
 BUSYBOX_CLEAN_COMMON_TARGET = hikey clean
-ifeq ($(NSU),64)
-BUSYBOX_COMMON_CCDIR = $(AARCH64_PATH)
-else
-BUSYBOX_COMMON_CCDIR = $(AARCH32_PATH)
-endif
 
 busybox: busybox-common
 
@@ -217,11 +189,6 @@ linux-cleaner: linux-cleaner-common
 OPTEE_OS_COMMON_FLAGS += PLATFORM=hikey CFG_TEE_TA_LOG_LEVEL=3 CFG_CONSOLE_UART=$(CFG_SW_CONSOLE_UART)
 OPTEE_OS_CLEAN_COMMON_FLAGS += PLATFORM=hikey
 
-ifeq ($(SK),64)
-OPTEE_OS_COMMON_FLAGS += CFG_ARM64_core=y
-OPTEE_OS_CLEAN_COMMON_FLAGS += CFG_ARM64_core=y
-endif
-
 optee-os: optee-os-common
 
 .PHONY: optee-os-clean
@@ -242,10 +209,6 @@ optee-linuxdriver-clean: optee-linuxdriver-clean-common
 ################################################################################
 # xtest / optee_test
 ################################################################################
-ifeq ($(NSU),32)
-XTEST_COMMON_FLAGS += CFG_ARM32=y
-XTEST_CLEAN_COMMON_FLAGS += CFG_ARM32=y
-endif
 
 xtest: xtest-common
 
@@ -289,8 +252,8 @@ strace:
 	cd $(STRACE_PATH); \
 	./bootstrap; \
 	set -e; \
-	./configure --host=$(MULTIARCH) CC="$(CCACHE)$(AARCH64_CROSS_COMPILE)gcc" LD=$(AARCH64_CROSS_COMPILE)ld; \
-	CC="$(CCACHE)$(AARCH64_CROSS_COMPILE)gcc" LD=$(AARCH64_CROSS_COMPILE)ld $(MAKE) -C $(STRACE_PATH)
+	./configure --host=$(MULTIARCH) CC="$(CCACHE)$(AARCH$(COMPILE_NS_USER)_CROSS_COMPILE)gcc" LD=$(AARCH$(COMPILE_NS_USER)_CROSS_COMPILE)ld; \
+	CC="$(CCACHE)$(AARCH$(COMPILE_NS_USER)_CROSS_COMPILE)gcc" LD=$(AARCH$(COMPILE_NS_USER)_CROSS_COMPILE)ld $(MAKE) -C $(STRACE_PATH)
 
 .PHONY: strace-clean
 strace-clean:

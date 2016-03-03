@@ -5,15 +5,6 @@
 BASH ?= bash
 ROOT ?= $(shell pwd)/..
 
-#
-# Must declare in platform specific makefiles:
-# - CROSS_COMPILE_NS_USER / CROSS_COMPILE_NS_KERNEL
-# - CROSS_COMPILE_S_USER / CROSS_COMPILE_S_KERNEL
-#
-# - OPTEE_OS_BIN
-# - OPTEE_OS_TA_DEV_KIT_DIR
-#
-
 LINUX_PATH			?= $(ROOT)/linux
 GEN_ROOTFS_PATH			?= $(ROOT)/gen_rootfs
 GEN_ROOTFS_FILELIST		?= $(GEN_ROOTFS_PATH)/filelist-tee.txt
@@ -85,35 +76,19 @@ endif
 ################################################################################
 # set the compiler when COMPILE_xxx are defined
 ################################################################################
-
-ifeq ($(COMPILE_NS_USER),32)
-CROSS_COMPILE_NS_USER	?= "$(CCACHE)$(AARCH32_CROSS_COMPILE)"
-endif
-ifeq ($(COMPILE_NS_USER),64)
-CROSS_COMPILE_NS_USER	?= "$(CCACHE)$(AARCH64_CROSS_COMPILE)"
-endif
-
-ifeq ($(COMPILE_NS_KERNEL),32)
-CROSS_COMPILE_NS_KERNEL	?= "$(CCACHE)$(AARCH32_CROSS_COMPILE)"
-endif
-ifeq ($(COMPILE_NS_KERNEL),64)
-CROSS_COMPILE_NS_KERNEL	?= "$(CCACHE)$(AARCH64_CROSS_COMPILE)"
-endif
+CROSS_COMPILE_NS_USER   ?= "$(CCACHE)$(AARCH$(COMPILE_NS_USER)_CROSS_COMPILE)"
+CROSS_COMPILE_NS_KERNEL ?= "$(CCACHE)$(AARCH$(COMPILE_NS_KERNEL)_CROSS_COMPILE)"
+CROSS_COMPILE_S_USER    ?= "$(CCACHE)$(AARCH$(COMPILE_S_USER)_CROSS_COMPILE)"
+CROSS_COMPILE_S_KERNEL  ?= "$(CCACHE)$(AARCH$(COMPILE_S_KERNEL)_CROSS_COMPILE)"
 
 ifeq ($(COMPILE_S_USER),32)
-CROSS_COMPILE_S_USER	?= "$(CCACHE)$(AARCH32_CROSS_COMPILE)"
 OPTEE_OS_TA_DEV_KIT_DIR	?= $(OPTEE_OS_PATH)/out/arm/export-ta_arm32
 endif
 ifeq ($(COMPILE_S_USER),64)
-CROSS_COMPILE_S_USER	?= "$(CCACHE)$(AARCH64_CROSS_COMPILE)"
 OPTEE_OS_TA_DEV_KIT_DIR	?= $(OPTEE_OS_PATH)/out/arm/export-ta_arm64
 endif
 
-ifeq ($(COMPILE_S_KERNEL),32)
-CROSS_COMPILE_S_KERNEL	?= "$(CCACHE)$(AARCH32_CROSS_COMPILE)"
-endif
 ifeq ($(COMPILE_S_KERNEL),64)
-CROSS_COMPILE_S_KERNEL		?= "$(CCACHE)$(AARCH64_CROSS_COMPILE)"
 OPTEE_OS_COMMON_EXTRA_FLAGS	+= CFG_ARM64_core=y
 endif
 
@@ -136,11 +111,10 @@ all:
 ################################################################################
 BUSYBOX_COMMON_TARGET		?= TOBEDEFINED
 BUSYBOX_CLEAN_COMMON_TARGET	?= TOBEDEFINED
-BUSYBOX_COMMON_CCDIR		?= TOBEDEFINED
 
 busybox-common: linux
 	cd $(GEN_ROOTFS_PATH) &&  \
-		CC_DIR=$(BUSYBOX_COMMON_CCDIR) \
+		CROSS_COMPILE=$(CROSS_COMPILE_NS_USER) \
 		PATH=${PATH}:$(LINUX_PATH)/usr \
 		$(GEN_ROOTFS_PATH)/generate-cpio-rootfs.sh \
 			$(BUSYBOX_COMMON_TARGET)

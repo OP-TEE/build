@@ -1,14 +1,14 @@
--include common.mk
+################################################################################
+# Following variables defines how the NS_USER (Non Secure User - Client
+# Application), NS_KERNEL (Non Secure Kernel), S_KERNEL (Secure Kernel) and
+# S_USER (Secure User - TA) are compiled
+################################################################################
+override COMPILE_NS_USER   := 64
+override COMPILE_NS_KERNEL := 64
+override COMPILE_S_USER    := 32
+override COMPILE_S_KERNEL  := 64
 
-################################################################################
-# Mandatory definition to use common.mk
-################################################################################
-CROSS_COMPILE_NS_USER		?= "$(CCACHE)$(AARCH64_CROSS_COMPILE)"
-CROSS_COMPILE_NS_KERNEL		?= "$(CCACHE)$(AARCH64_CROSS_COMPILE)"
-CROSS_COMPILE_S_USER		?= "$(CCACHE)$(AARCH32_CROSS_COMPILE)"
-CROSS_COMPILE_S_KERNEL		?= "$(CCACHE)$(AARCH64_CROSS_COMPILE)"
-OPTEE_OS_BIN 			?= $(OPTEE_OS_PATH)/out/arm-plat-mediatek/core/tee-pager.bin
-OPTEE_OS_TA_DEV_KIT_DIR		?= $(OPTEE_OS_PATH)/out/arm-plat-mediatek/export-ta_arm32
+-include common.mk
 
 ################################################################################
 # Paths to git projects and various binaries
@@ -30,7 +30,6 @@ all-clean: linux-clean busybox-clean optee-os-clean \
 ################################################################################
 BUSYBOX_COMMON_TARGET = mt8173-evb
 BUSYBOX_CLEAN_COMMON_TARGET = mt8173-evb clean
-BUSYBOX_COMMON_CCDIR = $(AARCH64_PATH)
 
 busybox: busybox-common
 
@@ -65,10 +64,10 @@ linux-cleaner: linux-cleaner-common
 ################################################################################
 # OP-TEE
 ################################################################################
-OPTEE_OS_COMMON_FLAGS += PLATFORM=mediatek-mt8173 CFG_ARM64_core=y
+OPTEE_OS_COMMON_FLAGS += PLATFORM=mediatek-mt8173
 optee-os: optee-os-common
 
-OPTEE_OS_CLEAN_COMMON_FLAGS += PLATFORM=mediatek-mt8173 CFG_ARM64_core=y
+OPTEE_OS_CLEAN_COMMON_FLAGS += PLATFORM=mediatek-mt8173
 optee-os-clean: optee-os-clean-common
 
 optee-client: optee-client-common
