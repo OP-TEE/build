@@ -15,6 +15,8 @@ OPTEE_LINUXDRIVER_PATH		?= $(ROOT)/optee_linuxdriver
 OPTEE_TEST_PATH			?= $(ROOT)/optee_test
 OPTEE_TEST_OUT_PATH 		?= $(ROOT)/optee_test/out
 
+CFG_TEE_CORE_LOG_LEVEL		?= 3
+
 CCACHE ?= $(shell which ccache) # Don't remove this comment (space is needed)
 
 
@@ -184,7 +186,7 @@ OPTEE_OS_COMMON_FLAGS ?= \
 	CROSS_COMPILE_core=$(CROSS_COMPILE_S_KERNEL) \
 	CROSS_COMPILE_ta_arm64=$(AARCH64_CROSS_COMPILE) \
 	CROSS_COMPILE_ta_arm32=$(AARCH32_CROSS_COMPILE) \
-	CFG_TEE_CORE_LOG_LEVEL=3 \
+	CFG_TEE_CORE_LOG_LEVEL=$(CFG_TEE_CORE_LOG_LEVEL) \
 	DEBUG=$(DEBUG)
 
 optee-os-common:
