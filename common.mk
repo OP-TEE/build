@@ -239,8 +239,7 @@ OPTEE_LINUXDRIVER_COMMON_FLAGS ?= CROSS_COMPILE=$(CROSS_COMPILE_NS_KERNEL) \
 optee-linuxdriver-common: linux
 	$(MAKE) -C $(LINUX_PATH) $(OPTEE_LINUXDRIVER_COMMON_FLAGS) modules
 
-# OPTEE_LINUXDRIVER_CLEAN_COMMON_FLAGS can be defined in specific makefiles
-# (hikey.mk,...) if necessary
+OPTEE_LINUXDRIVER_CLEAN_COMMON_FLAGS ?= M=$(OPTEE_LINUXDRIVER_PATH)
 
 optee-linuxdriver-clean-common:
 	$(MAKE) -C $(LINUX_PATH) $(OPTEE_LINUXDRIVER_CLEAN_COMMON_FLAGS) clean
