@@ -14,6 +14,7 @@ override COMPILE_S_KERNEL  := 64
 # Paths to git projects and various binaries
 ################################################################################
 MTK_TOOLS_PATH 			?= $(ROOT)/mtk_tools
+OPTEE_OS_PAGER_BIN		?= $(OPTEE_OS_PATH)/out/arm/core/tee-pager.bin
 
 ################################################################################
 # Targets
@@ -124,7 +125,7 @@ update_rootfs: busybox optee-client optee-linuxdriver xtest filelist-tee
 .PHONY: build_image flash_image run
 build-image: update_rootfs optee-os
 	cd $(MTK_TOOLS_PATH); \
-	./build_trustzone.sh $(OPTEE_OS_BIN); \
+	./build_trustzone.sh $(OPTEE_OS_PAGER_BIN); \
 	./build_bootimg.sh $(LINUX_PATH) $(GEN_ROOTFS_PATH)/filesystem.cpio.gz
 
 flash-image: build-image
