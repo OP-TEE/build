@@ -23,9 +23,9 @@ U-BOOT_BIN		?= $(U-BOOT_PATH)/u-boot.bin
 ################################################################################
 # Targets
 ################################################################################
-all: arm-tf u-boot linux optee-os optee-client optee-linuxdriver generate-dtb xtest update_rootfs
+all: arm-tf u-boot linux optee-os optee-client xtest update_rootfs
 all-clean: arm-tf-clean busybox-clean u-boot-clean optee-os-clean \
-	optee-client-clean optee-linuxdriver-clean
+	optee-client-clean
 
 
 -include toolchain.mk
@@ -119,20 +119,6 @@ optee-os-clean: optee-os-clean-common
 optee-client: optee-client-common
 
 optee-client-clean: optee-client-clean-common
-
-OPTEE_LINUXDRIVER_COMMON_FLAGS += ARCH=arm64
-optee-linuxdriver: optee-linuxdriver-common
-
-OPTEE_LINUXDRIVER_CLEAN_COMMON_FLAGS += ARCH=arm64
-optee-linuxdriver-clean: optee-linuxdriver-clean-common
-
-generate-dtb: linux
-	$(LINUX_PATH)/scripts/dtc/dtc \
-		-O dtb \
-		-o $(LINUX_PATH)/fdt.dtb \
-		-b 0 \
-		-i . $(OPTEE_LINUXDRIVER_PATH)/fdts/fvp-foundation-gicv2-psci.dts
-
 ################################################################################
 # xtest / optee_test
 ################################################################################
@@ -169,7 +155,7 @@ filelist-tee:
 	@echo "slink /lib/aarch64-linux-gnu/libteec.so libteec.so.1 755 0 0" >> $(GEN_ROOTFS_FILELIST)
 
 .PHONY: update_rootfs
-update_rootfs: u-boot busybox optee-client optee-linuxdriver xtest filelist-tee
+update_rootfs: u-boot busybox optee-client xtest filelist-tee
 	cat $(GEN_ROOTFS_PATH)/filelist-final.txt $(GEN_ROOTFS_PATH)/filelist-tee.txt > $(GEN_ROOTFS_PATH)/filelist.tmp
 	cd $(GEN_ROOTFS_PATH) && \
 	        $(LINUX_PATH)/usr/gen_init_cpio $(GEN_ROOTFS_PATH)/filelist.tmp | gzip > $(GEN_ROOTFS_PATH)/filesystem.cpio.gz
