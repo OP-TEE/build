@@ -177,6 +177,8 @@ run: all
 run-only:
 	@ln -sf $(LINUX_PATH)/arch/arm64/boot/Image $(FOUNDATION_PATH)/kernel
 	@ln -sf $(GEN_ROOTFS_PATH)/filesystem.cpio.gz $(FOUNDATION_PATH)/ramdisk.img
+	@ln -sf $(LINUX_PATH)/arch/arm64/boot/Image $(FOUNDATION_PATH)/Image
+	@ln -sf $(GEN_ROOTFS_PATH)/filesystem.cpio.gz $(FOUNDATION_PATH)/filesystem.cpio.gz
 	@ln -sf $(LINUX_PATH)/arch/arm64/boot/dts/arm/foundation-v8.dtb $(FOUNDATION_PATH)/fdt.dtb
 	@cd $(FOUNDATION_PATH); \
 	$(FOUNDATION_PATH)/models/Linux64_GCC-4.7/Foundation_Platform \
@@ -184,5 +186,6 @@ run-only:
 	--secure-memory \
 	--visualization \
 	--gicv3 \
-	--data="$(ARM_TF_PATH)/build/fvp/debug/bl1.bin"@0x0 \
-	--data="$(ARM_TF_PATH)/build/fvp/debug/fip.bin"@0x8000000
+	--data="$(ARM_TF_PATH)/build/fvp/release/bl1.bin"@0x0 \
+	--data="$(ARM_TF_PATH)/build/fvp/release/fip.bin"@0x8000000
+
