@@ -14,16 +14,37 @@ override COMPILE_S_KERNEL  := 64
 # Paths to git projects and various binaries
 ################################################################################
 MTK_TOOLS_PATH 			?= $(ROOT)/mtk_tools
+ARM_TF_PATH			?= $(ROOT)/arm-trusted-firmware
+OPTEE_OS_PAGER_BIN		?= $(OPTEE_OS_PATH)/out/arm/core/tee-pager.bin
+ARM_TF_BIN			?= $(ARM_TF_PATH)/build/mt8173/debug/bl31.bin
 
 ################################################################################
 # Targets
 ################################################################################
-all: linux optee-os optee-client optee-linuxdriver xtest
-all-clean: linux-clean busybox-clean optee-os-clean \
+all: arm-tf linux optee-os optee-client optee-linuxdriver xtest
+all-clean: arm-tf-clean linux-clean busybox-clean optee-os-clean \
 	optee-client-clean optee-linuxdriver-clean
 
 
 -include toolchain.mk
+
+################################################################################
+# ARM Trusted Firmware
+################################################################################
+ARM_TF_EXPORTS ?= \
+	CFLAGS="-O0 -gdwarf-2" \
+	CROSS_COMPILE="$(CCACHE)$(AARCH64_NONE_CROSS_COMPILE)"
+
+ARM_TF_FLAGS ?= \
+	DEBUG=1 \
+	PLAT=mt8173 \
+	SPD=opteed
+
+arm-tf: optee-os
+	$(ARM_TF_EXPORTS) $(MAKE) -C $(ARM_TF_PATH) $(ARM_TF_FLAGS) all
+
+arm-tf-clean:
+	$(ARM_TF_EXPORTS) $(MAKE) -C $(ARM_TF_PATH) $(ARM_TF_FLAGS) clean
 
 ################################################################################
 # Busybox
@@ -124,7 +145,7 @@ update_rootfs: busybox optee-client optee-linuxdriver xtest filelist-tee
 .PHONY: build_image flash_image run
 build-image: update_rootfs optee-os
 	cd $(MTK_TOOLS_PATH); \
-	./build_trustzone.sh $(OPTEE_OS_BIN); \
+	./build_trustzone.sh $(OPTEE_OS_PAGER_BIN) $(ARM_TF_BIN); \
 	./build_bootimg.sh $(LINUX_PATH) $(GEN_ROOTFS_PATH)/filesystem.cpio.gz
 
 flash-image: build-image
