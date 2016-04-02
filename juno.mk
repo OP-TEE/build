@@ -75,11 +75,11 @@ U-BOOT_DEFCONFIG_FILES := \
 	$(ROOT)/build/kconfigs/u-boot_juno.conf
 
 .PHONY: u-boot
-u-boot: 
+u-boot:
 	cd $(U-BOOT_PATH) && \
 		scripts/kconfig/merge_config.sh $(U-BOOT_DEFCONFIG_FILES)
 	$(U-BOOT_EXPORTS) $(MAKE) -C $(U-BOOT_PATH) all
-	
+
 u-boot-clean:
 	$(U-BOOT_EXPORTS) $(MAKE) -C $(U-BOOT_PATH) clean
 
@@ -142,11 +142,6 @@ filelist-tee:
 	@echo "# Secure storage dig" >> $(GEN_ROOTFS_FILELIST)
 	@echo "dir /data 755 0 0" >> $(GEN_ROOTFS_FILELIST)
 	@echo "dir /data/tee 755 0 0" >> $(GEN_ROOTFS_FILELIST)
-	@echo "# OP-TEE device" >> $(GEN_ROOTFS_FILELIST)
-	@echo "dir /lib/modules 755 0 0" >> $(GEN_ROOTFS_FILELIST)
-	@echo "dir /lib/modules/$(call KERNEL_VERSION) 755 0 0" >> $(GEN_ROOTFS_FILELIST)
-	@echo "file /lib/modules/$(call KERNEL_VERSION)/optee.ko $(OPTEE_LINUXDRIVER_PATH)/core/optee.ko 755 0 0" >> $(GEN_ROOTFS_FILELIST)
-	@echo "file /lib/modules/$(call KERNEL_VERSION)/optee_armtz.ko $(OPTEE_LINUXDRIVER_PATH)/armtz/optee_armtz.ko 755 0 0" >> $(GEN_ROOTFS_FILELIST)
 	@echo "# OP-TEE Client" >> $(GEN_ROOTFS_FILELIST)
 	@echo "file /bin/tee-supplicant $(OPTEE_CLIENT_EXPORT)/bin/tee-supplicant 755 0 0" >> $(GEN_ROOTFS_FILELIST)
 	@echo "dir /lib/aarch64-linux-gnu 755 0 0" >> $(GEN_ROOTFS_FILELIST)
