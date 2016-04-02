@@ -110,7 +110,7 @@ linux-cleaner: linux-cleaner-common
 ################################################################################
 # OP-TEE
 ################################################################################
-OPTEE_OS_COMMON_FLAGS += PLATFORM=vexpress-fvp 
+OPTEE_OS_COMMON_FLAGS += PLATFORM=vexpress-fvp
 optee-os: optee-os-common
 
 OPTEE_OS_CLEAN_COMMON_FLAGS += PLATFORM=vexpress-fvp
@@ -150,10 +150,6 @@ filelist-tee:
 	@echo "# Secure storage dig" >> $(GEN_ROOTFS_FILELIST)
 	@echo "dir /data 755 0 0" >> $(GEN_ROOTFS_FILELIST)
 	@echo "dir /data/tee 755 0 0" >> $(GEN_ROOTFS_FILELIST)
-	@echo "# OP-TEE device" >> $(GEN_ROOTFS_FILELIST)
-	@echo "dir /lib/modules 755 0 0" >> $(GEN_ROOTFS_FILELIST)
-	@echo "dir /lib/modules/$(call KERNEL_VERSION) 755 0 0" >> $(GEN_ROOTFS_FILELIST)
-	@echo "file /lib/modules/$(call KERNEL_VERSION)/optee.ko $(LINUX_PATH)/drivers/tee/optee/optee.ko 755 0 0" >> $(GEN_ROOTFS_FILELIST)
 	@echo "# OP-TEE Client" >> $(GEN_ROOTFS_FILELIST)
 	@echo "file /bin/tee-supplicant $(OPTEE_CLIENT_EXPORT)/bin/tee-supplicant 755 0 0" >> $(GEN_ROOTFS_FILELIST)
 	@echo "dir $(ROOTFS_LIBPATH) 755 0 0" >> $(GEN_ROOTFS_FILELIST)
