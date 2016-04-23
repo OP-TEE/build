@@ -273,6 +273,12 @@ filelist-all: busybox
 	find $(OPTEE_TEST_OUT_PATH) -type f -name "xtest" | sed 's/\(.*\)/file \/bin\/xtest \1 755 0 0/g' >> $(GEN_ROOTFS_PATH)/filelist-all.txt; \
 	find $(OPTEE_TEST_OUT_PATH) -name "*.ta" | \
 		sed 's/\(.*\)\/\(.*\)/file \/lib\/optee_armtz\/\2 \1\/\2 444 0 0/g' >> $(GEN_ROOTFS_PATH)/filelist-all.txt
+	@if [ -e $(OPTEE_GENDRV_MODULE) ]; then
+		@echo "# OP-TEE device" >> $(GEN_ROOTFS_PATH)/filelist-all.txt
+		@echo "dir /lib/modules 755 0 0" >> $(GEN_ROOTFS_PATH)/filelist-all.txt
+		@echo "dir /lib/modules/$(call KERNEL_VERSION) 755 0 0" >> $(GEN_ROOTFS_PATH)/filelist-all.txt
+		@echo "file /lib/modules/$(call KERNEL_VERSION)/optee.ko $(OPTEE_GENDRV_MODULE) 755 0 0" >> $(GEN_ROOTFS_PATH)/filelist-all.txt
+	@fi
 
 update_rootfs: optee-client xtest aes-perf sha-perf strace filelist-all linux-gen_init_cpio
 	cd $(GEN_ROOTFS_PATH); \
