@@ -150,12 +150,12 @@ filelist-tee:
 	@echo "# Secure storage dig" >> $(GEN_ROOTFS_FILELIST)
 	@echo "dir /data 755 0 0" >> $(GEN_ROOTFS_FILELIST)
 	@echo "dir /data/tee 755 0 0" >> $(GEN_ROOTFS_FILELIST)
-	@if [ -e $(OPTEE_GENDRV_MODULE) ]; then
-		@echo "# OP-TEE device" >> $(GEN_ROOTFS_FILELIST)
-		@echo "dir /lib/modules 755 0 0" >> $(GEN_ROOTFS_FILELIST)
-		@echo "dir /lib/modules/$(call KERNEL_VERSION) 755 0 0" >> $(GEN_ROOTFS_FILELIST)
-		@echo "file /lib/modules/$(call KERNEL_VERSION)/optee.ko $(OPTEE_GENDRV_MODULE) 755 0 0" >> $(GEN_ROOTFS_FILELIST)
-	@fi
+	@if [ -e $(OPTEE_GENDRV_MODULE) ]; then \
+		echo "# OP-TEE device" >> $(GEN_ROOTFS_FILELIST); \
+		echo "dir /lib/modules 755 0 0" >> $(GEN_ROOTFS_FILELIST); \
+		echo "dir /lib/modules/$(call KERNEL_VERSION) 755 0 0" >> $(GEN_ROOTFS_FILELIST); \
+		echo "file /lib/modules/$(call KERNEL_VERSION)/optee.ko $(OPTEE_GENDRV_MODULE) 755 0 0" >> $(GEN_ROOTFS_FILELIST); \
+	fi
 	@echo "# OP-TEE Client" >> $(GEN_ROOTFS_FILELIST)
 	@echo "file /bin/tee-supplicant $(OPTEE_CLIENT_EXPORT)/bin/tee-supplicant 755 0 0" >> $(GEN_ROOTFS_FILELIST)
 	@echo "dir $(ROOTFS_LIBPATH) 755 0 0" >> $(GEN_ROOTFS_FILELIST)
