@@ -33,7 +33,7 @@ all-clean: arm-tf-clean linux-clean busybox-clean optee-os-clean \
 ################################################################################
 ARM_TF_EXPORTS ?= \
 	CFLAGS="-O0 -gdwarf-2" \
-	CROSS_COMPILE="$(CCACHE)$(AARCH64_NONE_CROSS_COMPILE)"
+	CROSS_COMPILE="$(CCACHE)$(AARCH64_CROSS_COMPILE)"
 
 ARM_TF_FLAGS ?= \
 	DEBUG=1 \

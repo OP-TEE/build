@@ -39,7 +39,7 @@ all-clean: arm-tf-clean busybox-clean edk2-clean optee-os-clean \
 ################################################################################
 ARM_TF_EXPORTS ?= \
 	CFLAGS="-O0 -gdwarf-2" \
-	CROSS_COMPILE="$(CCACHE)$(AARCH64_NONE_CROSS_COMPILE)"
+	CROSS_COMPILE="$(CCACHE)$(AARCH64_CROSS_COMPILE)"
 
 ARM_TF_FLAGS ?= \
 	BL32=$(OPTEE_OS_BIN) \
@@ -71,7 +71,7 @@ busybox-cleaner: busybox-cleaner-common
 # EDK2 / Tianocore
 ################################################################################
 define edk2-call
-	GCC49_AARCH64_PREFIX=$(AARCH64_NONE_CROSS_COMPILE) \
+	GCC49_AARCH64_PREFIX=$(LEGACY_AARCH64_CROSS_COMPILE) \
 	     $(MAKE) -j1 -C $(EDK2_PATH) \
 	     -f ArmPlatformPkg/Scripts/Makefile EDK2_ARCH=AARCH64 \
 	     EDK2_DSC=ArmPlatformPkg/ArmVExpressPkg/ArmVExpress-FVP-AArch64.dsc \
@@ -132,13 +132,6 @@ xtest-patch: xtest-patch-common
 ################################################################################
 # Root FS
 ################################################################################
-ifeq ($(COMPILE_NS_USER),32)
-ROOTFS_LIBPATH	?= "/lib/arm-linux-gnueabihf"
-endif
-ifeq ($(COMPILE_NS_USER),64)
-ROOTFS_LIBPATH	?= "/lib/aarch64-linux-gnu"
-endif
-
 .PHONY: filelist-tee
 filelist-tee:
 	@echo "# xtest / optee_test" > $(GEN_ROOTFS_FILELIST)
@@ -158,10 +151,9 @@ filelist-tee:
 	fi
 	@echo "# OP-TEE Client" >> $(GEN_ROOTFS_FILELIST)
 	@echo "file /bin/tee-supplicant $(OPTEE_CLIENT_EXPORT)/bin/tee-supplicant 755 0 0" >> $(GEN_ROOTFS_FILELIST)
-	@echo "dir $(ROOTFS_LIBPATH) 755 0 0" >> $(GEN_ROOTFS_FILELIST)
-	@echo "file $(ROOTFS_LIBPATH)/libteec.so.1.0 $(OPTEE_CLIENT_EXPORT)/lib/libteec.so.1.0 755 0 0" >> $(GEN_ROOTFS_FILELIST)
-	@echo "slink $(ROOTFS_LIBPATH)/libteec.so.1 libteec.so.1.0 755 0 0" >> $(GEN_ROOTFS_FILELIST)
-	@echo "slink $(ROOTFS_LIBPATH)/libteec.so libteec.so.1 755 0 0" >> $(GEN_ROOTFS_FILELIST)
+	@echo "file /lib/libteec.so.1.0 $(OPTEE_CLIENT_EXPORT)/lib/libteec.so.1.0 755 0 0" >> $(GEN_ROOTFS_FILELIST)
+	@echo "slink /lib/libteec.so.1 libteec.so.1.0 755 0 0" >> $(GEN_ROOTFS_FILELIST)
+	@echo "slink /lib/libteec.so libteec.so.1 755 0 0" >> $(GEN_ROOTFS_FILELIST)
 
 update_rootfs: busybox optee-client xtest filelist-tee
 	cat $(GEN_ROOTFS_PATH)/filelist-final.txt $(GEN_ROOTFS_PATH)/filelist-tee.txt > $(GEN_ROOTFS_PATH)/filelist.tmp

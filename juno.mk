@@ -35,7 +35,7 @@ all-clean: arm-tf-clean busybox-clean u-boot-clean optee-os-clean \
 ################################################################################
 ARM_TF_EXPORTS ?= \
 	CFLAGS="-O0 -gdwarf-2" \
-	CROSS_COMPILE="$(CCACHE)$(AARCH64_NONE_CROSS_COMPILE)"
+	CROSS_COMPILE="$(CCACHE)$(AARCH64_CROSS_COMPILE)"
 
 ARM_TF_FLAGS ?= \
 	SCP_BL2=$(ROOT)/vexpress-firmware/SOFTWARE/bl30.bin \
@@ -150,10 +150,9 @@ filelist-tee:
 	fi
 	@echo "# OP-TEE Client" >> $(GEN_ROOTFS_FILELIST)
 	@echo "file /bin/tee-supplicant $(OPTEE_CLIENT_EXPORT)/bin/tee-supplicant 755 0 0" >> $(GEN_ROOTFS_FILELIST)
-	@echo "dir /lib/aarch64-linux-gnu 755 0 0" >> $(GEN_ROOTFS_FILELIST)
-	@echo "file /lib/aarch64-linux-gnu/libteec.so.1.0 $(OPTEE_CLIENT_EXPORT)/lib/libteec.so.1.0 755 0 0" >> $(GEN_ROOTFS_FILELIST)
-	@echo "slink /lib/aarch64-linux-gnu/libteec.so.1 libteec.so.1.0 755 0 0" >> $(GEN_ROOTFS_FILELIST)
-	@echo "slink /lib/aarch64-linux-gnu/libteec.so libteec.so.1 755 0 0" >> $(GEN_ROOTFS_FILELIST)
+	@echo "file /lib/libteec.so.1.0 $(OPTEE_CLIENT_EXPORT)/lib/libteec.so.1.0 755 0 0" >> $(GEN_ROOTFS_FILELIST)
+	@echo "slink /lib/libteec.so.1 libteec.so.1.0 755 0 0" >> $(GEN_ROOTFS_FILELIST)
+	@echo "slink /lib/libteec.so libteec.so.1 755 0 0" >> $(GEN_ROOTFS_FILELIST)
 
 .PHONY: update_rootfs
 update_rootfs: u-boot busybox optee-client xtest filelist-tee

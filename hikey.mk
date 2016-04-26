@@ -130,7 +130,7 @@ ifeq ($(EDK2_CONSOLE_UART),0)
 endif
 
 define edk2-call
-	GCC49_AARCH64_PREFIX=$(AARCH64_CROSS_COMPILE) \
+	GCC49_AARCH64_PREFIX=$(LEGACY_AARCH64_CROSS_COMPILE) \
 	$(MAKE) -j1 -C $(EDK2_PATH) \
 		-f HisiPkg/HiKeyPkg/Makefile $(EDK2_VARS)
 endef
