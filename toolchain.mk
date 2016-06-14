@@ -12,7 +12,7 @@ SRC_AARCH32_GCC 		?= http://releases.linaro.org/components/toolchain/binaries/5.
 AARCH64_PATH 			?= $(TOOLCHAIN_ROOT)/aarch64
 AARCH64_CROSS_COMPILE 		?= $(AARCH64_PATH)/bin/aarch64-linux-gnu-
 AARCH64_GCC_VERSION 		?= gcc-linaro-5.3-2016.02-x86_64_aarch64-linux-gnu
-SRC_AARCH64_GCC 		?= https://releases.linaro.org/components/toolchain/binaries/5.3-2016.02/aarch64-linux-gnu/${AARCH64_GCC_VERSION}.tar.xz
+SRC_AARCH64_GCC 		?= http://releases.linaro.org/components/toolchain/binaries/5.3-2016.02/aarch64-linux-gnu/${AARCH64_GCC_VERSION}.tar.xz
 
 # Due to relocation error on the 96board edk forest, let's keep the old
 # toolchain for a while.
