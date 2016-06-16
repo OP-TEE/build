@@ -334,25 +334,15 @@ GRUBCFG = $(PATCHES_PATH)/grub/grub_uart0.cfg
 endif
 
 boot-img: linux update_rootfs edk2 grub
-	sudo -p "[sudo] Password:" true
-	if [ -d .tmpbootimg ] ; then sudo rm -rf .tmpbootimg ; fi
-	mkdir -p .tmpbootimg
-	dd if=/dev/zero of=$(BOOT_IMG) bs=512 count=131072 status=none
-	sudo mkfs.vfat -n "BOOT IMG" $(BOOT_IMG) >/dev/null
-	sudo mount -o loop,rw,sync $(BOOT_IMG) .tmpbootimg
-	sudo cp $(LINUX_PATH)/arch/arm64/boot/Image $(DTB) .tmpbootimg/
-	sudo mkdir -p .tmpbootimg/EFI/BOOT
-	sudo cp $(OUT_PATH)/grubaa64.efi .tmpbootimg/EFI/BOOT/
-	sudo cp $(GRUBCFG) .tmpbootimg/EFI/BOOT/grub.cfg
-	sudo cp $(GEN_ROOTFS_PATH)/filesystem.cpio.gz .tmpbootimg/initrd.img
-	sudo cp $(EDK2_PATH)/Build/HiKey/$(EDK2_BUILD)_GCC49/AARCH64/AndroidFastbootApp.efi .tmpbootimg/EFI/BOOT/fastboot.efi
-	# We cannot figure out why we need the sleep here, but from time to time
-	# we can see that we get "device/resource busy" when trying to unmount
-	# .tmpbootimg below. A short sleep seems to solve the problem and has to
-	# be here until we figure out why this happens.
-	sleep 3
-	sudo umount .tmpbootimg
-	sudo rm -rf .tmpbootimg
+	rm -f $(BOOT_IMG)
+	mformat -i $(BOOT_IMG) -n 64 -h 255 -T 131072 -v "BOOT IMG" -C ::
+	mcopy -i $(BOOT_IMG) $(LINUX_PATH)/arch/arm64/boot/Image $(DTB) ::
+	mmd -i $(BOOT_IMG) ::/EFI
+	mmd -i $(BOOT_IMG) ::/EFI/BOOT
+	mcopy -i $(BOOT_IMG) $(OUT_PATH)/grubaa64.efi ::/EFI/BOOT/
+	mcopy -i $(BOOT_IMG) $(GRUBCFG) ::/EFI/BOOT/grub.cfg
+	mcopy -i $(BOOT_IMG) $(GEN_ROOTFS_PATH)/filesystem.cpio.gz ::/initrd.img
+	mcopy -i $(BOOT_IMG) $(EDK2_PATH)/Build/HiKey/$(EDK2_BUILD)_GCC49/AARCH64/AndroidFastbootApp.efi ::/EFI/BOOT/fastboot.efi
 
 .PHONY: boot-img-clean
 boot-img-clean:
