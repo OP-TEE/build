@@ -151,6 +151,13 @@ xtest-clean: xtest-clean-common
 xtest-patch: xtest-patch-common
 
 ################################################################################
+# hello_world
+################################################################################
+helloworld: helloworld-common
+
+helloworld-clean: helloworld-clean-common
+
+################################################################################
 # strace
 ################################################################################
 strace:
@@ -172,13 +179,15 @@ endif
 # Root FS
 ################################################################################
 .PHONY: filelist-tee
-filelist-tee: xtest
+filelist-tee: xtest helloworld
 	@echo "# xtest / optee_test" > $(GEN_ROOTFS_FILELIST)
 	@find $(OPTEE_TEST_OUT_PATH) -type f -name "xtest" | sed 's/\(.*\)/file \/bin\/xtest \1 755 0 0/g' >> $(GEN_ROOTFS_FILELIST)
+	@echo "file /bin/hello_world $(HELLOWORLD_PATH)/host/hello_world 755 0 0" >> $(GEN_ROOTFS_FILELIST)
 	@echo "# TAs" >> $(GEN_ROOTFS_FILELIST)
 	@echo "dir /lib/optee_armtz 755 0 0" >> $(GEN_ROOTFS_FILELIST)
 	@find $(OPTEE_TEST_OUT_PATH) -name "*.ta" | \
 		sed 's/\(.*\)\/\(.*\)/file \/lib\/optee_armtz\/\2 \1\/\2 444 0 0/g' >> $(GEN_ROOTFS_FILELIST)
+	@echo "file /lib/optee_armtz/8aaaf200-2450-11e4-abe20002a5d5c51b.ta $(HELLOWORLD_PATH)/ta/8aaaf200-2450-11e4-abe20002a5d5c51b.ta 444 0 0" >> $(GEN_ROOTFS_FILELIST)
 	@echo "# Secure storage dir" >> $(GEN_ROOTFS_FILELIST)
 	@echo "dir /data 755 0 0" >> $(GEN_ROOTFS_FILELIST)
 	@echo "dir /data/tee 755 0 0" >> $(GEN_ROOTFS_FILELIST)

@@ -61,7 +61,7 @@ SHAPERF_PATH			?=$(ROOT)/sha-perf
 ################################################################################
 all: prepare arm-tf boot-img lloader nvme
 
-clean: arm-tf-clean busybox-clean edk2-clean linux-clean optee-os-clean optee-client-clean xtest-clean strace-clean update_rootfs-clean boot-img-clean lloader-clean aes-perf-clean sha-perf-clean grub-clean
+clean: arm-tf-clean busybox-clean edk2-clean linux-clean optee-os-clean optee-client-clean xtest-clean helloworld-clean strace-clean update_rootfs-clean boot-img-clean lloader-clean aes-perf-clean sha-perf-clean grub-clean
 
 cleaner: clean prepare-cleaner busybox-cleaner linux-cleaner strace-cleaner nvme-cleaner grub-cleaner
 
@@ -215,6 +215,13 @@ xtest-clean: xtest-clean-common
 xtest-patch: xtest-patch-common
 
 ################################################################################
+# hello_world
+################################################################################
+helloworld: helloworld-common
+
+helloworld-clean: helloworld-clean-common
+
+################################################################################
 # aes-pef
 ################################################################################
 PERF_FLAGS := CROSS_COMPILE_HOST=$(CROSS_COMPILE_NS_USER) \
@@ -271,8 +278,10 @@ filelist-all: busybox
 	export TOP=$(ROOT); export MULTIARCH=$(MULTIARCH); \
 	$(expand-env-var) <$(PATCHES_PATH)/rootfs/initramfs-add-files.txt >> $(GEN_ROOTFS_PATH)/filelist-all.txt; \
 	find $(OPTEE_TEST_OUT_PATH) -type f -name "xtest" | sed 's/\(.*\)/file \/bin\/xtest \1 755 0 0/g' >> $(GEN_ROOTFS_PATH)/filelist-all.txt; \
+	@echo "file /bin/hello_world $(HELLOWORLD_PATH)/host/hello_world 755 0 0" >> $(GEN_ROOTFS_PATH)/filelist-all.txt; \
 	find $(OPTEE_TEST_OUT_PATH) -name "*.ta" | \
-		sed 's/\(.*\)\/\(.*\)/file \/lib\/optee_armtz\/\2 \1\/\2 444 0 0/g' >> $(GEN_ROOTFS_PATH)/filelist-all.txt
+		sed 's/\(.*\)\/\(.*\)/file \/lib\/optee_armtz\/\2 \1\/\2 444 0 0/g' >> $(GEN_ROOTFS_PATH)/filelist-all.txt; \
+	@echo "file /lib/optee_armtz/8aaaf200-2450-11e4-abe20002a5d5c51b.ta $(HELLOWORLD_PATH)/ta/8aaaf200-2450-11e4-abe20002a5d5c51b.ta 444 0 0" >> $(GEN_ROOTFS_PATH)/filelist-all.txt
 	@if [ -e $(OPTEE_GENDRV_MODULE) ]; then \
 		echo "# OP-TEE device" >> $(GEN_ROOTFS_PATH)/filelist-all.txt; \
 		echo "dir /lib/modules 755 0 0" >> $(GEN_ROOTFS_PATH)/filelist-all.txt; \
@@ -280,7 +289,7 @@ filelist-all: busybox
 		echo "file /lib/modules/$(call KERNEL_VERSION)/optee.ko $(OPTEE_GENDRV_MODULE) 755 0 0" >> $(GEN_ROOTFS_PATH)/filelist-all.txt; \
 	fi
 
-update_rootfs: optee-client xtest aes-perf sha-perf strace filelist-all linux-gen_init_cpio
+update_rootfs: optee-client xtest helloworld aes-perf sha-perf strace filelist-all linux-gen_init_cpio
 	cd $(GEN_ROOTFS_PATH); \
 	        $(LINUX_PATH)/usr/gen_init_cpio $(GEN_ROOTFS_PATH)/filelist-all.txt | gzip > $(GEN_ROOTFS_PATH)/filesystem.cpio.gz
 

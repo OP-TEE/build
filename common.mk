@@ -14,6 +14,7 @@ OPTEE_CLIENT_PATH		?= $(ROOT)/optee_client
 OPTEE_CLIENT_EXPORT		?= $(OPTEE_CLIENT_PATH)/out/export
 OPTEE_TEST_PATH			?= $(ROOT)/optee_test
 OPTEE_TEST_OUT_PATH 		?= $(ROOT)/optee_test/out
+HELLOWORLD_PATH			?= $(ROOT)/hello_world
 
 CFG_TEE_CORE_LOG_LEVEL		?= 3
 
@@ -194,7 +195,7 @@ optee-os-common:
 
 OPTEE_OS_CLEAN_COMMON_FLAGS ?= $(OPTEE_OS_COMMON_EXTRA_FLAGS)
 
-optee-os-clean-common: xtest-clean
+optee-os-clean-common: xtest-clean helloworld-clean
 	$(MAKE) -C $(OPTEE_OS_PATH) $(OPTEE_OS_CLEAN_COMMON_FLAGS) clean
 
 OPTEE_CLIENT_COMMON_FLAGS ?= CROSS_COMPILE=$(CROSS_COMPILE_NS_USER)
@@ -231,3 +232,19 @@ XTEST_PATCH_COMMON_FLAGS ?= $(XTEST_COMMON_FLAGS)
 
 xtest-patch-common:
 	$(MAKE) -C $(OPTEE_TEST_PATH) $(XTEST_PATCH_COMMON_FLAGS) patch
+
+################################################################################
+# hello_world
+################################################################################
+HELLOWORLD_COMMON_FLAGS ?= HOST_CROSS_COMPILE=$(CROSS_COMPILE_NS_USER)\
+	TA_CROSS_COMPILE=$(CROSS_COMPILE_S_USER) \
+	TA_DEV_KIT_DIR=$(OPTEE_OS_TA_DEV_KIT_DIR) \
+	TEEC_EXPORT=$(OPTEE_CLIENT_EXPORT)
+
+helloworld-common: optee-os optee-client
+	$(MAKE) -C $(HELLOWORLD_PATH) $(HELLOWORLD_COMMON_FLAGS)
+
+HELLOWORLD_CLEAN_COMMON_FLAGS ?= TA_DEV_KIT_DIR=$(OPTEE_OS_TA_DEV_KIT_DIR)
+
+helloworld-clean-common:
+	$(MAKE) -C $(HELLOWORLD_PATH) $(HELLOWORLD_CLEAN_COMMON_FLAGS) clean
