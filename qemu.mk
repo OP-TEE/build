@@ -18,6 +18,8 @@ QEMU_PATH			?= $(ROOT)/qemu
 
 SOC_TERM_PATH			?= $(ROOT)/soc_term
 
+PYTHON_PATH			?= $(shell which python)
+
 DEBUG = 1
 
 ################################################################################
@@ -49,7 +51,7 @@ bios-qemu-clean:
 	$(call bios-qemu-common) clean
 
 qemu:
-	cd $(QEMU_PATH); ./configure --target-list=arm-softmmu --cc="$(CCACHE)gcc" --extra-cflags="-Wno-error"
+	cd $(QEMU_PATH); ./configure --target-list=arm-softmmu --cc="$(CCACHE)gcc" --extra-cflags="-Wno-error" --python="$(PYTHON_PATH)"
 	$(MAKE) -C $(QEMU_PATH)
 
 qemu-clean:
