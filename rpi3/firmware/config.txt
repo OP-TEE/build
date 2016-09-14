@@ -1,0 +1,13 @@
+enable_uart=1
+arm_control=0x200
+kernel_old=1
+
+kernel=u-boot-jtag.bin
+
+disable_commandline_tags=1
+
+# set display mode to 1920x1080
+##hdmi_group=2
+##hdmi_mode=82
+
+
