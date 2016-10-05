@@ -65,7 +65,7 @@ edk2: optee-os
 ifeq ("$(wildcard $(EDK2_BIN))","")
 	mkdir -p $(EDK2_PATH)
 	wget -O $(EDK2_BIN) \
-		http://snapshots.linaro.org/components/kernel/leg-virt-tianocore-edk2-upstream/989/QEMU-KERNEL-AARCH64/RELEASE_GCC49/QEMU_EFI.fd
+		http://snapshots.linaro.org/components/kernel/leg-virt-tianocore-edk2-upstream/716/QEMU-KERNEL-AARCH64/RELEASE_GCC49/QEMU_EFI.fd
 endif
 	mkdir -p $(ARM_TF_PATH)/build/qemu/release
 	ln -sf $(OPTEE_OS_BIN) $(ARM_TF_PATH)/build/qemu/release/bl32.bin
