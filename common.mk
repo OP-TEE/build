@@ -217,7 +217,7 @@ optee-client-clean-common:
 XTEST_COMMON_FLAGS ?= CROSS_COMPILE_HOST=$(CROSS_COMPILE_NS_USER)\
 	CROSS_COMPILE_TA=$(CROSS_COMPILE_S_USER) \
 	TA_DEV_KIT_DIR=$(OPTEE_OS_TA_DEV_KIT_DIR) \
-	CFG_DEV_PATH=$(ROOT) \
+	OPTEE_CLIENT_EXPORT=$(OPTEE_CLIENT_EXPORT) \
 	COMPILE_NS_USER=$(COMPILE_NS_USER) \
 	O=$(OPTEE_TEST_OUT_PATH)
 
@@ -249,3 +249,64 @@ HELLOWORLD_CLEAN_COMMON_FLAGS ?= TA_DEV_KIT_DIR=$(OPTEE_OS_TA_DEV_KIT_DIR)
 
 helloworld-clean-common:
 	$(MAKE) -C $(HELLOWORLD_PATH) $(HELLOWORLD_CLEAN_COMMON_FLAGS) clean
+
+################################################################################
+# rootfs
+################################################################################
+update_rootfs-common: busybox filelist-tee
+	cat $(GEN_ROOTFS_PATH)/filelist-final.txt > $(GEN_ROOTFS_PATH)/filelist.tmp
+	cat $(GEN_ROOTFS_FILELIST) >> $(GEN_ROOTFS_PATH)/filelist.tmp
+	cd $(GEN_ROOTFS_PATH) && \
+	        $(LINUX_PATH)/usr/gen_init_cpio $(GEN_ROOTFS_PATH)/filelist.tmp | \
+			gzip > $(GEN_ROOTFS_PATH)/filesystem.cpio.gz
+
+update_rootfs-clean-common:
+	rm -f $(GEN_ROOTFS_PATH)/filesystem.cpio.gz
+	rm -f $(GEN_ROOTFS_PATH)/filelist-all.txt
+	rm -f $(GEN_ROOTFS_PATH)/filelist-tmp.txt
+	rm -f $(GEN_ROOTFS_FILELIST)
+
+filelist-tee-common: fl:=$(GEN_ROOTFS_FILELIST)
+filelist-tee-common: optee-client xtest helloworld
+	@echo "# filelist-tee-common /start" 				> $(fl)
+	@echo "dir /lib/optee_armtz 755 0 0" 				>> $(fl)
+	@echo "# xtest / optee_test" 					>> $(fl)
+	@find $(OPTEE_TEST_OUT_PATH) -type f -name "xtest" | \
+		sed 's/\(.*\)/file \/bin\/xtest \1 755 0 0/g' 		>> $(fl)
+	@find $(OPTEE_TEST_OUT_PATH) -name "*.ta" | \
+		sed 's/\(.*\)\/\(.*\)/file \/lib\/optee_armtz\/\2 \1\/\2 444 0 0/g' \
+									>> $(fl)
+	@if [ -e $(HELLOWORLD_PATH)/host/hello_world ]; then \
+		echo "file /bin/hello_world" \
+			"$(HELLOWORLD_PATH)/host/hello_world 755 0 0"	>> $(fl); \
+		echo "file /lib/optee_armtz/8aaaf200-2450-11e4-abe20002a5d5c51b.ta" \
+			"$(HELLOWORLD_PATH)/ta/8aaaf200-2450-11e4-abe20002a5d5c51b.ta" \
+			"444 0 0" 					>> $(fl); \
+	fi
+	@echo "# Secure storage dir" 					>> $(fl)
+	@echo "dir /data 755 0 0" 					>> $(fl)
+	@echo "dir /data/tee 755 0 0" 					>> $(fl)
+	@if [ -e $(OPTEE_GENDRV_MODULE) ]; then \
+		echo "# OP-TEE device" 					>> $(fl); \
+		echo "dir /lib/modules 755 0 0" 			>> $(fl); \
+		echo "dir /lib/modules/$(call KERNEL_VERSION) 755 0 0" \
+									>> $(fl); \
+		echo "file /lib/modules/$(call KERNEL_VERSION)/optee.ko" \
+			"$(OPTEE_GENDRV_MODULE) 755 0 0" \
+									>> $(fl); \
+	fi
+	@echo "# OP-TEE Client" 					>> $(fl)
+	@echo "file /bin/tee-supplicant $(OPTEE_CLIENT_EXPORT)/bin/tee-supplicant 755 0 0" \
+									>> $(fl)
+	@echo "file /lib/libteec.so.1.0 $(OPTEE_CLIENT_EXPORT)/lib/libteec.so.1.0 755 0 0" \
+									>> $(fl)
+	@echo "slink /lib/libteec.so.1 libteec.so.1.0 755 0 0"			>> $(fl)
+	@echo "slink /lib/libteec.so libteec.so.1 755 0 0" 			>> $(fl)
+	@if [ -e $(OPTEE_CLIENT_EXPORT)/lib/libsqlfs.so.1.0 ]; then \
+		echo "file /lib/libsqlfs.so.1.0" \
+			"$(OPTEE_CLIENT_EXPORT)/lib/libsqlfs.so.1.0 755 0 0" \
+									>> $(fl); \
+		echo "slink /lib/libsqlfs.so.1 libsqlfs.so.1.0 755 0 0" >> $(fl); \
+		echo "slink /lib/libsqlfs.so libsqlfs.so.1 755 0 0" 	>> $(fl); \
+	fi
+	@echo "# filelist-tee-common /end"				>> $(fl)

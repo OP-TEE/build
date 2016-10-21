@@ -191,33 +191,9 @@ helloworld-clean: helloworld-clean-common
 # Root FS
 ################################################################################
 .PHONY: filelist-tee
-filelist-tee: helloworld
-	@echo "# xtest / optee_test" > $(GEN_ROOTFS_FILELIST)
-	@find $(OPTEE_TEST_OUT_PATH) -type f -name "xtest" | sed 's/\(.*\)/file \/bin\/xtest \1 755 0 0/g' >> $(GEN_ROOTFS_FILELIST)
-	@echo "file /bin/hello_world $(HELLOWORLD_PATH)/host/hello_world 755 0 0" >> $(GEN_ROOTFS_FILELIST)
-	@echo "# TAs" >> $(GEN_ROOTFS_FILELIST)
-	@echo "dir /lib/optee_armtz 755 0 0" >> $(GEN_ROOTFS_FILELIST)
-	@find $(OPTEE_TEST_OUT_PATH) -name "*.ta" | \
-		sed 's/\(.*\)\/\(.*\)/file \/lib\/optee_armtz\/\2 \1\/\2 444 0 0/g' >> $(GEN_ROOTFS_FILELIST)
-	@echo "file /lib/optee_armtz/8aaaf200-2450-11e4-abe20002a5d5c51b.ta $(HELLOWORLD_PATH)/ta/8aaaf200-2450-11e4-abe20002a5d5c51b.ta 444 0 0" >> $(GEN_ROOTFS_FILELIST)
-	@echo "# Secure storage dir" >> $(GEN_ROOTFS_FILELIST)
-	@echo "dir /data 755 0 0" >> $(GEN_ROOTFS_FILELIST)
-	@echo "dir /data/tee 755 0 0" >> $(GEN_ROOTFS_FILELIST)
-	@echo "dir /data/tee 755 0 0" >> $(GEN_ROOTFS_FILELIST)
+filelist-tee: linux
+filelist-tee: filelist-tee-common
 	@echo "dir /usr/bin 755 0 0" >> $(GEN_ROOTFS_FILELIST)
-	@if [ -e $(OPTEE_GENDRV_MODULE) ]; then \
-		echo "# OP-TEE device" >> $(GEN_ROOTFS_FILELIST); \
-		echo "dir /lib/modules 755 0 0" >> $(GEN_ROOTFS_FILELIST); \
-		echo "dir /lib/modules/$(call KERNEL_VERSION) 755 0 0" >> $(GEN_ROOTFS_FILELIST); \
-		echo "file /lib/modules/$(call KERNEL_VERSION)/optee.ko $(OPTEE_GENDRV_MODULE) 755 0 0" >> $(GEN_ROOTFS_FILELIST); \
-	fi
-	@echo "# OP-TEE Client" >> $(GEN_ROOTFS_FILELIST)
-	@echo "file /usr/include/tee_client_api.h $(OPTEE_CLIENT_EXPORT)/include/tee_client_api.h 755 0 0" >> $(GEN_ROOTFS_FILELIST)
-	@echo "file /usr/include/teec_trace.h $(OPTEE_CLIENT_EXPORT)/include/teec_trace.h 755 0 0" >> $(GEN_ROOTFS_FILELIST)
-	@echo "file /bin/tee-supplicant $(OPTEE_CLIENT_EXPORT)/bin/tee-supplicant 755 0 0" >> $(GEN_ROOTFS_FILELIST)
-	@echo "file /lib/libteec.so.1.0 $(OPTEE_CLIENT_EXPORT)/lib/libteec.so.1.0 755 0 0" >> $(GEN_ROOTFS_FILELIST)
-	@echo "slink /lib/libteec.so.1 libteec.so.1.0 755 0 0" >> $(GEN_ROOTFS_FILELIST)
-	@echo "slink /lib/libteec.so libteec.so.1 755 0 0" >> $(GEN_ROOTFS_FILELIST)
 	@echo "dir /boot 755 0 0" >> $(GEN_ROOTFS_FILELIST)
 	@echo "file /boot/bcm2710-rpi-3-b.dtb $(LINUX_DTB) 755 0 0" >> $(GEN_ROOTFS_FILELIST)
 	@echo "file /boot/config.txt $(RPI3_BOOT_CONFIG) 755 0 0" >> $(GEN_ROOTFS_FILELIST)
@@ -240,10 +216,8 @@ filelist-tee: helloworld
 	@echo "file /boot/start_x.elf $(RPI3_STOCK_FW_PATH)/boot/start_x.elf 755 0 0" >> $(GEN_ROOTFS_FILELIST)
 
 .PHONY: update_rootfs
-update_rootfs: arm-tf busybox u-boot optee-client xtest filelist-tee linux
-	cat $(GEN_ROOTFS_PATH)/filelist-final.txt $(GEN_ROOTFS_PATH)/filelist-tee.txt > $(GEN_ROOTFS_PATH)/filelist.tmp
-	cd $(GEN_ROOTFS_PATH) && \
-	        $(LINUX_PATH)/usr/gen_init_cpio $(GEN_ROOTFS_PATH)/filelist.tmp | gzip > $(GEN_ROOTFS_PATH)/filesystem.cpio.gz
+update_rootfs: arm-tf u-boot
+update_rootfs: update_rootfs-common
 
 # Creating images etc, could wipe out a drive on the system, therefore we don't
 # want to automate that in script or make target. Instead we just simply provide
