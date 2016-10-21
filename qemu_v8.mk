@@ -122,7 +122,7 @@ linux-cleaner: linux-cleaner-common
 # OP-TEE
 ################################################################################
 OPTEE_OS_COMMON_FLAGS += PLATFORM=vexpress-qemu_armv8a CFG_ARM64_core=y \
-			 DEBUG=0 CFG_PM_DEBUG=0 CFG_TEE_CORE_LOG_LEVEL=3
+			 DEBUG=0 CFG_PM_DEBUG=0
 optee-os: optee-os-common
 
 OPTEE_OS_CLEAN_COMMON_FLAGS += PLATFORM=vexpress-qemu_armv8a
