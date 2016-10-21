@@ -200,7 +200,7 @@ define run-help
 	@echo xtest
 	@echo
 	@echo To run a single test case replace the xtest command with for instance
-	@echo xtest 2001
+	@echo xtest 1004
 endef
 
 define launch-terminal
