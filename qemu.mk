@@ -23,9 +23,9 @@ DEBUG = 1
 ################################################################################
 # Targets
 ################################################################################
-all: bios-qemu qemu soc-term
+all: bios-qemu qemu soc-term benchmark-app
 clean: bios-qemu-clean busybox-clean linux-clean optee-os-clean \
-	optee-client-clean qemu-clean soc-term-clean check-clean
+	optee-client-clean qemu-clean soc-term-clean check-clean benchmark-app-clean
 
 -include toolchain.mk
 
@@ -129,6 +129,13 @@ xtest-patch: xtest-patch-common
 helloworld: helloworld-common
 
 helloworld-clean: helloworld-clean-common
+
+################################################################################
+# benchmark
+################################################################################
+benchmark-app: benchmark-app-common
+
+benchmark-app-clean: benchmark-app-clean-common
 
 ################################################################################
 # Root FS
