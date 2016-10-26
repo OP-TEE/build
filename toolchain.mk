@@ -1,7 +1,7 @@
 ################################################################################
 # Toolchains
 ################################################################################
-ROOT				?= ${HOME}/devel/optee
+ROOT					?= $(CURDIR)/..
 TOOLCHAIN_ROOT 			?= $(ROOT)/toolchains
 
 AARCH32_PATH 			?= $(TOOLCHAIN_ROOT)/aarch32
