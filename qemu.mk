@@ -49,7 +49,8 @@ bios-qemu-clean:
 	$(call bios-qemu-common) clean
 
 qemu:
-	cd $(QEMU_PATH); ./configure --target-list=arm-softmmu --cc="$(CCACHE)gcc" --extra-cflags="-Wno-error"
+	cd $(QEMU_PATH); ./configure --target-list=arm-softmmu\
+			$(QEMU_CONFIGURE_PARAMS_COMMON)
 	$(MAKE) -C $(QEMU_PATH)
 
 qemu-clean:
@@ -179,7 +180,8 @@ run-only:
 		-serial tcp:localhost:54320 -serial tcp:localhost:54321 \
 		-s -S -machine virt -machine secure=on -cpu cortex-a15 \
 		-m 1057 \
-		-bios $(ROOT)/out/bios-qemu/bios.bin $(QEMU_EXTRA_ARGS)
+		-bios $(ROOT)/out/bios-qemu/bios.bin \
+		$(QEMU_EXTRA_ARGS)
 
 
 ifneq ($(filter check,$(MAKECMDGOALS)),)

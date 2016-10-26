@@ -22,6 +22,12 @@ CFG_TEE_CORE_LOG_LEVEL		?= 3
 
 CCACHE ?= $(shell which ccache) # Don't remove this comment (space is needed)
 
+# Accessing a shared folder on the host from QEMU:
+# # Set QEMU_VIRTFS_ENABLE to 'y' and adjust QEMU_VIRTFS_HOST_DIR
+# # Then in QEMU, run:
+# # $ mount -t 9p -o trans=virtio host <mount_point>
+QEMU_VIRTFS_ENABLE		?= n
+QEMU_VIRTFS_HOST_DIR	?= $(ROOT)
 
 ################################################################################
 # Check coherency of compilation mode
@@ -179,7 +185,17 @@ edk2-clean-common:
 	$(call edk2-call) clean && \
 	$(MAKE) -j1 -C $(EDK2_PATH)/BaseTools clean && \
 	rm -f $(EDK2_PATH)/Conf/target.txt
+################################################################################
+# QEMU / QEMUv8
+################################################################################
+QEMU_CONFIGURE_PARAMS_COMMON = --cc="$(CCACHE)gcc" --extra-cflags="-Wno-error"
 
+ifeq ($(QEMU_VIRTFS_ENABLE),y)
+QEMU_CONFIGURE_PARAMS +=  --enable-virtfs
+QEMU_EXTRA_ARGS +=\
+	-fsdev local,id=fsdev0,path=$(QEMU_VIRTFS_HOST_DIR),security_model=none \
+	-device virtio-9p-device,fsdev=fsdev0,mount_tag=host
+endif
 ################################################################################
 # OP-TEE
 ################################################################################

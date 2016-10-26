@@ -75,7 +75,8 @@ endif
 # QEMU
 ################################################################################
 qemu:
-	cd $(QEMU_PATH); ./configure --target-list=aarch64-softmmu --cc="$(CCACHE)gcc" --extra-cflags="-Wno-error"
+	cd $(QEMU_PATH); ./configure --target-list=aarch64-softmmu\
+			$(QEMU_CONFIGURE_PARAMS_COMMON)
 	$(MAKE) -C $(QEMU_PATH)
 
 qemu-clean:
@@ -231,7 +232,8 @@ run-only:
 		-semihosting -d unimp \
 		-initrd $(GEN_ROOTFS_PATH)/filesystem.cpio.gz \
 		-kernel $(LINUX_PATH)/arch/arm64/boot/Image \
-		-append 'console=ttyAMA0,38400 keep_bootcon root=/dev/vda2'
+		-append 'console=ttyAMA0,38400 keep_bootcon root=/dev/vda2' \
+		$(QEMU_EXTRA_ARGS)
 
 ifneq ($(filter check,$(MAKECMDGOALS)),)
 CHECK_DEPS := all
