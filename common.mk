@@ -19,7 +19,9 @@ HELLOWORLD_PATH			?= $(ROOT)/hello_world
 
 # default high verbosity. slow uarts shall specify lower if prefered
 CFG_TEE_CORE_LOG_LEVEL		?= 3
-CFG_TEE_BENCHMARK		?= y
+CFG_TEE_BENCHMARK		?= n
+# print latency statistics for each TEEC_InvokeCommand
+CFG_TEE_PRINT_LATENCY_STAT ?= n
 
 CCACHE ?= $(shell which ccache) # Don't remove this comment (space is needed)
 
@@ -143,6 +145,10 @@ busybox-cleaner-common:
 ################################################################################
 # Linux
 ################################################################################
+ifeq ($(CFG_TEE_BENCHMARK),y)
+LINUX_DEFCONFIG_BENCH ?= $(CURDIR)/kconfigs/tee_bench.conf
+endif
+
 LINUX_COMMON_FLAGS ?= LOCALVERSION= CROSS_COMPILE=$(CROSS_COMPILE_NS_KERNEL)
 
 linux-common: linux-defconfig
@@ -151,7 +157,7 @@ linux-common: linux-defconfig
 $(LINUX_PATH)/.config: $(LINUX_DEFCONFIG_COMMON_FILES)
 	cd $(LINUX_PATH) && \
 		ARCH=$(LINUX_DEFCONFIG_COMMON_ARCH) \
-		scripts/kconfig/merge_config.sh $(LINUX_DEFCONFIG_COMMON_FILES)
+		scripts/kconfig/merge_config.sh $(LINUX_DEFCONFIG_COMMON_FILES) $(LINUX_DEFCONFIG_BENCH)
 
 linux-defconfig-clean-common:
 	rm -f $(LINUX_PATH)/.config
@@ -219,7 +225,8 @@ optee-os-clean-common: xtest-clean helloworld-clean
 	$(MAKE) -C $(OPTEE_OS_PATH) $(OPTEE_OS_CLEAN_COMMON_FLAGS) clean
 
 OPTEE_CLIENT_COMMON_FLAGS ?= CROSS_COMPILE=$(CROSS_COMPILE_NS_USER) \
-	CFG_TEE_BENCHMARK=$(CFG_TEE_BENCHMARK)
+	CFG_TEE_BENCHMARK=$(CFG_TEE_BENCHMARK) \
+	CFG_TEE_PRINT_LATENCY_STAT=$(CFG_TEE_PRINT_LATENCY_STAT)
 
 optee-client-common:
 	$(MAKE) -C $(OPTEE_CLIENT_PATH) $(OPTEE_CLIENT_COMMON_FLAGS)
