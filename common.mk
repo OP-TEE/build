@@ -19,9 +19,12 @@ HELLOWORLD_PATH			?= $(ROOT)/hello_world
 
 # default high verbosity. slow uarts shall specify lower if prefered
 CFG_TEE_CORE_LOG_LEVEL		?= 3
-CFG_TEE_BENCHMARK		?= n
+
+# enable latency benchmarks
+CFG_TEE_BENCHMARK			?= n
 # print latency statistics for each TEEC_InvokeCommand
-CFG_TEE_PRINT_LATENCY_STAT ?= n
+# CFG_TEE_BENCHMARK should be enabled
+CFG_TEE_PRINT_LATENCY_STAT	?= n
 
 CCACHE ?= $(shell which ccache) # Don't remove this comment (space is needed)
 
