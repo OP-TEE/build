@@ -1,0 +1,1 @@
+loadfit=run args_mmc; bootm ${loadaddr}#${fdtfile};

@@ -1,0 +1,76 @@
+/dts-v1/;
+
+/ {
+	description = "U-Boot fitImage";
+	#address-cells = <1>;
+
+	images {
+		kernel@1 {
+			description = "Linux kernel";
+			data = /incbin/("zImage.sec");
+			type = "kernel";
+			arch = "arm";
+			os = "linux";
+			compression = "none";
+			load = <0x82000000>;
+			entry = <0x82000000>;
+		};
+
+		dra7-evm.dtb {
+			description = "Flattened Device Tree blob";
+			data = /incbin/("dra7-evm.dtb.sec");
+			type = "flat_dt";
+			arch = "arm";
+			compression = "none";
+		};
+
+		dra72-evm-revc.dtb {
+			description = "Flattened Device Tree blob";
+			data = /incbin/("dra72-evm-revc.dtb.sec");
+			type = "flat_dt";
+			arch = "arm";
+			compression = "none";
+		};
+
+		dra71-evm.dtb {
+			description = "Flattened Device Tree blob";
+			data = /incbin/("dra71-evm.dtb.sec");
+			type = "flat_dt";
+			arch = "arm";
+			compression = "none";
+		};
+
+		optee {
+			description = "OPTEE OS Image";
+			data = /incbin/("tee.bin.sec");
+			type = "tee";
+			arch = "arm";
+			compression = "none";
+		};
+	};
+
+	configurations {
+		default = "dra7-evm.dtb";
+
+		dra7-evm.dtb {
+			description = "Linux kernel, FDT blob, OPTEE OS";
+			kernel = "kernel@1";
+			fdt = "dra7-evm.dtb";
+			loadables = "optee";
+		};
+
+		dra72-evm-revc.dtb {
+			description = "Linux kernel, FDT blob, OPTEE OS";
+			kernel = "kernel@1";
+			fdt = "dra72-evm-revc.dtb";
+			loadables = "optee";
+		};
+
+		dra71-evm.dtb {
+			description = "Linux kernel, FDT blob, OPTEE OS";
+			kernel = "kernel@1";
+			fdt = "dra71-evm.dtb";
+			loadables = "optee";
+		};
+	};
+};
