@@ -41,7 +41,7 @@ U-BOOT_BIN		?= $(U-BOOT_PATH)/u-boot.bin
 U-BOOT_JTAG_BIN		?= $(U-BOOT_PATH)/u-boot-jtag.bin
 
 RPI3_FIRMWARE_PATH	?= $(BUILD_PATH)/rpi3/firmware
-RPI3_HEAD_BIN		?= $(RPI3_FIRMWARE_PATH)/head.bin
+RPI3_HEAD_BIN		?= $(ROOT)/out/head.bin
 RPI3_BOOT_CONFIG	?= $(RPI3_FIRMWARE_PATH)/config.txt
 RPI3_UBOOT_ENV		?= $(RPI3_FIRMWARE_PATH)/uboot.env
 RPI3_STOCK_FW_PATH	?= $(ROOT)/rpi3_firmware
@@ -58,7 +58,7 @@ MODULE_OUTPUT		?= $(ROOT)/module_output
 all: rpi3-firmware arm-tf optee-os optee-client xtest u-boot \
 	linux update_rootfs
 all-clean: arm-tf-clean busybox-clean u-boot-clean optee-os-clean \
-	optee-client-clean rpi3-firmware-clean
+	optee-client-clean rpi3-firmware-clean head-bin-clean
 
 -include toolchain.mk
 
@@ -97,13 +97,21 @@ arm-tf-clean:
 U-BOOT_EXPORTS ?= CROSS_COMPILE=$(LEGACY_AARCH64_CROSS_COMPILE) ARCH=arm64
 
 .PHONY: u-boot
-u-boot:
+u-boot: $(RPI3_HEAD_BIN)
 	$(U-BOOT_EXPORTS) $(MAKE) -C $(U-BOOT_PATH) rpi_3_defconfig
 	$(U-BOOT_EXPORTS) $(MAKE) -C $(U-BOOT_PATH) all
 	cd $(U-BOOT_PATH) && cat $(RPI3_HEAD_BIN) $(U-BOOT_BIN) > $(U-BOOT_JTAG_BIN)
 
 u-boot-clean:
 	$(U-BOOT_EXPORTS) $(MAKE) -C $(U-BOOT_PATH) clean
+
+$(RPI3_HEAD_BIN): $(RPI3_FIRMWARE_PATH)/head.S
+	mkdir -p $(ROOT)/out/
+	$(AARCH64_CROSS_COMPILE)as $< -o $(ROOT)/out/head.o
+	$(AARCH64_CROSS_COMPILE)objcopy -O binary $(ROOT)/out/head.o $@
+
+head-bin-clean:
+	rm -f $(RPI3_HEAD_BIN) $(ROOT)/out/head.o
 
 ################################################################################
 # Busybox
