@@ -44,7 +44,8 @@ RPI3_FIRMWARE_PATH	?= $(BUILD_PATH)/rpi3/firmware
 RPI3_HEAD_BIN		?= $(ROOT)/out/head.bin
 RPI3_BOOT_CONFIG	?= $(RPI3_FIRMWARE_PATH)/config.txt
 RPI3_UBOOT_ENV		?= $(ROOT)/out/uboot.env
-RPI3_UBOOT_ENV_TXT	?= $(RPI3_FIRMWARE_PATH)/uboot.env.txt
+RPI3_UBOOT_ENV_TXT	?= $(ROOT)/out/uboot.env.txt
+RPI3_UBOOT_ENV_TPL	?= $(RPI3_FIRMWARE_PATH)/uboot.env.tpl
 RPI3_STOCK_FW_PATH	?= $(ROOT)/rpi3_firmware
 
 OPTEE_OS_PAGER		?= $(OPTEE_OS_PATH)/out/arm/core/tee-pager.bin
@@ -123,6 +124,9 @@ head-bin-clean:
 $(RPI3_UBOOT_ENV): $(RPI3_UBOOT_ENV_TXT) u-boot
 	mkdir -p $(ROOT)/out
 	$(U-BOOT_PATH)/tools/mkenvimage -s 0x4000 -o $(ROOT)/out/uboot.env $(RPI3_UBOOT_ENV_TXT)
+
+$(RPI3_UBOOT_ENV_TXT): $(RPI3_UBOOT_ENV_TPL)
+	$(RPI3_FIRMWARE_PATH)/randomize_uboot_env.sh $< > $@
 
 u-boot-env-clean:
 	rm -f $(RPI3_UBOOT_ENV)
