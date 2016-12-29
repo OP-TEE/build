@@ -6,13 +6,13 @@ TOOLCHAIN_ROOT 			?= $(ROOT)/toolchains
 
 AARCH32_PATH 			?= $(TOOLCHAIN_ROOT)/aarch32
 AARCH32_CROSS_COMPILE 		?= $(AARCH32_PATH)/bin/arm-linux-gnueabihf-
-AARCH32_GCC_VERSION 		?= gcc-linaro-5.3-2016.02-x86_64_arm-linux-gnueabihf
-SRC_AARCH32_GCC 		?= http://releases.linaro.org/components/toolchain/binaries/5.3-2016.02/arm-linux-gnueabihf/${AARCH32_GCC_VERSION}.tar.xz
+AARCH32_GCC_VERSION 		?= gcc-linaro-5.3.1-2016.05-x86_64_arm-linux-gnueabihf
+SRC_AARCH32_GCC 		?= http://releases.linaro.org/components/toolchain/binaries/5.3-2016.05/arm-linux-gnueabihf/${AARCH32_GCC_VERSION}.tar.xz
 
 AARCH64_PATH 			?= $(TOOLCHAIN_ROOT)/aarch64
 AARCH64_CROSS_COMPILE 		?= $(AARCH64_PATH)/bin/aarch64-linux-gnu-
-AARCH64_GCC_VERSION 		?= gcc-linaro-5.3-2016.02-x86_64_aarch64-linux-gnu
-SRC_AARCH64_GCC 		?= http://releases.linaro.org/components/toolchain/binaries/5.3-2016.02/aarch64-linux-gnu/${AARCH64_GCC_VERSION}.tar.xz
+AARCH64_GCC_VERSION 		?= gcc-linaro-5.3.1-2016.05-x86_64_aarch64-linux-gnu
+SRC_AARCH64_GCC 		?= http://releases.linaro.org/components/toolchain/binaries/5.3-2016.05/aarch64-linux-gnu/${AARCH64_GCC_VERSION}.tar.xz
 
 # Due to relocation error on the 96board edk forest, let's keep the old
 # toolchain for a while.
