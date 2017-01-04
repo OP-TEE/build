@@ -7,7 +7,8 @@
 	1. [Debug](#14-debug)
 	1. [Use graphical frontends](#15-use-graphical-frontends)
 		1. [ddd](#151-ddd)
-		2. [GNU Visual Debugger (gvd)](#152-gnu-visual-debugger-gvd)
+		1. [GNU Visual Debugger (gvd)](#152-gnu-visual-debugger-gvd)
+		1. [Affinic Debugger](#153-affinic-debugger)
 2. [Ftrace](#2-ftrace)
 3. [Known issues](#3-known-issues)
 
@@ -21,33 +22,20 @@ feel comfortable using a command line debugging tool.
 
 ## 1.1 Prerequisites
 Since there are inter-dependencies between the gits used when building OP-TEE,
-we recommend that you have been using the
-[Android repo manifest](https://github.com/OP-TEE/manifest) when setting up the environment for running OP-TEE using QEMU. In this
-guide we will use the default paths used in that particular setup, i.e.,
+we recommend that you have been following the guide as described in [README.md].
 
-```
+```bash
 # Root folder for the project
 $HOME/devel/optee
 ```
 
 
 ## 1.2 Download gdb for ARM
-There are a variety of gdb binaries which claims to support ARM. We have
-experienced problems using some of them, therefore we recommend to use the
-`arm-none-eabi-gdb` that you will find built and hosted by Linaro. Therefore
-start by downloading this toolchain
+If you've followed the instructions until here, then you should have the
+toolchains already in
 
-
-```
-wget https://releases.linaro.org/archive/14.09/components/toolchain/binaries/gcc-linaro-arm-none-eabi-4.9-2014.09_linux.tar.xz
-```
-
-and put it in the toolchain folder
-
-
-```
-cd $HOME/devel/optee/toolchains
-tar xvf $DOWNLOAD_FOLDER/gcc-linaro-arm-none-eabi-4.9-2014.09_linux.tar.xz
+```bash
+$HOME/devel/optee/toolchains
 ```
 
 ## 1.3 Scripts
@@ -61,7 +49,7 @@ set print pretty on
 
 define optee
 	handle SIGTRAP noprint nostop pass
-	symbol-file $HOME/devel/optee/optee_os/out/arm-plat-vexpress/core/tee.elf
+	symbol-file $HOME/devel/optee/optee_os/out/arm/core/tee.elf
 	target remote localhost:1234
 end
 document optee
@@ -73,13 +61,11 @@ end
 Now you are good to go for doing debugging using command line.
 
 ## 1.4 Debug
-Start QEMU according to the instructions
-[here](https://github.com/OP-TEE/optee_os#444-boot-and-run-qemu-and-op-tee),
-*however*, do not start the emulation, i.e. do not type the `c` command in QEMU.
-The main reason for not doing so is because you cannot set the breakpoints on
-secure side when when kernel has booted up (if anyone knows why, please let us
-now about it, we haven't investigated it) and then in another shell start gdb
-like this:
+Start QEMU according to the instructions in [QEMU ARMv7-A], **however**, do
+not start the emulation, i.e. do not type the `c` command in QEMU. The main
+reason for not doing so is because you cannot set the breakpoints on secure side
+when when kernel has booted up (if anyone knows why, please let us now about it,
+we haven't investigated it) and then in another shell start gdb like this:
 ```
 $ $HOME/devel/optee/toolchains/aarch32/bin/arm-linux-gnueabihf-gdb -q
 ```
@@ -142,6 +128,11 @@ gvd --debugger $HOME/devel/toolchains/gcc-linaro-arm-none-eabi-4.9-2014.09_linux
 
 Similarly to ddd, just simply run `optee` in the lower gdb command pane in gvd.
 
+### 1.5.3 Affinic Debugger / ADG
+[Affinic Debugger] seems to be the most stable graphical front end. It's not
+free (at this moment it costs roughly $50 USD). If you can afford it and prefer
+graphical frontends we highly recommend this tool.
+
 # 2. Ftrace
 Ftrace is useful set of tools for debugging both kernel and to some extent user
 space. Ftrace is really useful if you want to learn how some piece of code
@@ -190,28 +181,28 @@ Then simply recompile the kernel.
 
 ## 2.2 Use cases
 ### 2.2.1 Filter OP-TEE functions
-```
-modprobe optee_armtz
-cd /sys/kernel/debug/tracing
-echo ':mod:optee' > set_ftrace_filter
-echo ':mod:optee_armtz' >> set_ftrace_filter
+```bash
+$ modprobe optee_armtz
+$ cd /sys/kernel/debug/tracing
+$ echo ':mod:optee' > set_ftrace_filter
+$ echo ':mod:optee_armtz' >> set_ftrace_filter
 ```
 
 ### 2.2.2 Use the function tracer and function profiling
 Using the commands below will enable function profiling for the functions
 currently mentioned in the `set_ftrace_filter`
 
-```
-echo "function" > current_tracer
-echo "1" > function_profile_enabled
+```bash
+$ echo "function" > current_tracer
+$ echo "1" > function_profile_enabled
 ```
 
 If you now run `xtest` for example, then when done you can get profiling data
 by reading the content of the files in `/sys/kernel/debug/tracing/trace_stat`
 
-```
-cat trace_stat/function0
-cat trace_stat/function1
+```bash
+$ cat trace_stat/function0
+$ cat trace_stat/function1
 ...
 ```
 
@@ -229,19 +220,19 @@ The result will look something like this:
 ```
 
 #### 2.2.2.1 Oneliners
-```
+```bash
 # Print also the core number in the log
-for core in `seq 0 7`; do echo core: $core; cat trace_stat/function$core; done
+$ for core in `seq 0 7`; do echo core: $core; cat trace_stat/function$core; done
 ```
 
-```
+```bash
 # The functions that are called mostly:
-cat trace_stat/function0  | sort -nk2 -r | less
+$ cat trace_stat/function0  | sort -nk2 -r | less
 ```
 
-```
+```bash
 # The functions taking most time:
-cat trace_stat/function0  | sort -nk5 -r | less
+$ cat trace_stat/function0  | sort -nk5 -r | less
 ```
 
 ### 2.2.3 Using the function_graph
@@ -251,17 +242,17 @@ time spent when calling other functions. Let us say that your are interested in
 knowing how much various open, invoke and close and the call_tee command takes,
 then you can do like this:
 
-```
-echo "tz_open" > set_ftrace_filter
-echo "tz_close" >> set_ftrace_filter
-echo "tz_invoke" >> set_ftrace_filter
-echo "call_tee*" >> set_ftrace_filter
+```bash
+$ echo "tz_open" > set_ftrace_filter
+$ echo "tz_close" >> set_ftrace_filter
+$ echo "tz_invoke" >> set_ftrace_filter
+$ echo "call_tee*" >> set_ftrace_filter
 
 # Don't count the time if you are being schduled out
-echo 0 > options/sleep-time
+$ echo 0 > options/sleep-time
 
 # Enable the function_graph tracer
-echo "function_graph" > current_tracer
+$ echo "function_graph" > current_tracer
 ```
 
 Now if you run `xtest` and then done, read the contents of trace, you will see
@@ -286,14 +277,14 @@ something like this:
 
 ### 2.2.4 Options
 If you don't want to count the time when being scheduled out, then run:
-```
-echo 0 > options/sleep-time
+```bash
+$ echo 0 > options/sleep-time
 ```
 
 If you only want to measure the time spent *in* the function, then disable the
 graph-time.
-```
-echo 0 > options/graph-time
+```bash
+$ echo 0 > options/graph-time
 ```
 
 # 3. Known issues
@@ -302,3 +293,7 @@ echo 0 > options/graph-time
    how many frames you would like to see, for example `bt 10`.
 2. Cannot set breakpoints when the system is up and running. Workaround, set the
    breakpoints before booting up the system.
+
+[Affinic Debugger]: http://www.affinic.com/?page_id=109
+[README.md]: https://github.com/OP-TEE/build/README.md
+[QEMU ARMv7-A]: qemu.md#3-qemu-console
