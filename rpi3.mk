@@ -12,7 +12,7 @@ override COMPILE_S_KERNEL  := 64
 # we split it up in three different variables. Note that this should be updated
 # when newer firmware packages will be used.
 RPI3_FIRMWARE_URL = https://github.com/raspberrypi/firmware/archive
-RPI3_FIRMWARE_FILE = 046effa13ebc4cc7601df4f06f4834bd0eebb0f8
+RPI3_FIRMWARE_FILE = da504fcd4c673ecf85841ea80c28a8bb8b94e612
 RPI3_FIRMWARE_FILE_EXT = zip
 
 -include common.mk
