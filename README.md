@@ -102,7 +102,7 @@ Here is a list of manifests for the devices currently supported.
 # 7. Get and build the solution
 Below we will describe the general way of getting the source, building the
 solution and how to run xtest on the device. For device specific instructions,
-see the respective `device.md` file in the [devices] folder.
+see the respective `device.md` file in the [docs] folder.
 
 ## 7.1 Prerequisites
 We believe that you can use any Linux distribution to build OP-TEE, but as
@@ -241,7 +241,7 @@ don't have to think about anything.
 Please have a look at out [FAQ] file for a list of questions commonly asked.
 
 [ccache]: https://ccache.samba.org
-[devices]: devices
+[docs]: docs
 [FAQ]: faq.md
 [git submodules]: https://git-scm.com/book/en/v2/Git-Tools-Submodules
 [manifest/README.md]: https://github.com/OP-TEE/manifest/blob/master/README.md
