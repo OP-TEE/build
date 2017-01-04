@@ -414,7 +414,7 @@ using [Travis for OP-TEE].
 [OP-TEE Issues]: https://github.com/OP-TEE/optee_os/issues
 [OP-TEE pre-requisties]: https://github.com/OP-TEE/optee_os#41-prerequisites
 [OP-TEE Pull Requests]: https://github.com/OP-TEE/optee_os/pulls
-[OP-TEE repo setups]: https://github.com/OP-TEE/optee_os#5-repo-manifests
+[OP-TEE repo setups]: https://github.com/build#6-manifests
 [OTrP]: https://tools.ietf.org/html/draft-pei-opentrustprotocol-01
 [Platforms Supported]: https://github.com/OP-TEE/optee_os#3-platforms-supported
 [Raspberry Pi3 port]: https://github.com/OP-TEE/optee_os/commit/66d9cacf37e6bd4b0d86e7b32e4e5edefe8decfd
