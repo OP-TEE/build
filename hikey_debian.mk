@@ -207,7 +207,6 @@ xtest: xtest-common
 # "make clean" in xtest: fails if optee_os has been cleaned previously
 .PHONY: xtest-clean
 xtest-clean: xtest-clean-common
-	rm -rf $(OPTEE_TEST_OUT_PATH)
 
 .PHONY: xtest-patch
 xtest-patch: xtest-patch-common
