@@ -19,4 +19,4 @@ $ make run
 And the FVP should build the root fs and then start the simulation.
 
 [Foundation Models binaries]: https://developer.arm.com/products/system-design/fixed-virtual-platforms
-[README.md]: https://github.com/OP-TEE/build/README.md
+[README.md]: ../README.md

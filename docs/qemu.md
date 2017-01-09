@@ -46,4 +46,4 @@ $ mount_shared <mount_point>
 ```
 
 [bios]: https://github.com/linaro-swg/bios_qemu_tz_arm
-[README.md]: https://github.com/OP-TEE/build/README.md
+[README.md]: ../README.md

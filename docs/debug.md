@@ -295,5 +295,5 @@ $ echo 0 > options/graph-time
    breakpoints before booting up the system.
 
 [Affinic Debugger]: http://www.affinic.com/?page_id=109
-[README.md]: https://github.com/OP-TEE/build/README.md
+[README.md]: ../README.md
 [QEMU ARMv7-A]: qemu.md#3-qemu-console

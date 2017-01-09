@@ -134,4 +134,4 @@ NOR5LOAD: 00000000               ;Image Load Address
 NOR5ENTRY: 00000000              ;Image Entry Point
 ```
 
-[README.md]: https://github.com/OP-TEE/build/README.md
+[README.md]: ../README.md
