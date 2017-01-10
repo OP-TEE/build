@@ -17,14 +17,14 @@ CFG_SW_CONSOLE_UART ?= 3
 # TODO: Figure out how to handle this in a better way, but we need a version
 # number with major and minor for the debian packages.
 #   <major version>.<minor version>-<package revision>
-OPTEE_PKG_VERSION ?= 2.0-1
+OPTEE_PKG_VERSION ?= 2.3-0
 
 # IP-address to the HiKey device
 IP ?= 127.0.0.1
 
 # URL to images
 SYSTEM_IMG_URL=https://builds.96boards.org/releases/reference-platform/debian/hikey/16.03/hikey-rootfs-debian-jessie-alip-20160301-68.emmc.img.gz
-BOOT_IMG_URL=https://builds.96boards.org/releases/reference-platform/debian/hikey/16.03/hikey-boot-linux-20160301-68.uefi.img.gz
+BOOT_IMG_URL=https://builds.96boards.org/releases/reference-platform/debian/hikey/16.06/hikey-boot-linux-20160629-120.uefi.img.gz
 NVME_IMG_URL=https://builds.96boards.org/releases/hikey/linaro/binaries/latest/nvme.img
 
 ################################################################################
@@ -151,7 +151,6 @@ edk2-clean: edk2-clean-common
 ################################################################################
 LINUX_DEFCONFIG_COMMON_ARCH ?= arm64
 LINUX_DEFCONFIG_COMMON_FILES ?= $(LINUX_PATH)/arch/arm64/configs/defconfig \
-				$(LINUX_PATH)/arch/arm64/configs/distro.config \
 				$(CURDIR)/kconfigs/hikey_debian.conf
 
 linux-defconfig: $(LINUX_PATH)/.config
@@ -358,10 +357,16 @@ endef
 .PHONY: recovery
 recovery:
 	@echo "Enter recovery mode to flash a new bootloader"
+	@echo
+	@echo "Make sure udev permissions are set appropriately:"
+	@echo "  # /etc/udev/rules.d/hikey.rules"
+	@echo '  SUBSYSTEM=="usb", ATTRS{idVendor}=="18d1", ATTRS{idProduct}=="d00d", MODE="0666"'
+	@echo '  SUBSYSTEM=="usb", ATTRS{idVendor}=="12d1", MODE="0666", ENV{ID_MM_DEVICE_IGNORE}="1"'
+	@echo
 	@echo "Jumper 1-2: Closed (Auto power up = Boot up when power is applied)"
 	@echo "       3-4: Closed (Boot Select = Recovery: program eMMC from USB OTG)"
 	$(call flash_help)
-	sudo python $(ROOT)/burn-boot/hisi-idt.py --img1=$(LLOADER_PATH)/l-loader.bin
+	python $(ROOT)/burn-boot/hisi-idt.py --img1=$(LLOADER_PATH)/l-loader.bin
 	@$(MAKE) --no-print flash FROM_RECOVERY=1
 
 .PHONY: flash
