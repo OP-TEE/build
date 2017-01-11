@@ -68,8 +68,6 @@ SYSTEM_IMG			?= $(OUT_PATH)/debian_system.img
 ROOTFS_PATH			?= $(OUT_PATH)/rootfs
 LLOADER_PATH			?= $(ROOT)/l-loader
 PATCHES_PATH			?= $(ROOT)/patches_hikey
-AESPERF_PATH			?= $(ROOT)/aes-perf
-SHAPERF_PATH			?= $(ROOT)/sha-perf
 DEBPKG_PATH			?= $(OUT_PATH)/optee_$(OPTEE_PKG_VERSION)
 DEBPKG_BIN_PATH			?= $(DEBPKG_PATH)/usr/bin
 DEBPKG_LIB_PATH			?= $(DEBPKG_PATH)/usr/lib/$(MULTIARCH)
@@ -81,7 +79,7 @@ DEBPKG_CONTROL_PATH		?= $(DEBPKG_PATH)/DEBIAN
 ################################################################################
 all: prepare arm-tf linux boot-img lloader system-img nvme deb
 
-clean: arm-tf-clean edk2-clean linux-clean optee-os-clean optee-client-clean xtest-clean helloworld-clean boot-img-clean lloader-clean aes-perf-clean sha-perf-clean
+clean: arm-tf-clean edk2-clean linux-clean optee-os-clean optee-client-clean xtest-clean helloworld-clean boot-img-clean lloader-clean
 
 cleaner: clean prepare-cleaner linux-cleaner nvme-cleaner system-img-cleaner
 
@@ -217,30 +215,6 @@ xtest-patch: xtest-patch-common
 helloworld: helloworld-common
 
 helloworld-clean: helloworld-clean-common
-
-################################################################################
-# aes-pef
-################################################################################
-PERF_FLAGS := CROSS_COMPILE_HOST=$(CROSS_COMPILE_NS_USER) \
-	CROSS_COMPILE_TA=$(CROSS_COMPILE_S_USER) \
-	TA_DEV_KIT_DIR=$(OPTEE_OS_TA_DEV_KIT_DIR)
-
-aes-perf: optee-os optee-client
-	$(MAKE) -C -j$(NPROC) $(AESPERF_PATH) $(PERF_FLAGS)
-
-.PHONY: aes-perf-clean
-aes-perf-clean:
-	rm -rf $(AESPERF_PATH)/out
-
-################################################################################
-# sha-perf
-################################################################################
-sha-perf: optee-os optee-client
-	$(MAKE) -C -j$(NPROC) $(SHAPERF_PATH) $(PERF_FLAGS)
-
-.PHONY: sha-perf-clean
-sha-perf-clean:
-	rm -rf $(SHAPERF_PATH)/out
 
 ################################################################################
 # Boot Image

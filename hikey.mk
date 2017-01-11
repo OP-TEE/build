@@ -53,15 +53,13 @@ NVME_IMG			?=$(ROOT)/out/nvme.img
 OUT_PATH			?=$(ROOT)/out
 GRUB_PATH			?=$(ROOT)/grub
 PATCHES_PATH			?=$(ROOT)/patches_hikey
-AESPERF_PATH			?=$(ROOT)/aes-perf
-SHAPERF_PATH			?=$(ROOT)/sha-perf
 
 ################################################################################
 # Targets
 ################################################################################
 all: prepare arm-tf boot-img lloader nvme strace
 
-clean: arm-tf-clean busybox-clean edk2-clean linux-clean optee-os-clean optee-client-clean xtest-clean helloworld-clean strace-clean update_rootfs-clean boot-img-clean lloader-clean aes-perf-clean sha-perf-clean grub-clean
+clean: arm-tf-clean busybox-clean edk2-clean linux-clean optee-os-clean optee-client-clean xtest-clean helloworld-clean strace-clean update_rootfs-clean boot-img-clean lloader-clean grub-clean
 
 cleaner: clean prepare-cleaner busybox-cleaner linux-cleaner strace-cleaner nvme-cleaner grub-cleaner
 
@@ -220,30 +218,6 @@ xtest-patch: xtest-patch-common
 helloworld: helloworld-common
 
 helloworld-clean: helloworld-clean-common
-
-################################################################################
-# aes-pef
-################################################################################
-PERF_FLAGS := CROSS_COMPILE_HOST=$(CROSS_COMPILE_NS_USER) \
-	CROSS_COMPILE_TA=$(CROSS_COMPILE_S_USER) \
-	TA_DEV_KIT_DIR=$(OPTEE_OS_TA_DEV_KIT_DIR)
-
-aes-perf: optee-os optee-client
-	$(MAKE) -C $(AESPERF_PATH) $(PERF_FLAGS)
-
-.PHONY: aes-perf-clean
-aes-perf-clean:
-	rm -rf $(AESPERF_PATH)/out
-
-################################################################################
-# sha-perf
-################################################################################
-sha-perf: optee-os optee-client
-	$(MAKE) -C $(SHAPERF_PATH) $(PERF_FLAGS)
-
-.PHONY: sha-perf-clean
-sha-perf-clean:
-	rm -rf $(SHAPERF_PATH)/out
 
 ################################################################################
 # strace
