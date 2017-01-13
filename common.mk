@@ -29,6 +29,8 @@ CCACHE ?= $(shell which ccache) # Don't remove this comment (space is needed)
 QEMU_VIRTFS_ENABLE		?= n
 QEMU_VIRTFS_HOST_DIR	?= $(ROOT)
 
+# Enable SLiRP user networking
+QEMU_USERNET_ENABLE		?= n
 ################################################################################
 # Check coherency of compilation mode
 ################################################################################
@@ -196,6 +198,11 @@ QEMU_EXTRA_ARGS +=\
 	-fsdev local,id=fsdev0,path=$(QEMU_VIRTFS_HOST_DIR),security_model=none \
 	-device virtio-9p-device,fsdev=fsdev0,mount_tag=host
 endif
+
+ifeq ($(QEMU_USERNET_ENABLE),y)
+QEMU_EXTRA_ARGS +=\
+	-netdev user,id=vmnic -device virtio-net-device,netdev=vmnic
+endif
 ################################################################################
 # OP-TEE
 ################################################################################
@@ -300,6 +307,10 @@ filelist-tee-common: optee-client xtest helloworld
 		echo "file /lib/optee_armtz/8aaaf200-2450-11e4-abe2-0002a5d5c51b.ta" \
 			"$(HELLOWORLD_PATH)/ta/8aaaf200-2450-11e4-abe2-0002a5d5c51b.ta" \
 			"444 0 0" 					>> $(fl); \
+	fi
+	@if [ "$(QEMU_USERNET_ENABLE)" = "y" ]; then \
+		echo "slink /etc/rc.d/S02_udhcp_networking /etc/init.d/udhcpc 755 0 0" \
+		>> $(fl); \
 	fi
 	@echo "# Secure storage dir" 					>> $(fl)
 	@echo "dir /data 755 0 0" 					>> $(fl)
