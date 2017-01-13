@@ -4,7 +4,8 @@
 1. [Introduction](#1-introduction)
 2. [Regular build](#2-regular-build)
 3. [Install files on the device](#3-qemu-console)
-4. [Host-Guest folder sharing in QEMU/QEMUv8 configurations](#4-host-guest-folder-sharing-in-qemuqemuv8-configurations)
+4. [Host-Guest folder sharing](#4-host-guest-folder-sharing)
+5. [SLiRP user networking](#5-slirp-user-networking)
 
 # 1. Introduction
 The instructions here will tell how to run OP-TEE using QEMU. We have two
@@ -31,12 +32,12 @@ It will stop on the QEMU console, to continue, simply
 ## 3.2 ARMv8-A
 It won't stop, it will just boot up QEMU and OP-TEE.
 
-#4. Host-Guest folder sharing in QEMU/QEMUv8 configurations
+# 4. Host-Guest folder sharing
 
 To avoid changing rootfs CPIO archive each time you need to add additional files
 to it, you can also use VirtFS QEMU feature to share a folder between the guest
 and host operating systems. To use this feature enable VirtFS QEMU build in
-build/common.mk (set QEMU_VIRTFS_ENABLE ?= y), adjust QEMU_VIRTFS_HOST_DIR and
+build/common.mk (set `QEMU_VIRTFS_ENABLE ?= y`), adjust `QEMU_VIRTFS_HOST_DIR` and
 rebuild QEMU.
 
 To mount host folder in QEMU, simply run:
@@ -44,6 +45,12 @@ To mount host folder in QEMU, simply run:
 ```bash
 $ mount_shared <mount_point>
 ```
+# 5. SLiRP user networking
+To enable SLiRP user networking just set `QEMU_USERNET_ENABLE ?= y` in `common.mk`.
+After booting QEMU VM, eth0 will automatically receive IP address via DHCP
+
+*Important* Take into account that ICMP doesn't work in SLiRP mode,
+so `ping` utility won't work.
 
 [bios]: https://github.com/linaro-swg/bios_qemu_tz_arm
 [README.md]: ../README.md
