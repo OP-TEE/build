@@ -98,6 +98,7 @@ Here is a list of manifests for the devices currently supported.
 | MediaTek MT8173 EVB Board | `mt8173-evb.xml` | `mt8173-evb_stable.xml` |
 | ARM Juno board| `juno.xml` | `juno_stable.xml` |
 | Raspberry Pi 3 | `rpi3.xml` | `rpi3_stable.xml` |
+| DRA7xx | `dra7xx.xml` | `dra7xx_stable.xml` |
 
 # 7. Get and build the solution
 Below we will describe the general way of getting the source, building the
