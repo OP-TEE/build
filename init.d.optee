@@ -1,0 +1,26 @@
+#!/bin/sh
+#
+# /etc/init.d/optee
+#
+# Start/stop tee-supplicant (OP-TEE normal world daemon)
+#
+case "$1" in
+    start)
+	if [ -e /bin/tee-supplicant -a -e /dev/teepriv0 ]; then
+		echo "Starting tee-supplicant..."
+		tee-supplicant&
+		exit 0
+	else
+		echo "tee-supplicant or TEE device not found"
+		exit 1
+	fi
+
+        ;;
+    stop)
+	killall tee-supplicant
+	;;
+    status)
+	cat /dev/teepriv0 2>&1 | grep -q "Device or resource busy" || not="not "
+	echo "tee-supplicant is ${not}active"
+	;;
+esac
