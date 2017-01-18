@@ -10,6 +10,7 @@ Frequently Asked Questions
 8.  [Trusted Applications](#8-trusted-applications)
 9.  [Testing](#9-testing)
 
+--------------
 
 1. Source code
 --------------
