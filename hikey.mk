@@ -12,6 +12,9 @@ COMPILE_S_KERNEL  ?= 64
 CFG_NW_CONSOLE_UART ?= 3
 CFG_SW_CONSOLE_UART ?= 3
 
+# eMMC flash size: 8 or 4 GB [default 8]
+CFG_FLASH_SIZE ?= 8
+
 ################################################################################
 # Includes
 ################################################################################
@@ -320,7 +323,7 @@ boot-img-clean:
 # l-loader
 ################################################################################
 lloader: arm-tf
-	$(MAKE) -C $(LLOADER_PATH) BL1=$(ARM_TF_PATH)/build/hikey/$(ARM_TF_BUILD)/bl1.bin CROSS_COMPILE="$(CCACHE)$(AARCH32_CROSS_COMPILE)" PTABLE_LST=linux-4g
+	$(MAKE) -C $(LLOADER_PATH) BL1=$(ARM_TF_PATH)/build/hikey/$(ARM_TF_BUILD)/bl1.bin CROSS_COMPILE="$(CCACHE)$(AARCH32_CROSS_COMPILE)" PTABLE_LST=linux-$(CFG_FLASH_SIZE)g
 
 .PHONY: lloader-clean
 lloader-clean:
@@ -372,7 +375,7 @@ ifneq ($(FROM_RECOVERY),1)
 	@echo "    \"Android Fastboot mode - version x.x Press any key to quit.\""
 	@read -r -p "   Then press any key to continue flashing" dummy
 endif
-	fastboot flash ptable $(LLOADER_PATH)/ptable-linux-4g.img
+	fastboot flash ptable $(LLOADER_PATH)/ptable-linux-$(CFG_FLASH_SIZE)g.img
 	fastboot flash fastboot $(ARM_TF_PATH)/build/hikey/$(ARM_TF_BUILD)/fip.bin
 	fastboot flash nvme $(NVME_IMG)
 	fastboot flash boot $(BOOT_IMG)
