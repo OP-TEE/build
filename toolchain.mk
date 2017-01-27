@@ -21,16 +21,26 @@ LEGACY_AARCH64_CROSS_COMPILE    ?= $(LEGACY_AARCH64_PATH)/bin/aarch64-linux-gnu-
 LEGACY_AARCH64_GCC_VERSION      ?= gcc-linaro-aarch64-linux-gnu-4.9-2014.08_linux
 LEGACY_SRC_AARCH64_GCC          ?= http://releases.linaro.org/archive/14.08/components/toolchain/binaries/${LEGACY_AARCH64_GCC_VERSION}.tar.xz
 
-toolchains:
-	mkdir -p $(AARCH32_PATH)
-	curl -L $(SRC_AARCH32_GCC) -o $(TOOLCHAIN_ROOT)/$(AARCH32_GCC_VERSION).tar.xz
-	tar xf $(TOOLCHAIN_ROOT)/$(AARCH32_GCC_VERSION).tar.xz -C $(AARCH32_PATH) --strip-components=1
+toolchains: aarch32 aarch64 aarch64-legacy
 
-	mkdir -p $(AARCH64_PATH)
-	curl -L $(SRC_AARCH64_GCC) -o $(TOOLCHAIN_ROOT)/$(AARCH64_GCC_VERSION).tar.xz
-	tar xf $(TOOLCHAIN_ROOT)/$(AARCH64_GCC_VERSION).tar.xz -C $(AARCH64_PATH) --strip-components=1
+aarch32:
+	if [ ! -d "$(AARCH32_PATH)" ]; then \
+		mkdir -p $(AARCH32_PATH); \
+		curl -L $(SRC_AARCH32_GCC) -o $(TOOLCHAIN_ROOT)/$(AARCH32_GCC_VERSION).tar.xz; \
+		tar xf $(TOOLCHAIN_ROOT)/$(AARCH32_GCC_VERSION).tar.xz -C $(AARCH32_PATH) --strip-components=1; \
+	fi
 
-	mkdir -p $(LEGACY_AARCH64_PATH)
-	curl -L $(LEGACY_SRC_AARCH64_GCC) -o $(TOOLCHAIN_ROOT)/$(LEGACY_AARCH64_GCC_VERSION).tar.xz
-	tar xf $(TOOLCHAIN_ROOT)/$(LEGACY_AARCH64_GCC_VERSION).tar.xz -C $(LEGACY_AARCH64_PATH) --strip-components=1
+aarch64:
+	if [ ! -d "$(AARCH64_PATH)" ]; then \
+		mkdir -p $(AARCH64_PATH); \
+		curl -L $(SRC_AARCH64_GCC) -o $(TOOLCHAIN_ROOT)/$(AARCH64_GCC_VERSION).tar.xz; \
+		tar xf $(TOOLCHAIN_ROOT)/$(AARCH64_GCC_VERSION).tar.xz -C $(AARCH64_PATH) --strip-components=1; \
+	fi
+
+aarch64-legacy:
+	if [ ! -d "$(LEGACY_AARCH64_PATH)" ]; then \
+		mkdir -p $(LEGACY_AARCH64_PATH); \
+		curl -L $(LEGACY_SRC_AARCH64_GCC) -o $(TOOLCHAIN_ROOT)/$(LEGACY_AARCH64_GCC_VERSION).tar.xz; \
+		tar xf $(TOOLCHAIN_ROOT)/$(LEGACY_AARCH64_GCC_VERSION).tar.xz -C $(LEGACY_AARCH64_PATH) --strip-components=1; \
+	fi
 
