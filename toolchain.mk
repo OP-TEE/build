@@ -1,7 +1,7 @@
 ################################################################################
 # Toolchains
 ################################################################################
-ROOT					?= $(CURDIR)/..
+ROOT				?= $(CURDIR)/..
 TOOLCHAIN_ROOT 			?= $(ROOT)/toolchains
 
 AARCH32_PATH 			?= $(TOOLCHAIN_ROOT)/aarch32
@@ -21,26 +21,31 @@ LEGACY_AARCH64_CROSS_COMPILE    ?= $(LEGACY_AARCH64_PATH)/bin/aarch64-linux-gnu-
 LEGACY_AARCH64_GCC_VERSION      ?= gcc-linaro-aarch64-linux-gnu-4.9-2014.08_linux
 LEGACY_SRC_AARCH64_GCC          ?= http://releases.linaro.org/archive/14.08/components/toolchain/binaries/${LEGACY_AARCH64_GCC_VERSION}.tar.xz
 
+# Download toolchain macro for saving some repetition
+# $(1) is $AARCH.._PATH		: i.e., path to the destination
+# $(2) is $SRC_AARCH.._GCC	: is the downloaded tar.gz file
+# $(3) is $.._GCC_VERSION	: the name of the file to download
+define dltc
+	@if [ ! -d "$(1)" ]; then \
+		mkdir -p $(1); \
+		echo "Downloading $(3) ..."; \
+		curl -s -L $(2) -o $(TOOLCHAIN_ROOT)/$(3).tar.xz; \
+		tar xf $(TOOLCHAIN_ROOT)/$(3).tar.xz -C $(1) --strip-components=1; \
+	fi
+endef
+
+.PHONY: toolchains
 toolchains: aarch32 aarch64 aarch64-legacy
 
+.PHONY: aarch32
 aarch32:
-	if [ ! -d "$(AARCH32_PATH)" ]; then \
-		mkdir -p $(AARCH32_PATH); \
-		curl -L $(SRC_AARCH32_GCC) -o $(TOOLCHAIN_ROOT)/$(AARCH32_GCC_VERSION).tar.xz; \
-		tar xf $(TOOLCHAIN_ROOT)/$(AARCH32_GCC_VERSION).tar.xz -C $(AARCH32_PATH) --strip-components=1; \
-	fi
+	$(call dltc,$(AARCH32_PATH),$(SRC_AARCH32_GCC),$(AARCH32_GCC_VERSION))
 
+.PHONY: aarch64
 aarch64:
-	if [ ! -d "$(AARCH64_PATH)" ]; then \
-		mkdir -p $(AARCH64_PATH); \
-		curl -L $(SRC_AARCH64_GCC) -o $(TOOLCHAIN_ROOT)/$(AARCH64_GCC_VERSION).tar.xz; \
-		tar xf $(TOOLCHAIN_ROOT)/$(AARCH64_GCC_VERSION).tar.xz -C $(AARCH64_PATH) --strip-components=1; \
-	fi
+	$(call dltc,$(AARCH64_PATH),$(SRC_AARCH64_GCC),$(AARCH64_GCC_VERSION))
 
+.PHONY: aarch64-legacy
 aarch64-legacy:
-	if [ ! -d "$(LEGACY_AARCH64_PATH)" ]; then \
-		mkdir -p $(LEGACY_AARCH64_PATH); \
-		curl -L $(LEGACY_SRC_AARCH64_GCC) -o $(TOOLCHAIN_ROOT)/$(LEGACY_AARCH64_GCC_VERSION).tar.xz; \
-		tar xf $(TOOLCHAIN_ROOT)/$(LEGACY_AARCH64_GCC_VERSION).tar.xz -C $(LEGACY_AARCH64_PATH) --strip-components=1; \
-	fi
+	$(call dltc,$(LEGACY_AARCH64_PATH),$(LEGACY_SRC_AARCH64_GCC),$(LEGACY_AARCH64_GCC_VERSION))
 
