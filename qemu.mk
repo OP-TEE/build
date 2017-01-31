@@ -141,18 +141,14 @@ update_rootfs: update_rootfs-common
 # Run targets
 ################################################################################
 define run-help
-	@echo "Run QEMU"
-	@echo QEMU is now waiting to start the execution
-	@echo Start execution with either a \'c\' followed by \<enter\> in the QEMU console or
-	@echo attach a debugger and continue from there.
 	@echo
-	@echo To run xtest paste the following on the serial 0 prompt
-	@echo tee-supplicant\&
-	@echo sleep 0.1
-	@echo xtest
+	@echo \* QEMU is now waiting to start the execution
+	@echo \* Start execution with either a \'c\' followed by \<enter\> in the QEMU console or
+	@echo \* attach a debugger and continue from there.
+	@echo \*
+	@echo \* To run OP-TEE tests, use the xtest command in the \'Normal World\' terminal
+	@echo \* Enter \'xtest -h\' for help.
 	@echo
-	@echo To run a single test case replace the xtest command with for instance
-	@echo xtest 1004
 endef
 
 define launch-terminal
