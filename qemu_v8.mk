@@ -189,26 +189,6 @@ update_rootfs: update_rootfs-common
 ################################################################################
 # Run targets
 ################################################################################
-define run-help
-	@echo
-	@echo \* QEMU is now waiting to start the execution
-	@echo \* Start execution with either a \'c\' followed by \<enter\> in the QEMU console or
-	@echo \* attach a debugger and continue from there.
-	@echo \*
-	@echo \* To run OP-TEE tests, use the xtest command in the \'Normal World\' terminal
-	@echo \* Enter \'xtest -h\' for help.
-	@echo
-endef
-
-define launch-terminal
-	@nc -z  127.0.0.1 $(1) || \
-	xterm -title $(2) -e $(BASH) -c "$(SOC_TERM_PATH)/soc_term $(1)" &
-endef
-
-define wait-for-ports
-       @while ! nc -z 127.0.0.1 $(1) || ! nc -z 127.0.0.1 $(2); do sleep 1; done
-endef
-
 .PHONY: run
 # This target enforces updating root fs etc
 run: all
@@ -216,6 +196,7 @@ run: all
 
 .PHONY: run-only
 run-only:
+	$(call check-terminal)
 	$(call run-help)
 	$(call launch-terminal,54320,"Normal World")
 	$(call launch-terminal,54321,"Secure World")

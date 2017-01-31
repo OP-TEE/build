@@ -203,6 +203,42 @@ ifeq ($(QEMU_USERNET_ENABLE),y)
 QEMU_EXTRA_ARGS +=\
 	-netdev user,id=vmnic -device virtio-net-device,netdev=vmnic
 endif
+
+define run-help
+	@echo
+	@echo \* QEMU is now waiting to start the execution
+	@echo \* Start execution with either a \'c\' followed by \<enter\> in the QEMU console or
+	@echo \* attach a debugger and continue from there.
+	@echo \*
+	@echo \* To run OP-TEE tests, use the xtest command in the \'Normal World\' terminal
+	@echo \* Enter \'xtest -h\' for help.
+	@echo
+endef
+
+gnome-terminal := $(shell command -v gnome-terminal 2>/dev/null)
+xterm := $(shell command -v xterm 2>/dev/null)
+ifdef gnome-terminal
+# Note: the title option (-t) is ignored with gnome-terminal versions
+# >= 3.14 and < 3.20
+define launch-terminal
+	@nc -z  127.0.0.1 $(1) || \
+	$(gnome-terminal) -t "$(2)" -x $(SOC_TERM_PATH)/soc_term $(1) &
+endef
+else
+ifdef xterm
+define launch-terminal
+	@nc -z  127.0.0.1 $(1) || \
+	$(xterm) -title $(2) -e $(BASH) -c "$(SOC_TERM_PATH)/soc_term $(1)" &
+endef
+else
+check-terminal := @echo "Error: could not find gnome-terminal nor xterm" ; false
+endif
+endif
+
+define wait-for-ports
+	@while ! nc -z 127.0.0.1 $(1) || ! nc -z 127.0.0.1 $(2); do sleep 1; done
+endef
+
 ################################################################################
 # OP-TEE
 ################################################################################
