@@ -65,9 +65,6 @@ the using the ARM toolchain. Please install the [OP-TEE pre-requisties] and this
 time try to ensure that you are using GCC for ARM (for more information, please
 see [Issue#846]).
 
-### I can't get OP-TEE to build using GCC 6.x?
-GCC 6.x isn't currently supported, please see [Issue#1200] for more information.
-
 ### I found this build.git, what is that?
 That git is used in conjunction with the [OP-TEE repo setups]. It contains
 helper makefiles that makes it easy to get OP-TEE up and running on the setups
@@ -440,4 +437,3 @@ using [Travis for OP-TEE].
 [Issue#1183]: https://github.com/OP-TEE/optee_os/issues/1183
 [Issue#1194]: https://github.com/OP-TEE/optee_os/issues/1194
 [Issue#1195]: https://github.com/OP-TEE/optee_os/issues/1195
-[Issue#1200]: https://github.com/OP-TEE/optee_os/issues/1200
