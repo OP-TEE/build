@@ -63,21 +63,12 @@ u-boot-clean:
 ###############################################################################
 .PHONY: linux-defconfig linux linux-defconfig-clean linux-clean linux-cleaner
 
-LINUX_DEFCONFIG_COMMON_ARCH := arm
-LINUX_DEFCONFIG_COMMON_FILES := \
-	$(LINUX_PATH)/arch/arm/configs/multi_v7_defconfig \
-	$(LINUX_PATH)/ti_config_fragments/multi_v7_prune.cfg \
-	$(LINUX_PATH)/ti_config_fragments/baseport.cfg \
-	$(LINUX_PATH)/ti_config_fragments/ipc.cfg \
-	$(LINUX_PATH)/ti_config_fragments/connectivity.cfg \
-	$(LINUX_PATH)/ti_config_fragments/audio_display.cfg \
-	$(LINUX_PATH)/ti_config_fragments/wlan.cfg \
-	$(LINUX_PATH)/ti_config_fragments/omap_soc.cfg \
-	$(LINUX_PATH)/ti_config_fragments/lpae.cfg \
-	$(LINUX_PATH)/ti_config_fragments/dra7_only.cfg \
-	$(LINUX_PATH)/ti_config_fragments/debug_options.cfg
+CONFIG_TYPE ?= ti_sdk_dra7x_debug
 
-linux-defconfig: $(LINUX_PATH)/.config
+linux-defconfig:
+	cd $(LINUX_PATH) && \
+		ti_config_fragments/defconfig_builder.sh -t $(CONFIG_TYPE)
+	$(MAKE) -C $(LINUX_PATH) $(LINUX_COMMON_FLAGS) $(CONFIG_TYPE)_defconfig
 
 LINUX_COMMON_FLAGS += ARCH=arm
 linux: linux-common
