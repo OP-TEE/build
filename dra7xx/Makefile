@@ -4,7 +4,7 @@
 # as an initramfs) into a FIT image tree blob for loading through U-Boot on a
 # TI High Security (HS) SoC.
 #
-# Copyright (C) 2016, Texas Instruments, Incorporated - http://www.ti.com/
+# Copyright (C) 2016-2017, Texas Instruments, Incorporated - http://www.ti.com/
 #	Andreas Dannenberg <dannenberg@ti.com>
 #	Andrew F. Davis <afd@ti.com>
 #
@@ -13,8 +13,8 @@
 # published by the Free Software Foundation.
 #
 
-ITS ?= fitImage.its
-ITB ?= $(ITS:.its=.itb)
+ITB ?= fitImage
+ITS ?= $(ITB:=.its)
 
 SEC_IMAGES := $(shell sed -n 's/.*\/incbin\/.*\"\(.*\.sec\)\".*/\1/p' $(ITS))
 
@@ -42,7 +42,7 @@ endif
 # Use the mkimage tool that comes with U-Boot to make sure we have the latest/
 # greatest as we are using advanced features such as FIT...
 MKIMAGE ?= mkimage
-%.itb: %.its $(SEC_IMAGES)
+$(ITB): $(ITS) $(SEC_IMAGES)
 	$(MKIMAGE) -f $< -r $@
 
 .PHONY: clean
