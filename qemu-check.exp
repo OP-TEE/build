@@ -56,14 +56,11 @@ expect {
 }
 send -- "\r"
 expect "root@Vexpress:/ "
-info " done, guest is booted.\nLoading OP-TEE driver and tee-supplicant..."
+info " done, guest is booted.\n"
 # Toolchain libraries might be here or there
 send -- "export LD_LIBRARY_PATH=/lib:/lib/arm-linux-gnueabihf\r"
 expect "root@Vexpress:/ "
-send -- "tee-supplicant&\r"
-expect "root@Vexpress:/ "
-sleep 1
-info " done.\nRunning: $cmd...\n"
+info "Running: $cmd...\n"
 send -- "$cmd\r"
 set casenum "none"
 expect {
