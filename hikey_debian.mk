@@ -26,7 +26,7 @@ OPTEE_PKG_VERSION ?= 2.3-0
 IP ?= 127.0.0.1
 
 # URL to images
-SYSTEM_IMG_URL=https://builds.96boards.org/releases/reference-platform/debian/hikey/16.03/hikey-rootfs-debian-jessie-alip-20160301-68.emmc.img.gz
+SYSTEM_IMG_URL=https://builds.96boards.org/releases/reference-platform/debian/hikey/16.06/hikey-rootfs-debian-jessie-alip-20160629-120.emmc.img.gz
 BOOT_IMG_URL=https://builds.96boards.org/releases/reference-platform/debian/hikey/16.06/hikey-boot-linux-20160629-120.uefi.img.gz
 NVME_IMG_URL=https://builds.96boards.org/releases/hikey/linaro/binaries/latest/nvme.img
 
