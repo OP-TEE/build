@@ -78,7 +78,10 @@ $ make system-img
 ```
 
 The `make flash` step will tell you how you should set the jumpers on the board
-and how to flash the device.
+and how to flash the device. There have been reports of some boards stalling or
+getting stuck in `make flash` when flashing `SYSTEM_IMG`, i.e. the command does
+not complete after more than 5 minutes. If that happens, please try running
+`make recovery` instead.
 
 Now you can boot up the device, note that the **up-to-date** OP-TEE normal world
 binaries still hasn't been put on the device at this stage. So by now you're

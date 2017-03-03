@@ -358,6 +358,9 @@ ifneq ($(FROM_RECOVERY),1)
 	@echo "    \"Android Fastboot mode - version x.x Press any key to quit.\""
 	@read -r -p "   Then press any key to continue flashing" dummy
 endif
+	@echo "If the board stalls while flashing $(SYSTEM_IMG),"
+	@echo "i.e. does not complete after more than 5 minutes,"
+	@echo "please try running 'make recovery' instead"
 	fastboot flash ptable $(LLOADER_PATH)/ptable-linux-$(CFG_FLASH_SIZE)g.img
 	fastboot flash fastboot $(ARM_TF_PATH)/build/hikey/$(ARM_TF_BUILD)/fip.bin
 	fastboot flash nvme $(NVME_IMG)
