@@ -13,23 +13,23 @@ override COMPILE_S_KERNEL  := 64
 ################################################################################
 # Paths to git projects and various binaries
 ################################################################################
-ARM_TF_PATH			?= $(ROOT)/arm-trusted-firmware
+ARM_TF_PATH		?= $(ROOT)/arm-trusted-firmware
 
-EDK2_PATH			?= $(ROOT)/edk2
-EDK2_BIN			?= $(EDK2_PATH)/QEMU_EFI.fd
+EDK2_PATH		?= $(ROOT)/edk2
+EDK2_BIN		?= $(EDK2_PATH)/Build/ArmVirtQemuKernel-AARCH64/DEBUG_GCC49/FV/QEMU_EFI.fd
 
-QEMU_PATH			?= $(ROOT)/qemu
+QEMU_PATH		?= $(ROOT)/qemu
 
-SOC_TERM_PATH			?= $(ROOT)/soc_term
-STRACE_PATH			?= $(ROOT)/strace
+SOC_TERM_PATH		?= $(ROOT)/soc_term
+STRACE_PATH		?= $(ROOT)/strace
 
 DEBUG = 1
 
 ################################################################################
 # Targets
 ################################################################################
-all: arm-tf qemu soc-term linux strace update_rootfs
-all-clean: arm-tf-clean busybox-clean linux-clean \
+all: arm-tf edk2 qemu soc-term linux strace update_rootfs
+all-clean: arm-tf-clean busybox-clean edk2-clean linux-clean \
 	optee-os-clean optee-client-clean qemu-clean \
 	soc-term-clean check-clean strace-clean
 
@@ -55,21 +55,11 @@ ARM_TF_FLAGS ?= \
 
 arm-tf: optee-os edk2
 	$(ARM_TF_EXPORTS) $(MAKE) -C $(ARM_TF_PATH) $(ARM_TF_FLAGS) all fip
+	ln -sf $(OPTEE_OS_BIN) $(ARM_TF_PATH)/build/qemu/release/bl32.bin
+	ln -sf $(EDK2_BIN) $(ARM_TF_PATH)/build/qemu/release/bl33.bin
 
 arm-tf-clean:
 	$(ARM_TF_EXPORTS) $(MAKE) -C $(ARM_TF_PATH) $(ARM_TF_FLAGS) clean
-
-# FIXME: This is just too rough, we should build this just as we're doing for
-#        FVP.
-edk2: optee-os
-ifeq ("$(wildcard $(EDK2_BIN))","")
-	mkdir -p $(EDK2_PATH)
-	wget -O $(EDK2_BIN) \
-		http://snapshots.linaro.org/components/kernel/leg-virt-tianocore-edk2-upstream/latest/QEMU-KERNEL-AARCH64/RELEASE_GCC49/QEMU_EFI.fd
-endif
-	mkdir -p $(ARM_TF_PATH)/build/qemu/release
-	ln -sf $(OPTEE_OS_BIN) $(ARM_TF_PATH)/build/qemu/release/bl32.bin
-	ln -sf $(EDK2_BIN) $(ARM_TF_PATH)/build/qemu/release/bl33.bin
 
 ################################################################################
 # QEMU
@@ -94,6 +84,21 @@ busybox: busybox-common
 busybox-clean: busybox-clean-common
 
 busybox-cleaner: busybox-cleaner-common
+
+################################################################################
+# EDK2 / Tianocore
+################################################################################
+define edk2-call
+	GCC49_AARCH64_PREFIX=$(LEGACY_AARCH64_CROSS_COMPILE) \
+		build -a AARCH64 -b DEBUG -t GCC49 \
+			-p ArmVirtPkg/ArmVirtQemuKernel.dsc
+endef
+
+edk2: edk2-common
+
+edk2-clean: edk2-clean-common
+
+
 
 ################################################################################
 # Linux kernel
@@ -208,7 +213,7 @@ run-only:
 		-machine virt,secure=on -cpu cortex-a57 -m 1057 -bios $(ARM_TF_PATH)/build/qemu/release/bl1.bin \
 		-s -S -semihosting-config enable,target=native -d unimp \
 		-initrd $(GEN_ROOTFS_PATH)/filesystem.cpio.gz \
-		-kernel $(LINUX_PATH)/arch/arm64/boot/Image \
+		-kernel $(LINUX_PATH)/arch/arm64/boot/Image -no-acpi \
 		-append 'console=ttyAMA0,38400 keep_bootcon root=/dev/vda2' \
 		$(QEMU_EXTRA_ARGS)
 
