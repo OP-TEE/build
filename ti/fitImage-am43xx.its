@@ -1,0 +1,62 @@
+/dts-v1/;
+
+/ {
+	description = "U-Boot fitImage";
+	#address-cells = <1>;
+
+	images {
+		kernel@1 {
+			description = "Linux kernel";
+			data = /incbin/("zImage.sec");
+			type = "kernel";
+			arch = "arm";
+			os = "linux";
+			compression = "none";
+			load = <0x82000000>;
+			entry = <0x82000000>;
+		};
+
+		am437x-gp-evm.dtb {
+			description = "Flattened Device Tree blob";
+			data = /incbin/("am437x-gp-evm.dtb.sec");
+			type = "flat_dt";
+			arch = "arm";
+			compression = "none";
+		};
+
+		am43x-epos-evm.dtb {
+			description = "Flattened Device Tree blob";
+			data = /incbin/("am43x-epos-evm.dtb.sec");
+			type = "flat_dt";
+			arch = "arm";
+			compression = "none";
+		};
+
+		optee {
+			description = "OPTEE OS Image";
+			data = /incbin/("tee.bin.sec");
+			type = "tee";
+			arch = "arm";
+			compression = "none";
+			load = <0xbdb000e4>;
+		};
+	};
+
+	configurations {
+		default = "am437x-gp-evm.dtb";
+
+		am437x-gp-evm.dtb {
+			description = "Linux kernel, FDT blob, OPTEE OS";
+			kernel = "kernel@1";
+			fdt = "am437x-gp-evm.dtb";
+			loadables = "optee";
+		};
+
+		am43x-epos-evm.dtb {
+			description = "Linux kernel, FDT blob, OPTEE OS";
+			kernel = "kernel@1";
+			fdt = "am43x-epos-evm.dtb";
+			loadables = "optee";
+		};
+	};
+};
