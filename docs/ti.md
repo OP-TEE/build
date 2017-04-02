@@ -1,4 +1,4 @@
-# OP-TEE on Texas Instruments DRA7xx
+# OP-TEE on Texas Instruments SoCs
 
 # Contents
 1. [Introduction](#1-introduction)
@@ -6,8 +6,8 @@
 3. [Booting the device](#3-booting-the-device)
 
 # 1. Introduction
-The instructions here will tell how to run OP-TEE on the DRA7xx-EVM board.
-Secure TI devices require a boot image that is authenticated by ROM
+The instructions here will tell how to run OP-TEE on Texas Instruments
+devices. Secure TI devices require a boot image that is authenticated by ROM
 code to function. Without this, even JTAG remains locked. In order to create
 a valid boot image for a secure device from TI, the initial public software
 image must be signed and combined with various headers, certificates, and
@@ -50,7 +50,7 @@ Add the bootloader to the 'boot' partition
 # cd <SD card boot partition>
 # cp <repo directory>/u-boot/u-boot-spl_HS_MLO MLO
 # cp <repo directory>/u-boot/u-boot_HS.img u-boot.img
-# cp <repo directory>/build/dra7xx/uEnv.txt uEnv.txt
+# cp <repo directory>/build/ti/uEnv.txt uEnv.txt
 ```
 
 [README.md]: ../README.md
