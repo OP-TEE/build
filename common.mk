@@ -14,11 +14,17 @@ OPTEE_OS_PATH			?= $(ROOT)/optee_os
 OPTEE_CLIENT_PATH		?= $(ROOT)/optee_client
 OPTEE_CLIENT_EXPORT		?= $(OPTEE_CLIENT_PATH)/out/export
 OPTEE_TEST_PATH			?= $(ROOT)/optee_test
-OPTEE_TEST_OUT_PATH 		?= $(ROOT)/optee_test/out
+OPTEE_TEST_OUT_PATH		?= $(ROOT)/optee_test/out
 HELLOWORLD_PATH			?= $(ROOT)/hello_world
 
 # default high verbosity. slow uarts shall specify lower if prefered
 CFG_TEE_CORE_LOG_LEVEL		?= 3
+
+# enable latency benchmarks (over all OP-TEE layers)
+CFG_TEE_BENCHMARK			?= n
+# print latency statistics for each invocation of TEEC_InvokeCommand
+# CFG_TEE_BENCHMARK also should be enabled
+CFG_TEE_PRINT_LATENCY_STAT	?= n
 
 CCACHE ?= $(shell which ccache) # Don't remove this comment (space is needed)
 
@@ -144,6 +150,10 @@ busybox-cleaner-common:
 ################################################################################
 # Linux
 ################################################################################
+ifeq ($(CFG_TEE_BENCHMARK),y)
+LINUX_DEFCONFIG_BENCH ?= $(CURDIR)/kconfigs/tee_bench.conf
+endif
+
 LINUX_COMMON_FLAGS ?= LOCALVERSION= CROSS_COMPILE=$(CROSS_COMPILE_NS_KERNEL)
 
 linux-common: linux-defconfig
@@ -152,7 +162,7 @@ linux-common: linux-defconfig
 $(LINUX_PATH)/.config: $(LINUX_DEFCONFIG_COMMON_FILES)
 	cd $(LINUX_PATH) && \
 		ARCH=$(LINUX_DEFCONFIG_COMMON_ARCH) \
-		scripts/kconfig/merge_config.sh $(LINUX_DEFCONFIG_COMMON_FILES)
+		scripts/kconfig/merge_config.sh $(LINUX_DEFCONFIG_COMMON_FILES) $(LINUX_DEFCONFIG_BENCH)
 
 linux-defconfig-clean-common:
 	rm -f $(LINUX_PATH)/.config
@@ -249,7 +259,8 @@ OPTEE_OS_COMMON_FLAGS ?= \
 	CROSS_COMPILE_ta_arm64=$(AARCH64_CROSS_COMPILE) \
 	CROSS_COMPILE_ta_arm32=$(AARCH32_CROSS_COMPILE) \
 	CFG_TEE_CORE_LOG_LEVEL=$(CFG_TEE_CORE_LOG_LEVEL) \
-	DEBUG=$(DEBUG)
+	DEBUG=$(DEBUG) \
+	CFG_TEE_BENCHMARK=$(CFG_TEE_BENCHMARK)
 
 optee-os-common:
 	$(MAKE) -C $(OPTEE_OS_PATH) $(OPTEE_OS_COMMON_FLAGS)
@@ -259,7 +270,9 @@ OPTEE_OS_CLEAN_COMMON_FLAGS ?= $(OPTEE_OS_COMMON_EXTRA_FLAGS)
 optee-os-clean-common: xtest-clean helloworld-clean
 	$(MAKE) -C $(OPTEE_OS_PATH) $(OPTEE_OS_CLEAN_COMMON_FLAGS) clean
 
-OPTEE_CLIENT_COMMON_FLAGS ?= CROSS_COMPILE=$(CROSS_COMPILE_NS_USER)
+OPTEE_CLIENT_COMMON_FLAGS ?= CROSS_COMPILE=$(CROSS_COMPILE_NS_USER) \
+	CFG_TEE_BENCHMARK=$(CFG_TEE_BENCHMARK) \
+	CFG_TEE_PRINT_LATENCY_STAT=$(CFG_TEE_PRINT_LATENCY_STAT)
 
 optee-client-common:
 	$(MAKE) -C $(OPTEE_CLIENT_PATH) $(OPTEE_CLIENT_COMMON_FLAGS)
@@ -279,7 +292,8 @@ XTEST_COMMON_FLAGS ?= CROSS_COMPILE_HOST=$(CROSS_COMPILE_NS_USER)\
 	TA_DEV_KIT_DIR=$(OPTEE_OS_TA_DEV_KIT_DIR) \
 	OPTEE_CLIENT_EXPORT=$(OPTEE_CLIENT_EXPORT) \
 	COMPILE_NS_USER=$(COMPILE_NS_USER) \
-	O=$(OPTEE_TEST_OUT_PATH)
+	O=$(OPTEE_TEST_OUT_PATH) \
+	CFG_TEE_BENCHMARK=$(CFG_TEE_BENCHMARK)
 
 xtest-common: optee-os optee-client
 	$(MAKE) -C $(OPTEE_TEST_PATH) $(XTEST_COMMON_FLAGS)
