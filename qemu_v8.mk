@@ -90,8 +90,11 @@ busybox-cleaner: busybox-cleaner-common
 ################################################################################
 define edk2-call
 	GCC49_AARCH64_PREFIX=$(LEGACY_AARCH64_CROSS_COMPILE) \
-		build -a AARCH64 -b DEBUG -t GCC49 \
-			-p ArmVirtPkg/ArmVirtQemuKernel.dsc
+		$(MAKE) -j1 -C $(EDK2_PATH) \
+		-f ArmPlatformPkg/Scripts/Makefile EDK2_ARCH=AARCH64 \
+		EDK2_DSC=ArmVirtPkg/ArmVirtQemuKernel.dsc \
+		EDK2_TOOLCHAIN=GCC49 EDK2_BUILD=DEBUG \
+		EDK2_MACROS="-n 6"
 endef
 
 edk2: edk2-common
