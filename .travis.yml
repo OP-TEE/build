@@ -6,7 +6,6 @@ notifications:
   email:
     recipients:
       - op-tee@linaro.org
-      - joakim.bech@linaro.org
     on_success: change
     on_failure: always
 
@@ -16,11 +15,10 @@ group: beta
 
 cache:
   directories:
-    - $HOME/reference
     - $HOME/.ccache
 
 git:
-  depth: 3
+  depth: 10
 
 after_script:
   - ccache -s
@@ -29,7 +27,7 @@ before_install:
   - ccache -s
   - sudo dpkg --add-architecture i386
   - sudo apt-get update -qq
-  # Taken from README.md + device-tree-compiler
+  # Package list taken from README.md
   - sudo apt-get install -qq -y android-tools-adb android-tools-fastboot autoconf automake bc bison build-essential cscope curl device-tree-compiler flex ftp-upload gdisk iasl libattr1-dev libc6:i386 libcap-dev libfdt-dev libftdi-dev libglib2.0-dev libhidapi-dev libncurses5-dev libpixman-1-dev libssl-dev libstdc++6:i386 libtool libz1:i386 make mtools netcat python-crypto python-serial python-wand unzip uuid-dev xdg-utils xterm xz-utils zlib1g-dev
 
 install: true
@@ -48,17 +46,17 @@ before_script:
   - mkdir $HOME/bin
   - cd $HOME/bin && wget https://storage.googleapis.com/git-repo-downloads/repo && chmod +x repo
   - export PATH=$HOME/bin:$PATH
-  - cd $HOME/reference && git clone https://github.com/OP-TEE/build.git;
-  - cd $HOME/reference/build && make -f toolchain.mk toolchains -j3;
-  - cd $HOME/reference/toolchains && rm -f *.tar.gz && rm -rf $HOME/reference/build;
+  - mkdir -p $HOME/$REPO_PROJ
 
 script:
-  - mkdir -p $HOME/$REPO_PROJ
   # Special case for FVP, since we check for the Foundation_Platformpkg folder
-  # in the makefile
+  # in the makefile.
   - if [ $REPO_PROJ == "fvp" ]; then mkdir -p $HOME/$REPO_PROJ/Foundation_Platformpkg; fi
   - cd $HOME/$REPO_PROJ && repo init -u https://github.com/OP-TEE/manifest.git -m $REPO_PROJ.xml </dev/null && repo sync -j2 --no-clone-bundle --no-tags --quiet
   # Fetch a local copy of dtc+libfdt to avoid issues with a possibly outdated libfdt-dev
   - if [ $REPO_PROJ == "qemu_v8" ]; then cd $HOME/$REPO_PROJ/qemu && git submodule update --init dtc; fi
-  - cd $HOME/$REPO_PROJ && ln -s $HOME/reference/toolchains .
-  - cd $HOME/$REPO_PROJ/build && make all -j2
+  # Here we are using Travis environment variables to select the correct branch
+  # based on either a pull request or a normal push.
+  - cd $HOME/$REPO_PROJ/build && git remote add github https://github.com/$TRAVIS_REPO_SLUG && git remote update
+  - cd $HOME/$REPO_PROJ/build && git checkout github/$TRAVIS_BRANCH
+  - cd $HOME/$REPO_PROJ/build && make -f toolchain.mk toolchains -j3 && make all -j`nproc`
