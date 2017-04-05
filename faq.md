@@ -2,7 +2,7 @@ Frequently Asked Questions
 ===========================
 1.  [Source code](#1-source-code)
 2.  [Building](#2-building)
-3.  [License](3-license)
+3.  [License](#3-license)
 4.  [Contribution, Promotion and security flaws](#4-contribution-promotion-and-security-flaws)
 5.  [Certification and security reviews](#5-certification-and-security-reviews)
 6.  [Interfaces](#6-interfaces)
@@ -10,10 +10,7 @@ Frequently Asked Questions
 8.  [Trusted Applications](#8-trusted-applications)
 9.  [Testing](#9-testing)
 
---------------
-
-1. Source code
---------------
+# 1. Source code
 ### Where is the source code?
 - It is located on GitHub under the project [OP-TEE].
 - Then besides the main gits at [OP-TEE] we also have some other gits used in
@@ -26,13 +23,13 @@ Frequently Asked Questions
 
 ### Why isn’t the kernel driver in the vanilla kernel at kernel.org?
 Since the beginning of 2015 we have been trying to get our driver mainlined.
-This seems to be more challenging than we initially could foresee. If you have
-time and interest, please review and test the patches. A list of all patches
-submitted could be found at the [Generic TEE driver patches] patchwork page.
+This seems to be more challenging than we initially could foresee, but as of now
+it has reached [linux-next]. (A list of all patches submitted could be found at
+the [Generic TEE driver patches] patchwork page.)
 
 
-2. Building
------------
+
+# 2. Building
 ### I got build errors running latest, why?
 - What did you try to build? Only [optee_os]? A full setup using QEMU, HiKey,
   RPi3, Juno using repo? AOSP? OpenEmbedded? What we build on daily basis are
@@ -53,9 +50,12 @@ submitted could be found at the [Generic TEE driver patches] patchwork page.
   whether it failed building on the platform you're using before submitting any
   issue about build errors.
 
+- Once a day Travis builds all repo setups (manifests) automatically and the
+  results for the builds can be found at the [Travis OP-TEE build] page.
+
 ### I got build errors running stable tag x.y.z, why?
 Stable releases are quite well tested both in terms of building for all
-supported platforms and running xtest on all platforms, so if you can't get that
+supported platforms and running xtest on all platforms, so if you cannot get that
 to build and run, then there is a great chance you have something wrong on your
 side. All platforms that has been tested on a stable release can be found in
 [CHANGELOG.md] file.
@@ -80,29 +80,26 @@ it.
 
 ### What is the quickest and easiest way to try OP-TEE?
 That would be running it on QEMU on a local PC. To do that you would need to:
-- Install the [OP-TEE pre-requisties], see section 4.1.
-- Configure repo as described in [OP-TEE repo setups], see section 5.1, 5.2.
-- Build QEMU, see section 5.3.
-- [Run xtest], see section 6.
+- Install the [OP-TEE pre-requisties], see section 7.1.
+- Configure repo as described in [OP-TEE repo setups], see section 6.
+- Build QEMU, see [qemu.md].
+- [Run xtest], see section 7.9.
 
-By summarizing the above, you'd need to:
+By summarizing the above, you would need to:
 ```bash
 $ sudo apt-get install [pre-reqs]
 $ mkdir optee-qemu && cd optee-qemu
 $ repo init -u https://github.com/OP-TEE/manifest.git
 $ repo sync
 $ cd build
-$ make toolchains
+$ make toolchains -j3
 $ make all run
 (qemu) c
-root@Vexpress:/ tee-supplicant &
 root@Vexpress:/ xtest
-
 ```
 
 
-3. License
-----------
+# 3. License
 ### Under what license is OP-TEE released?
 - Mostly under BSD 2-Clause, see the [LICENSE] file.
 - The TEE kernel driver is released under GPLv2 for obvious reasons.
@@ -117,12 +114,11 @@ start using OP-TEE.
 
 ### I've modified OP-TEE by using code with non BSD 2-Clause license, will you accept it?
 That is something we deal with case by case. But as a general answer, if it
-doesn't contaminate the BSD 2-Clause license we will accept it. Send us an email
+does not contaminate the BSD 2-Clause license we will accept it. Send us an email
 or file an issue at [OP-TEE Issues].
 
 
-4. Contribution, Promotion and security flaws
----------------------------------------------
+# 4. Contribution, Promotion and security flaws
 ### How do I contribute?
 Please see the section “Contributions” in the file [Notice.md] at the GitHub
 project page.
@@ -148,9 +144,9 @@ Via one of the avenues below:
   [OP-TEE Documentation] and try to update where you find gaps.
 - Enable `repo` for the device in [Platforms Supported] currently not using
   repo.
-- If you'd like to implement a bigger feature, please reach out to us and we can
-  discuss what is most relevant to look into for the moment. If you already have
-  an idea, feel free to send the proposal to us.
+- If you would like to implement a bigger feature, please reach out to us and we
+  can discuss what is most relevant to look into for the moment. If you already
+  have an idea, feel free to send the proposal to us.
 
 ### I want to get my company logo on op-tee.org, how?
 If your company has done significant contributions to OP-TEE, then please send
@@ -159,19 +155,18 @@ that we will review this on regular basis and inactive supporting companies
 might be removed in the future again.
 
 ### I have a found a security flaw in OP-TEE, how can I disclose it with you?
-Send an email to us (see the About page), where you mention that you've found a
-vulnerability, no details are needed in this first email. After that someone in
-the team will contact you and let you know how to continue the communication
-securely.
+Send an email to us (see the [Security Advisories] page), where you mention that
+you have found a vulnerability, no details are needed in this first email. After
+that someone in the team will contact you and let you know how to continue the
+communication securely.
 
 
-5. Certification and security reviews
--------------------------------------
+# 5. Certification and security reviews
 ### Will linaro be involved in GlobalPlatform certification/qualification?
 No we will not, mainly for two reasons. The first is that there was a board
 decision that Security WG in Linaro should not be part of certifications. The
 second reason is that most often certification is done using a certain software
-version and on a unique device. I.e., it's the combination software + hardware
+version and on a unique device. I.e., it is the combination software + hardware
 that gets certified. Since Linaro have no own devices in production or for sale,
 we cannot be part of any certification. This is typically something that the SoC
 or OEM needs to do.
@@ -199,13 +194,13 @@ at the [Security Advisories] page at op-tee.org.
   internally and shared the result with us, but other than that no.
 
 
-6. Interfaces
--------------
+# 6. Interfaces
 ### What API’s have been implemented in OP-TEE?
-- GlobalPlatform’s TEE Client API v1.1 specification
-- GlobalPlatform’s TEE Internal Core API v1.1 specification.
-- GlobalPlatform’s Secure Elements v1.0
-- GlobalPlatform’s Trusted UI v1.0 (implementation not complete).
+- GlobalPlatform's TEE Client API v1.1 specification
+- GlobalPlatform's TEE Internal Core API v1.1 specification.
+- GlobalPlatform's Secure Elements v1.0
+- GlobalPlatform's Trusted UI v1.0 (implementation not complete).
+- GlobalPlatform's Socket API v1.0 (TCP and UDP, but not TLS).
 
 All those specification can be found at [GlobalPlatform specifications] page.
 
@@ -216,8 +211,7 @@ information about the abstraction layer itself and what you need to do to be
 able to support new software/hardware “drivers” in OP-TEE.
 
 
-7. Architecture
----------------
+# 7. Architecture
 ### Which architectures are supported?
 The [Platforms Supported] page lists all platforms and architectures currently
 supported in the official tree.
@@ -231,10 +225,12 @@ Both 32- and 64-bit are fully supported for all OP-TEE components.
 Yes!
 
 ### How do I port OP-TEE to another platform?
-- Start by reading the [LCU14-302 How To Port OP-TEE To Another Platform] deck
-  and have a look at the [LCU14-302 YouTube clip] that complements the deck.
-  Beware that the presentation is more than three years old, so even though it's
-  a good source, there might be parts that are not relevant any longer.
+- Start by reading the [porting_guidelines.md].
+- There might be some interesting information in the [LCU14-302 How To Port
+  OP-TEE To Another Platform] deck and the [LCU14-302 YouTube clip] that
+  complements the deck. Beware that the presentation is more than three years
+  old, so even though it is a good source, there might be parts that are not
+  relevant any longer.
 - As a good example for an **ARMv8-A** patch enabling OP-TEE support on a new
   device, please see the [ZynqMP port] that enabled support for running OP-TEE on
   Xilinx UltraScale+ Zynq MPSoC. Besides that there are similar patches for [Juno
@@ -295,19 +291,18 @@ the same core as the one initiating the SMC in Linux. Please also see
 [Issue#1194].
 
 ### How is OP-TEE being scheduled?
-OP-TEE doesn't have its own scheduler, instead it's being scheduled by Linux
+OP-TEE does not have its own scheduler, instead it is being scheduled by Linux
 kernel. For more information, please see [Issue#1036], [Issue#1183].
 
 
-8. Trusted Applications
------------------------
+# 8. Trusted Applications
 ### How do I write a Trusted Application (TA)?
 - Start by reading the [LCU14-103 How to create and run Trusted Applications on
   OP-TEE] deck and have a look at the [LCU14-103 YouTube clip] that that
   complements the deck. Word of warning, the deck is more than three years old,
   so maybe not everything said there is valid as of today.
 - Since that talk, the [Hello World Trusted Application] has been officially
-  included in the [OP-TEE repo setups]. I.e., don't refer to the URL in the deck
+  included in the [OP-TEE repo setups]. I.e., do not refer to the URL in the deck
   any longer since it is obsolete.
 - If you want to see more advanced uses cases of Trusted Applications, then we
   encourage that you have a look at the [TAs in xtest].
@@ -320,20 +315,20 @@ kernel. For more information, please see [Issue#1036], [Issue#1183].
 `/lib/optee_armtz`, that is the default configuration where tee-supplicant will
 look for Trusted Applications.
 
-### What is a Static TA and how do I write one?
-A Static TA is a Trusted Application that runs in TEE kernel / core context.
+### What is a Psuedo TA and how do I write one?
+A Psuedo TA is a Trusted Application that runs in TEE kernel / core context.
 I.e., it will have access to the same functions, memory and hardware etc as the
 TEE core itself. If we're talking ARMv8-A it is running in S-EL1.
 
-### Are Static **user space** TAs supported?
+### Are Psuedo **user space** TAs supported?
 No!
 
 ### Can a static TA Open/Invoke dynamic TA?
 Yes, for a longer discussion see [Issue#967], [Issue#1085], [Issue#1132].
 
 ### What can I do to access specific functionalities not part of the GP internal API?
-You may develop your own “static TA”, which is part of the core (see above for
-more information about the Static TA).
+You may develop your own “Psuedo TA”, which is part of the core (see above for
+more information about the Psuedo TA).
 
 ### How are Trusted Applications verified?
 In the current solution all TAs are signed ([sign.py]) with the same RSA key
@@ -358,11 +353,10 @@ communicate with each other using the TA2TA interface.
 
 ### I've heard that there is a Widevine and PlayReady TA, how do I get access?
 Those can only be shared are under NDA with Google and Microsoft. Linaro can
-help members of Linaro to get access to those. Non-member access needs to be
-dealt with on case by case basis.
+help members of Linaro to get access to those. As of now, we cannot share it
+with non-members.
 
-9. Testing
-----------
+# 9. Testing
 ### How are you testing OP-TEE?
 There is a test suite called xtest ([optee_test]) that tests the complete
 TEE-solution to ensure that the communication between all architectural layers
@@ -402,6 +396,7 @@ using [Travis for OP-TEE].
 [LDTS]: https://support.linaro.org
 [linaro-swg]: https://github.com/linaro-swg
 [LICENSE]: https://github.com/OP-TEE/optee_os/blob/master/LICENSE
+[linux-next]: https://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git/tree/drivers/tee?id=refs/tags/next-20170403
 [Notice.md]: https://github.com/OP-TEE/optee_os/blob/master/Notice.md
 [optee_os]: https://github.com/OP-TEE/optee_os
 [optee_test]: https://github.com/OP-TEE/optee_test
@@ -410,19 +405,22 @@ using [Travis for OP-TEE].
 [OP-TEE Documentation]: https://github.com/OP-TEE/optee_os/tree/master/documentation
 [OP-TEE Enhancements]: https://github.com/OP-TEE/optee_os/labels/enhancement
 [OP-TEE Issues]: https://github.com/OP-TEE/optee_os/issues
-[OP-TEE pre-requisties]: https://github.com/OP-TEE/optee_os#41-prerequisites
+[OP-TEE pre-requisties]: README.md#71-prerequisites
 [OP-TEE Pull Requests]: https://github.com/OP-TEE/optee_os/pulls
-[OP-TEE repo setups]: https://github.com/build#6-manifests
+[OP-TEE repo setups]: README.md#6-manifests
 [OTrP]: https://tools.ietf.org/html/draft-pei-opentrustprotocol-01
 [Platforms Supported]: https://github.com/OP-TEE/optee_os#3-platforms-supported
+[porting_guidelines.md]: https://github.com/OP-TEE/optee_os/blob/master/documentation/porting_guidelines.md
+[qemu.md]: docs/qemu.md
 [Raspberry Pi3 port]: https://github.com/OP-TEE/optee_os/commit/66d9cacf37e6bd4b0d86e7b32e4e5edefe8decfd
-[Run xtest]: https://github.com/OP-TEE/optee_os#6-load-driver-tee-supplicant-and-run-xtest
-[Static TA examples]: https://github.com/OP-TEE/optee_os/tree/master/core/arch/arm/sta
+[Run xtest]: README.md#79-run-xtest
+[Security Advisories]: https://www.op-tee.org/security-advisories/
 [sign.py]: https://github.com/OP-TEE/optee_os/blob/master/scripts/sign.py
 [TAs in xtest]: https://github.com/OP-TEE/optee_test/tree/master/ta
 [TEE Initial Configuration Compliance Test Suite v1.x]: https://www.globalplatform.org/storecontent.asp?show=testsuites
 [TI DRA7xx port]: https://github.com/OP-TEE/optee_os/commit/9b5060cd92a19b4d114a1ce8a338b18424974037
 [Travis for OP-TEE]: https://travis-ci.org/OP-TEE/optee_os/builds
+[Travis OP-TEE build]: https://travis-ci.org/OP-TEE/build
 [ZynqMP port]: https://github.com/OP-TEE/optee_os/commit/dc57f5a0e8f3b502fc958bc64a5ec0b0f46ef11a
 
 [Issue#280]: https://github.com/OP-TEE/optee_os/issues/280
