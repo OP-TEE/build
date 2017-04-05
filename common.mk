@@ -2,6 +2,7 @@
 # Common definition to all platforms
 #
 
+SHELL := bash
 BASH ?= bash
 ROOT ?= $(shell pwd)/..
 
@@ -175,15 +176,15 @@ linux-cleaner-common: linux-defconfig-clean
 # Make sure edksetup.sh only will be called once and that we don't rebuild
 # BaseTools again and again.
 $(EDK2_PATH)/Conf/target.txt:
-	set -e && cd $(EDK2_PATH) && $(BASH) edksetup.sh && \
+	set -e && cd $(EDK2_PATH) && source edksetup.sh && \
 	$(MAKE) -j1 -C $(EDK2_PATH)/BaseTools
 
 edk2-common: $(EDK2_PATH)/Conf/target.txt
-	set -e && cd $(EDK2_PATH) && $(BASH) edksetup.sh && \
+	set -e && cd $(EDK2_PATH) && source edksetup.sh && \
 	$(call edk2-call)
 
 edk2-clean-common:
-	set -e && cd $(EDK2_PATH) && $(BASH) edksetup.sh && \
+	set -e && cd $(EDK2_PATH) && source edksetup.sh && \
 	$(call edk2-call) clean && \
 	$(MAKE) -j1 -C $(EDK2_PATH)/BaseTools clean && \
 	rm -f $(EDK2_PATH)/Conf/target.txt
