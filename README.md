@@ -88,6 +88,7 @@ information.
 | [QEMUv8](http://wiki.qemu.org/Main_Page) |`PLATFORM=vexpress-qemu_armv8a`| Yes |
 | [Raspberry Pi 3](https://www.raspberrypi.org/products/raspberry-pi-3-model-b) |`PLATFORM=rpi3`| Yes |
 | [Texas Instruments DRA7xx](http://www.ti.com/product/DRA746)|`PLATFORM=ti-dra7xx`| Yes |
+| [Texas Instruments AM57xx](http://www.ti.com/product/AM5728)|`PLATFORM=ti-am57xx`| Yes |
 | [Texas Instruments AM43xx](http://www.ti.com/product/AM4379)|`PLATFORM=ti-am43xx`| Yes |
 
 # 6. Manifests
@@ -104,6 +105,7 @@ Here is a list of manifests for the devices currently supported.
 | ARM Juno board| `juno.xml` | `juno_stable.xml` |
 | Raspberry Pi 3 | `rpi3.xml` | `rpi3_stable.xml` |
 | DRA7xx | `dra7xx.xml` | `dra7xx_stable.xml` |
+| AM57xx | `am57xx.xml` | `am57xx_stable.xml` |
 | AM43xx | `am43xx.xml` | `am43xx_stable.xml` |
 
 # 7. Get and build the solution
