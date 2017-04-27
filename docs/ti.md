@@ -50,7 +50,6 @@ Add the bootloader to the 'boot' partition
 # cd <SD card boot partition>
 # cp <repo directory>/u-boot/u-boot-spl_HS_MLO MLO
 # cp <repo directory>/u-boot/u-boot_HS.img u-boot.img
-# cp <repo directory>/build/ti/uEnv.txt uEnv.txt
 ```
 
 [README.md]: ../README.md

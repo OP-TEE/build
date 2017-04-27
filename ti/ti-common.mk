@@ -122,7 +122,6 @@ filelist-tee: filelist-tee-common u-boot build-fit
 	@echo "dir /boot 755 0 0" >> $(GEN_ROOTFS_FILELIST)
 	@echo "file /boot/MLO $(UBOOT_SPL) 644 0 0" >> $(GEN_ROOTFS_FILELIST)
 	@echo "file /boot/u-boot.img $(UBOOT_IMG) 644 0 0" >> $(GEN_ROOTFS_FILELIST)
-	@echo "file /boot/uEnv.txt $(UBOOT_ENV) 644 0 0" >> $(GEN_ROOTFS_FILELIST)
 	@echo "file /boot/fitImage $(STAGING_AREA)/fitImage 644 0 0" >> $(GEN_ROOTFS_FILELIST)
 
 update_rootfs: update_rootfs-common
