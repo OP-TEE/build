@@ -94,19 +94,19 @@ information.
 # 6. Manifests
 Here is a list of manifests for the devices currently supported.
 
-| Target | Latest (non-stable) | Stable |
-|--------|---------------------|--------|
-| QEMU | `default.xml` | `default_stable.xml` |
-| QEMUv8 | `qemu_v8.xml` | `qemu_v8_stable.xml` |
-| FVP | `fvp.xml` | `fvp_stable.xml` |
-| HiKey | `hikey.xml` | `hikey_stable.xml` |
-| HiKey Debian | `hikey_debian.xml` | `hikey_debian_stable.xml` |
-| MediaTek MT8173 EVB Board | `mt8173-evb.xml` | `mt8173-evb_stable.xml` |
-| ARM Juno board| `juno.xml` | `juno_stable.xml` |
-| Raspberry Pi 3 | `rpi3.xml` | `rpi3_stable.xml` |
-| DRA7xx | `dra7xx.xml` | `dra7xx_stable.xml` |
-| AM57xx | `am57xx.xml` | `am57xx_stable.xml` |
-| AM43xx | `am43xx.xml` | `am43xx_stable.xml` |
+| Target | Latest (non-stable) | Stable | Device doc |
+|--------|---------------------|--------| ---------- |
+| QEMU | `default.xml` | `default_stable.xml`| [qemu.md] |
+| QEMUv8 | `qemu_v8.xml` | `qemu_v8_stable.xml` | |
+| FVP | `fvp.xml` | `fvp_stable.xml` | [fvp.md] |
+| HiKey | `hikey.xml` | `hikey_stable.xml` | [hikey.md] |
+| HiKey Debian | `hikey_debian.xml` | `hikey_debian_stable.xml`| [hikey.md] |
+| MediaTek MT8173 EVB Board | `mt8173-evb.xml` | `mt8173-evb_stable.xml` | [mtk8173.md] |
+| ARM Juno board| `juno.xml` | `juno_stable.xml` | [juno.md] |
+| Raspberry Pi 3 | `rpi3.xml` | `rpi3_stable.xml` | [rpi3.md] |
+| DRA7xx | `dra7xx.xml` | `dra7xx_stable.xml` | [ti.md] |
+| AM57xx | `am57xx.xml` | `am57xx_stable.xml` | [ti.md] |
+| AM43xx | `am43xx.xml` | `am43xx_stable.xml` | [ti.md] |
 
 # 7. Get and build the solution
 Below we will describe the general way of getting the source, building the
@@ -253,8 +253,15 @@ Please have a look at out [FAQ] file for a list of questions commonly asked.
 [ccache]: https://ccache.samba.org
 [docs]: docs
 [FAQ]: faq.md
+[fvp.md]: ./docs/fvp.md
 [git submodules]: https://git-scm.com/book/en/v2/Git-Tools-Submodules
+[juno.md]: ./docs/juno.md
+[hikey.md]: ./docs/hikey.md
 [manifest/README.md]: https://github.com/OP-TEE/manifest/blob/master/README.md
+[mtk8173.md]: ./docs/mtk8173.md
 [MAINTAINERS.md]: https://github.com/OP-TEE/optee_os/blob/master/MAINTAINERS.md
 [OP-TEE/README.md]: https://github.com/OP-TEE/optee_os/blob/master/README.md
+[qemu.md]: ./docs/qemu.md
 [repo]: https://source.android.com/source/downloading.html
+[rpi3.md]: ./docs/rpi3.md
+[ti.md]: ./docs/ti.md
