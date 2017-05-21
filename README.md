@@ -163,7 +163,7 @@ symlink the `Makefile` to the correct device specific makefile, that means that
 you simply start the build by running:
 
 ```bash
-$ make all run
+$ make all
 ```
 This step will also take some time, but you can speed up subsequent builds by
 enabling [ccache] (again see Tips and Tricks).
