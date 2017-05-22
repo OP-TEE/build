@@ -59,7 +59,7 @@ MODULE_OUTPUT		?= $(ROOT)/module_output
 ################################################################################
 all: rpi3-firmware arm-tf optee-os optee-client xtest u-boot u-boot-jtag-bin\
 	linux update_rootfs
-all-clean: arm-tf-clean busybox-clean u-boot-clean u-boot-jtag-bin-clean \
+clean: arm-tf-clean busybox-clean u-boot-clean u-boot-jtag-bin-clean \
 	optee-os-clean optee-client-clean rpi3-firmware-clean head-bin-clean
 
 -include toolchain.mk

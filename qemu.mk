@@ -24,7 +24,7 @@ DEBUG = 1
 # Targets
 ################################################################################
 all: bios-qemu qemu soc-term
-all-clean: bios-qemu-clean busybox-clean linux-clean optee-os-clean \
+clean: bios-qemu-clean busybox-clean linux-clean optee-os-clean \
 	optee-client-clean qemu-clean soc-term-clean check-clean
 
 -include toolchain.mk

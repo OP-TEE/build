@@ -29,7 +29,7 @@ DEBUG = 1
 # Targets
 ################################################################################
 all: arm-tf edk2 qemu soc-term linux strace update_rootfs
-all-clean: arm-tf-clean busybox-clean edk2-clean linux-clean \
+clean: arm-tf-clean busybox-clean edk2-clean linux-clean \
 	optee-os-clean optee-client-clean qemu-clean \
 	soc-term-clean check-clean strace-clean
 
