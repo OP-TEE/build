@@ -24,7 +24,7 @@ U-BOOT_BIN		?= $(U-BOOT_PATH)/u-boot.bin
 # Targets
 ################################################################################
 all: arm-tf u-boot linux optee-os optee-client xtest helloworld update_rootfs
-all-clean: arm-tf-clean busybox-clean u-boot-clean optee-os-clean \
+clean: arm-tf-clean busybox-clean u-boot-clean optee-os-clean \
 	optee-client-clean
 
 

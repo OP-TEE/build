@@ -22,7 +22,7 @@ ARM_TF_BIN			?= $(ARM_TF_PATH)/build/mt8173/debug/bl31.bin
 # Targets
 ################################################################################
 all: arm-tf linux optee-os optee-client xtest helloworld
-all-clean: arm-tf-clean linux-clean busybox-clean optee-os-clean \
+clean: arm-tf-clean linux-clean busybox-clean optee-os-clean \
 	optee-client-clean
 
 

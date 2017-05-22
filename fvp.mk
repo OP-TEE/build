@@ -28,7 +28,7 @@ endif
 # Targets
 ################################################################################
 all: arm-tf edk2 linux optee-os optee-client xtest helloworld
-all-clean: arm-tf-clean busybox-clean edk2-clean optee-os-clean \
+clean: arm-tf-clean busybox-clean edk2-clean optee-os-clean \
 	optee-client-clean
 
 
