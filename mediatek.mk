@@ -132,4 +132,4 @@ flash-image: build-image
 	./fastboot flash TEE1 ./trustzone.bin
 	@echo "Please press reset button again..."
 
-run: flash-image
+flash: flash-image
