@@ -57,6 +57,10 @@ before building, see [UART in hikey.mk].
 Just follow the "Get and build the solution" in the [README.md] file. The `make
 flash` step will tell you how you should set the jumpers on the board.
 
+**NOTE:** If you're using a Hikey board with a 4GB flash such as the old boards
+manufactured by CircuitCo, please set `CFG_FLASH_SIZE ?= 4` in `hikey.mk` before
+running any `make` commands.
+
 # 5. Debian based build
 The intention here was to do almost the same kind of build as the regular where
 the big difference is the kernel in use and the root fs. The kernel currently
@@ -76,6 +80,10 @@ all`, you should run:
 ```bash
 $ make system-img
 ```
+
+**NOTE:** If you're using a Hikey board with a 4GB flash such as the old boards
+manufactured by CircuitCo, please set `CFG_FLASH_SIZE ?= 4` in `hikey_debian.mk`
+before running any `make` commands.
 
 The `make flash` step will tell you how you should set the jumpers on the board
 and how to flash the device. There have been reports of some boards stalling or
