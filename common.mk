@@ -267,7 +267,10 @@ optee-os-common:
 
 OPTEE_OS_CLEAN_COMMON_FLAGS ?= $(OPTEE_OS_COMMON_EXTRA_FLAGS)
 
-optee-os-clean-common: xtest-clean helloworld-clean benchmark-app-clean-common
+ifeq ($(CFG_TEE_BENCHMARK),y)
+optee-os-clean-common: benchmark-app-clean-common
+endif
+optee-os-clean-common: xtest-clean helloworld-clean
 	$(MAKE) -C $(OPTEE_OS_PATH) $(OPTEE_OS_CLEAN_COMMON_FLAGS) clean
 
 OPTEE_CLIENT_COMMON_FLAGS ?= CROSS_COMPILE=$(CROSS_COMPILE_NS_USER) \
@@ -291,8 +294,7 @@ XTEST_COMMON_FLAGS ?= CROSS_COMPILE_HOST=$(CROSS_COMPILE_NS_USER)\
 	TA_DEV_KIT_DIR=$(OPTEE_OS_TA_DEV_KIT_DIR) \
 	OPTEE_CLIENT_EXPORT=$(OPTEE_CLIENT_EXPORT) \
 	COMPILE_NS_USER=$(COMPILE_NS_USER) \
-	O=$(OPTEE_TEST_OUT_PATH) \
-	CFG_TEE_BENCHMARK=$(CFG_TEE_BENCHMARK)
+	O=$(OPTEE_TEST_OUT_PATH)
 
 xtest-common: optee-os optee-client
 	$(MAKE) -C $(OPTEE_TEST_PATH) $(XTEST_COMMON_FLAGS)
@@ -353,8 +355,11 @@ update_rootfs-clean-common:
 	rm -f $(GEN_ROOTFS_PATH)/filelist-tmp.txt
 	rm -f $(GEN_ROOTFS_FILELIST)
 
+ifeq ($(CFG_TEE_BENCHMARK),y)
+filelist-tee-common: benchmark-app
+endif
 filelist-tee-common: fl:=$(GEN_ROOTFS_FILELIST)
-filelist-tee-common: optee-client xtest helloworld benchmark-app
+filelist-tee-common: optee-client xtest helloworld
 	@echo "# filelist-tee-common /start" 				> $(fl)
 	@echo "dir /lib/optee_armtz 755 0 0" 				>> $(fl)
 	@echo "# xtest / optee_test" 					>> $(fl)

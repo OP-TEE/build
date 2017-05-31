@@ -23,9 +23,13 @@ DEBUG = 1
 ################################################################################
 # Targets
 ################################################################################
-all: bios-qemu qemu soc-term benchmark-app
+ifeq ($(CFG_TEE_BENCHMARK),y)
+all: benchmark-app
+clean: benchmark-app-clean
+endif
+all: bios-qemu qemu soc-term
 clean: bios-qemu-clean busybox-clean linux-clean optee-os-clean \
-	optee-client-clean qemu-clean soc-term-clean check-clean benchmark-app-clean
+	optee-client-clean qemu-clean soc-term-clean check-clean
 
 -include toolchain.mk
 
