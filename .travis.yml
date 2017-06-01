@@ -57,6 +57,14 @@ script:
   - if [ $REPO_PROJ == "qemu_v8" ]; then cd $HOME/$REPO_PROJ/qemu && git submodule update --init dtc; fi
   # Here we are using Travis environment variables to select the correct branch
   # based on either a pull request or a normal push.
-  - cd $HOME/$REPO_PROJ/build && git remote add github https://github.com/$TRAVIS_REPO_SLUG && git remote update
-  - cd $HOME/$REPO_PROJ/build && git checkout github/$TRAVIS_BRANCH
+  - |
+        if [ "$TRAVIS_EVENT_TYPE" == "pull_request" ]; then
+                slug=$TRAVIS_PULL_REQUEST_SLUG
+                branch=$TRAVIS_PULL_REQUEST_BRANCH
+        else
+                slug=$TRAVIS_REPO_SLUG
+                branch=$TRAVIS_BRANCH
+        fi
+  - cd $HOME/$REPO_PROJ/build && git remote add github https://github.com/$slug && git remote update
+  - cd $HOME/$REPO_PROJ/build && git checkout github/$branch
   - cd $HOME/$REPO_PROJ/build && make -f toolchain.mk toolchains -j3 && make all -j`nproc`
