@@ -61,9 +61,7 @@ flash` step will tell you how you should set the jumpers on the board.
 The intention here was to do almost the same kind of build as the regular where
 the big difference is the kernel in use and the root fs. The kernel currently
 comes from the 96Boards team, but that might change soon again. The root fs is a
-Debian based root file system. In this setup we're also using a pre-built UEFI
-binary. In the long run we would like to change that so we build UEFI from
-scratch in this setup just as we do in other OP-TEE setups.
+Debian based root file system.
 
 In the root fs there is already a couple of OP-TEE binaries included. After
 building the solution one must replace those, since they are a bit dated (see
