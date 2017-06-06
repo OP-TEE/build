@@ -17,11 +17,6 @@ CFG_SW_CONSOLE_UART ?= 3
 # eMMC flash size: 8 or 4 GB [default 8]
 CFG_FLASH_SIZE ?= 8
 
-# TODO: Figure out how to handle this in a better way, but we need a version
-# number with major and minor for the debian packages.
-#   <major version>.<minor version>-<package revision>
-OPTEE_PKG_VERSION ?= 2.3-0
-
 # IP-address to the HiKey device
 IP ?= 127.0.0.1
 
@@ -34,6 +29,8 @@ NVME_IMG_URL=https://builds.96boards.org/releases/hikey/linaro/binaries/latest/n
 # Includes
 ################################################################################
 -include common.mk
+
+OPTEE_PKG_VERSION := $(shell cd $(OPTEE_OS_PATH) && git describe)-0
 
 ################################################################################
 # Mandatory definition to use common.mk
