@@ -195,8 +195,11 @@ edk2-common: $(EDK2_PATH)/Conf/target.txt
 edk2-clean-common:
 	set -e && cd $(EDK2_PATH) && source edksetup.sh && \
 	$(call edk2-call) clean && \
-	$(MAKE) -j1 -C $(EDK2_PATH)/BaseTools clean && \
+	$(MAKE) -j1 -C $(EDK2_PATH)/BaseTools clean
+	rm -rf $(EDK2_PATH)/Build
+	rm -f $(EDK2_PATH)/Conf/build_rule.txt
 	rm -f $(EDK2_PATH)/Conf/target.txt
+	rm -f $(EDK2_PATH)/Conf/tools_def.txt
 ################################################################################
 # QEMU / QEMUv8
 ################################################################################
