@@ -80,7 +80,7 @@ DEBPKG_CONTROL_PATH		?= $(DEBPKG_PATH)/DEBIAN
 ################################################################################
 # Targets
 ################################################################################
-all: prepare arm-tf linux boot-img lloader system-img nvme deb
+all: arm-tf linux boot-img lloader system-img nvme deb
 
 clean: arm-tf-clean edk2-clean linux-clean optee-os-clean optee-client-clean xtest-clean helloworld-clean boot-img-clean lloader-clean
 
@@ -89,7 +89,7 @@ cleaner: clean prepare-cleaner linux-cleaner nvme-cleaner system-img-cleaner
 -include toolchain.mk
 
 prepare:
-	@mkdir -p $(ROOT)/out
+	@mkdir -p $(OUT_PATH)
 
 .PHONY: prepare-cleaner
 prepare-cleaner:
@@ -292,7 +292,7 @@ endef
 export CONTROL_TEXT
 
 .PHONY: deb
-deb: xtest helloworld optee-client
+deb: prepare xtest helloworld optee-client
 	@mkdir -p $(DEBPKG_BIN_PATH) && cd $(DEBPKG_BIN_PATH) && \
 		cp -f $(OPTEE_CLIENT_EXPORT)/bin/tee-supplicant . && \
 		cp -f $(OPTEE_TEST_OUT_PATH)/xtest/xtest . && \
