@@ -22,7 +22,6 @@ IP ?= 127.0.0.1
 
 # URL to images
 SYSTEM_IMG_URL=https://builds.96boards.org/releases/reference-platform/debian/hikey/16.06/hikey-rootfs-debian-jessie-alip-20160629-120.emmc.img.gz
-BOOT_IMG_URL=https://builds.96boards.org/releases/reference-platform/debian/hikey/16.06/hikey-boot-linux-20160629-120.uefi.img.gz
 NVME_IMG_URL=https://builds.96boards.org/releases/hikey/linaro/binaries/latest/nvme.img
 
 ################################################################################
@@ -283,12 +282,13 @@ grub-cleaner: grub-clean
 # Boot Image
 ################################################################################
 .PHONY: boot-img
-boot-img:
-ifeq ("$(wildcard $(BOOT_IMG))","")
-	echo "Downloading Debian HiKey boot image ..."
-	wget $(BOOT_IMG_URL) -O $(BOOT_IMG).gz
-	gunzip $(BOOT_IMG).gz
-endif
+boot-img: grub edk2
+	rm -f $(BOOT_IMG)
+	/sbin/mkfs.fat -F32 -n "boot" -C $(BOOT_IMG) 65536
+	mmd -i $(BOOT_IMG) EFI
+	mmd -i $(BOOT_IMG) EFI/BOOT
+	mcopy -i $(BOOT_IMG) $(EDK2_PATH)/Build/HiKey/$(EDK2_BUILD)_GCC49/AARCH64/AndroidFastbootApp.efi ::/EFI/BOOT/fastboot.efi
+	mcopy -i $(BOOT_IMG) $(OUT_PATH)/grubaa64.efi ::/EFI/BOOT/grubaa64.efi
 
 .PHONY: boot-img-clean
 boot-img-clean:
