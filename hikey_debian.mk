@@ -21,8 +21,15 @@ CFG_FLASH_SIZE ?= 8
 IP ?= 127.0.0.1
 
 # URL to images
-SYSTEM_IMG_URL=https://builds.96boards.org/releases/reference-platform/debian/hikey/16.06/hikey-rootfs-debian-jessie-alip-20160629-120.emmc.img.gz
-NVME_IMG_URL=https://builds.96boards.org/releases/hikey/linaro/binaries/latest/nvme.img
+SYSTEM_IMG_URL=http://builds.96boards.org/snapshots/reference-platform/debian-iot/latest/hikey/hikey-rootfs-debian-stretch-iot-20170331-56.emmc.img.gz
+NVME_IMG_URL=http://builds.96boards.org/snapshots/reference-platform/components/uefi/latest/debug/hikey/nvme.img
+
+################################################################################
+# Disallow use of UART0 for Debian Linux console
+################################################################################
+ifeq ($(CFG_NW_CONSOLE_UART),0)
+$(error The Debian Linux console currently supports UART3 only!)
+endif
 
 ################################################################################
 # Includes
@@ -67,7 +74,6 @@ NVME_IMG			?= $(OUT_PATH)/nvme.img
 SYSTEM_IMG			?= $(OUT_PATH)/debian_system.img
 GRUB_PATH			?= $(ROOT)/grub
 GRUB_CONFIGFILE			?= $(OUT_PATH)/grub.configfile
-ROOTFS_PATH			?= $(OUT_PATH)/rootfs
 LLOADER_PATH			?= $(ROOT)/l-loader
 PATCHES_PATH			?= $(ROOT)/patches_hikey
 DEBPKG_PATH			?= $(OUT_PATH)/optee_$(OPTEE_PKG_VERSION)
@@ -294,7 +300,7 @@ boot-img-clean:
 .PHONY: system-img
 system-img: prepare
 ifeq ("$(wildcard $(SYSTEM_IMG))","")
-	@echo "Downloading Debian root fs (730MB) ..."
+	@echo "Downloading Debian root fs ..."
 	wget $(SYSTEM_IMG_URL) -O $(SYSTEM_IMG).gz
 	gunzip $(SYSTEM_IMG).gz
 endif

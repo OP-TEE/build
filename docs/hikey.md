@@ -63,23 +63,24 @@ the big difference is the kernel in use and the root fs. The kernel currently
 comes from the 96Boards team, but that might change soon again. The root fs is a
 Debian based root file system.
 
-In the root fs there is already a couple of OP-TEE binaries included. After
-building the solution one must replace those, since they are a bit dated (see
-below about how to dpkg force install a couple of OP-TEE Debian packages).
+In the root fs OP-TEE binaries can be installed via `apt`. After building the
+solution one must replace those, since they can be a bit dated (see below about
+how to dpkg force install a couple of OP-TEE Debian packages).
 
 ## 5.1 Building the OP-TEE Debian based setup
-With one difference, do the same as the regular build (of course you should use
-the Debian based manifest file). The difference is that before running `make
-all`, you should run:
-```bash
-$ make system-img
-```
+Do the same as the regular build (of course you should use the Debian based
+manifest file).
 
-The `make flash` step will tell you how you should set the jumpers on the board
-and how to flash the device. There have been reports of some boards stalling or
-getting stuck in `make flash` when flashing `SYSTEM_IMG`, i.e. the command does
-not complete after more than 5 minutes. If that happens, please try running
-`make recovery` instead.
+Next, the `make flash` step will tell you how you should set the jumpers on the
+board and how to flash the device.
+
+**NOTE**: This will install a developer version of Debian, i.e. there will be NO
+GUI or desktop available, i.e. command line ONLY!
+
+**NOTE**: There have been reports of some boards stalling or getting stuck in
+`make flash` when flashing `SYSTEM_IMG`, i.e. the command does not complete
+after more than 5 minutes. If that happens, please try running `make recovery`
+instead.
 
 Now you can boot up the device, note that the **up-to-date** OP-TEE normal world
 binaries still hasn't been put on the device at this stage. So by now you're
