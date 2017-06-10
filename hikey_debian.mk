@@ -71,6 +71,7 @@ ROOTFS_PATH			?= $(OUT_PATH)/rootfs
 LLOADER_PATH			?= $(ROOT)/l-loader
 PATCHES_PATH			?= $(ROOT)/patches_hikey
 DEBPKG_PATH			?= $(OUT_PATH)/optee_$(OPTEE_PKG_VERSION)
+DEBPKG_SRC_PATH			?= $(ROOT)/debian-kernel-packaging
 DEBPKG_BIN_PATH			?= $(DEBPKG_PATH)/usr/bin
 DEBPKG_LIB_PATH			?= $(DEBPKG_PATH)/usr/lib/$(MULTIARCH)
 DEBPKG_TA_PATH			?= $(DEBPKG_PATH)/lib/optee_armtz
@@ -161,20 +162,13 @@ edk2-clean:
 # Linux kernel
 ################################################################################
 LINUX_DEFCONFIG_COMMON_ARCH ?= arm64
-LINUX_DEFCONFIG_COMMON_FILES ?= $(LINUX_PATH)/arch/arm64/configs/defconfig \
+LINUX_DEFCONFIG_COMMON_FILES ?= $(DEBPKG_SRC_PATH)/debian/config/config \
+				$(DEBPKG_SRC_PATH)/debian/config/arm64/config \
 				$(CURDIR)/kconfigs/hikey_debian.conf
 
 linux-defconfig: $(LINUX_PATH)/.config
 
 LINUX_COMMON_FLAGS += ARCH=arm64 deb-pkg LOCALVERSION=-optee-rpb
-UPSTREAM_KERNEL := $(if $(wildcard $(LINUX_PATH)/arch/arm64/boot/dts/hisilicon/hi6220-hikey.dts),1,0)
-ifeq ($(UPSTREAM_KERNEL),0)
-LINUX_COMMON_FLAGS += hi6220-hikey.dtb
-DTB = $(LINUX_PATH)/arch/arm64/boot/dts/hi6220-hikey.dtb
-else
-LINUX_COMMON_FLAGS += hisilicon/hi6220-hikey.dtb
-DTB = $(LINUX_PATH)/arch/arm64/boot/dts/hisilicon/hi6220-hikey.dtb
-endif
 
 linux: linux-common
 
