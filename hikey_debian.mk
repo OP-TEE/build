@@ -66,6 +66,8 @@ MCUIMAGE_BIN			?= $(OPENPLATPKG_PATH)/Platforms/Hisilicon/HiKey/Binary/mcuimage.
 BOOT_IMG			?= $(OUT_PATH)/boot-fat.uefi.img
 NVME_IMG			?= $(OUT_PATH)/nvme.img
 SYSTEM_IMG			?= $(OUT_PATH)/debian_system.img
+GRUB_PATH			?= $(ROOT)/grub
+GRUB_CONFIGFILE			?= $(OUT_PATH)/grub.configfile
 ROOTFS_PATH			?= $(OUT_PATH)/rootfs
 LLOADER_PATH			?= $(ROOT)/l-loader
 PATCHES_PATH			?= $(ROOT)/patches_hikey
@@ -80,9 +82,9 @@ DEBPKG_CONTROL_PATH		?= $(DEBPKG_PATH)/DEBIAN
 ################################################################################
 all: arm-tf linux boot-img lloader system-img nvme deb
 
-clean: arm-tf-clean edk2-clean linux-clean optee-os-clean optee-client-clean xtest-clean helloworld-clean boot-img-clean lloader-clean
+clean: arm-tf-clean edk2-clean linux-clean optee-os-clean optee-client-clean xtest-clean helloworld-clean boot-img-clean lloader-clean grub-clean
 
-cleaner: clean prepare-cleaner linux-cleaner nvme-cleaner system-img-cleaner
+cleaner: clean prepare-cleaner linux-cleaner nvme-cleaner system-img-cleaner grub-cleaner
 
 -include toolchain.mk
 
@@ -227,6 +229,55 @@ xtest-patch: xtest-patch-common
 helloworld: helloworld-common
 
 helloworld-clean: helloworld-clean-common
+
+################################################################################
+# grub
+################################################################################
+grub-flags := CC="$(CCACHE)gcc" \
+	TARGET_CC="$(AARCH64_CROSS_COMPILE)gcc" \
+	TARGET_OBJCOPY="$(AARCH64_CROSS_COMPILE)objcopy" \
+	TARGET_NM="$(AARCH64_CROSS_COMPILE)nm" \
+	TARGET_RANLIB="$(AARCH64_CROSS_COMPILE)ranlib" \
+	TARGET_STRIP="$(AARCH64_CROSS_COMPILE)strip"
+
+GRUB_MODULES += boot chain configfile echo efinet eval ext2 fat font gettext \
+		gfxterm gzio help linux loadenv lsefi normal part_gpt \
+		part_msdos read regexp search search_fs_file search_fs_uuid \
+		search_label terminal terminfo test tftp time
+
+$(GRUB_CONFIGFILE): prepare
+	@echo "search.fs_label rootfs root" > $(GRUB_CONFIGFILE)
+	@echo "set prefix=(\$$root)'/boot/grub'" >> $(GRUB_CONFIGFILE)
+	@echo "configfile \$$prefix/grub.cfg" >> $(GRUB_CONFIGFILE)
+
+$(GRUB_PATH)/configure: $(GRUB_PATH)/configure.ac
+	cd $(GRUB_PATH) && ./autogen.sh
+
+$(GRUB_PATH)/Makefile: $(GRUB_PATH)/configure
+	cd $(GRUB_PATH) && ./configure --target=aarch64 --enable-boot-time $(grub-flags)
+
+.PHONY: grub
+grub: $(GRUB_CONFIGFILE) $(GRUB_PATH)/Makefile
+	$(MAKE) -C $(GRUB_PATH); \
+	cd $(GRUB_PATH) && ./grub-mkimage \
+		--verbose \
+		--output=$(OUT_PATH)/grubaa64.efi \
+		--config=$(GRUB_CONFIGFILE) \
+		--format=arm64-efi \
+		--directory=grub-core \
+		--prefix=/boot/grub \
+		$(GRUB_MODULES)
+
+.PHONY: grub-clean
+grub-clean:
+	@if [ -e $(GRUB_PATH)/Makefile ]; then $(MAKE) -C $(GRUB_PATH) clean; fi
+	rm -f $(OUT_PATH)/grubaa64.efi
+	rm -f $(GRUB_CONFIGFILE)
+
+.PHONY: grub-cleaner
+grub-cleaner: grub-clean
+	@if [ -e $(GRUB_PATH)/Makefile ]; then $(MAKE) -C $(GRUB_PATH) distclean; fi
+	rm -f $(GRUB_PATH)/configure
 
 ################################################################################
 # Boot Image
