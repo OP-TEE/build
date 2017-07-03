@@ -53,8 +53,6 @@ script:
   # in the makefile.
   - if [ $REPO_PROJ == "fvp" ]; then mkdir -p $HOME/$REPO_PROJ/Foundation_Platformpkg; fi
   - cd $HOME/$REPO_PROJ && repo init -u https://github.com/OP-TEE/manifest.git -m $REPO_PROJ.xml </dev/null && repo sync -j2 --no-clone-bundle --no-tags --quiet
-  # Fetch a local copy of dtc+libfdt to avoid issues with a possibly outdated libfdt-dev
-  - if [ $REPO_PROJ == "qemu_v8" ]; then cd $HOME/$REPO_PROJ/qemu && git submodule update --init dtc; fi
   # Here we are using Travis environment variables to select the correct branch
   # based on either a pull request or a normal push.
   - |
