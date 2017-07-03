@@ -53,7 +53,9 @@ bios-qemu-clean:
 	$(call bios-qemu-common) clean
 
 qemu:
-	cd $(QEMU_PATH); ./configure --target-list=arm-softmmu\
+	cd $(QEMU_PATH); \
+		git submodule update --init dtc && \
+		./configure --target-list=arm-softmmu \
 			$(QEMU_CONFIGURE_PARAMS_COMMON)
 	$(MAKE) -C $(QEMU_PATH)
 
