@@ -65,7 +65,11 @@ arm-tf-clean:
 # QEMU
 ################################################################################
 qemu:
-	cd $(QEMU_PATH); ./configure --target-list=aarch64-softmmu\
+	cd $(QEMU_PATH); \
+		dpkg --compare-versions 1.4.2 le \
+		    `dpkg-query --showformat='$${Version}' --show libfdt-dev` || \
+		    git submodule update --init dtc && \
+		./configure --target-list=aarch64-softmmu \
 			$(QEMU_CONFIGURE_PARAMS_COMMON)
 	$(MAKE) -C $(QEMU_PATH)
 
