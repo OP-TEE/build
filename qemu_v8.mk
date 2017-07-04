@@ -28,6 +28,10 @@ DEBUG = 1
 ################################################################################
 # Targets
 ################################################################################
+ifeq ($(CFG_TEE_BENCHMARK),y)
+all: benchmark-app
+clean: benchmark-app-clean
+endif
 all: arm-tf edk2 qemu soc-term linux strace update_rootfs
 clean: arm-tf-clean busybox-clean edk2-clean linux-clean \
 	optee-os-clean optee-client-clean qemu-clean \
@@ -183,6 +187,13 @@ ifneq ("$(wildcard $(STRACE_PATH))","")
 			$(MAKE) -C $(STRACE_PATH) clean && \
 		rm -f $(STRACE_PATH)/Makefile $(STRACE_PATH)/configure
 endif
+
+################################################################################
+# benchmark
+################################################################################
+benchmark-app: benchmark-app-common
+
+benchmark-app-clean: benchmark-app-clean-common
 
 ################################################################################
 # Root FS
