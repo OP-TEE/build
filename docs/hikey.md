@@ -74,9 +74,6 @@ manifest file).
 Next, the `make flash` step will tell you how you should set the jumpers on the
 board and how to flash the device.
 
-**NOTE**: This will install a developer version of Debian, i.e. there will be NO
-GUI or desktop available, i.e. command line ONLY!
-
 **NOTE**: There have been reports of some boards stalling or getting stuck in
 `make flash` when flashing `SYSTEM_IMG`, i.e. the command does not complete
 after more than 5 minutes. If that happens, please try running `make recovery`
