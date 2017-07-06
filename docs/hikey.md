@@ -105,7 +105,7 @@ When the files has been transfered, please follow the commands from the `make
 send` command which will install the debian packages on the device. Typically it
 tells you to run something like this on the device itself:
 ```bash
-$ dpkg --force-all -i /tmp/out/optee_2.0-1.deb
+$ dpkg --force-all -i /tmp/out/*.deb
 $ dpkg --force-all -i /tmp/linux-image-*.deb
 ```
 ## 5.2 Good to know

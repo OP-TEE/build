@@ -23,6 +23,7 @@ IP ?= 127.0.0.1
 # URL to images
 SYSTEM_IMG_URL=https://builds.96boards.org/releases/reference-platform/debian/hikey/16.06/hikey-rootfs-debian-jessie-alip-20160629-120.emmc.img.gz
 NVME_IMG_URL=https://builds.96boards.org/releases/hikey/linaro/binaries/latest/nvme.img
+WIFI_FW_URL=http://http.us.debian.org/debian/pool/non-free/f/firmware-nonfree/firmware-ti-connectivity_20161130-3_all.deb
 
 ################################################################################
 # Disallow use of UART0 for Debian Linux console
@@ -72,6 +73,7 @@ MCUIMAGE_BIN			?= $(OPENPLATPKG_PATH)/Platforms/Hisilicon/HiKey/Binary/mcuimage.
 BOOT_IMG			?= $(OUT_PATH)/boot-fat.uefi.img
 NVME_IMG			?= $(OUT_PATH)/nvme.img
 SYSTEM_IMG			?= $(OUT_PATH)/debian_system.img
+WIFI_FW				?= $(OUT_PATH)/firmware-ti-connectivity_20161130-3_all.deb
 GRUB_PATH			?= $(ROOT)/grub
 GRUB_CONFIGFILE			?= $(OUT_PATH)/grub.configfile
 LLOADER_PATH			?= $(ROOT)/l-loader
@@ -306,10 +308,15 @@ ifeq ("$(wildcard $(SYSTEM_IMG))","")
 	wget $(SYSTEM_IMG_URL) -O $(SYSTEM_IMG).gz
 	gunzip $(SYSTEM_IMG).gz
 endif
+ifeq ("$(wildcard $(WIFI_FW))","")
+	@echo "Downloading Wi-Fi firmware package ..."
+	wget $(WIFI_FW_URL) -O $(WIFI_FW)
+endif
 
 .PHONY: system-cleaner
 system-img-cleaner:
 	rm -f $(SYSTEM_IMG)
+	rm -f $(WIFI_FW)
 
 ################################################################################
 # l-loader
@@ -382,7 +389,7 @@ send:
 	@tar czf - $(shell cd $(OUT_PATH) && echo $(OUT_PATH)/*.deb && echo $(ROOT)/linux-image-*.deb) | ssh linaro@$(IP) "cd /tmp; tar xvzf -"
 	@echo "Files has been sent to $$IP/tmp/ and $$IP/tmp/out"
 	@echo "On the device, run:"
-	@echo " dpkg --force-all -i /tmp/out/optee_$(OPTEE_PKG_VERSION).deb"
+	@echo " dpkg --force-all -i /tmp/out/*.deb"
 	@echo " dpkg --force-all -i /tmp/linux-image-*.deb"
 
 ################################################################################
