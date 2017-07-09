@@ -43,7 +43,7 @@ env:
   #- $REPO_PROJ=dra7xx # Cannot build this since it requires TI_SECURE_DEV_PKG
 
 before_script:
-  - mkdir $HOME/bin
+  - mkdir -p $HOME/bin
   - cd $HOME/bin && wget https://storage.googleapis.com/git-repo-downloads/repo && chmod +x repo
   - export PATH=$HOME/bin:$PATH
   - mkdir -p $HOME/$REPO_PROJ
