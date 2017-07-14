@@ -2,7 +2,8 @@ enable_uart=1
 arm_control=0x200
 kernel_old=1
 
-kernel=u-boot-jtag.bin
+kernel=u-boot-rpi.bin
+#enable_jtag_gpio=1
 
 disable_commandline_tags=1
 
