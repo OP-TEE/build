@@ -57,6 +57,10 @@ MODULE_OUTPUT		?= $(ROOT)/module_output
 ################################################################################
 # Targets
 ################################################################################
+ifeq ($(CFG_TEE_BENCHMARK),y)
+all: benchmark-app
+clean: benchmark-app-clean
+endif
 all: rpi3-firmware arm-tf optee-os optee-client xtest u-boot u-boot-jtag-bin\
 	linux update_rootfs
 clean: arm-tf-clean busybox-clean u-boot-clean u-boot-jtag-bin-clean \
@@ -236,6 +240,13 @@ xtest-patch: xtest-patch-common
 helloworld: helloworld-common
 
 helloworld-clean: helloworld-clean-common
+
+################################################################################
+# benchmark
+################################################################################
+benchmark-app: benchmark-app-common
+
+benchmark-app-clean: benchmark-app-clean-common
 
 ################################################################################
 # Root FS
