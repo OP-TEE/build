@@ -222,7 +222,7 @@ $ cd /home/jbech/devel/optee_projects/rpi3/boot/
 # clean previous uboot.env
 $ make u-boot-env-clean
 # generate new
-$ make u-boot-jtag-bin
+$ make u-boot-bin
 ```
 Then you need to copy your newly generated `uboot.env`(it's stored in `../out/uboot.env`)
 to the BOOT partition of your SD card.
@@ -292,19 +292,20 @@ need to reboot the RPi after a rebuild.
 # 6. OpenOCD and JTAG
 First a word of warning here, even though this seems to be working quite good as
 of now, it should be well understood that this is based on incomplete and out of
-tree patches. So what are the major changes that enables this? First [OpenOCD]
-currently doesn't contain ARMv8-A / AArch64 support in the upstream tree. A
-couple of different people have put something together that gets the job done.
-But to get in a shape for upstream, there is still quite a lot left to do. The
-other change needed is in U-Boot, that is where we configure the [RPi3 GPIO
-pins] so that they will talk JTAG. The pin configuration and the wiring for the
-cable looks like this:
+tree patches. Indeed, [OpenOCD] currently doesn't contain ARMv8-A / AArch64
+support in the upstream tree. A couple of different people have put something
+together that gets the job done. But to get in a shape for upstream, there is
+still quite a lot left to do.
+
+To enable JTAG you need to uncomment the line: `enable_jtag_gpio=1` in
+`rpi3/firmware/config.txt`.
+The pin configuration and the wiring for the cable looks like this:
 
 |JTAG pin|Signal|GPIO   |Mode |Header pin|
 |--------|------|-------|-----|----------|
 | 1      |3v3   |N/A    |N/A  | 1        |
 | 3      |nTRST |GPIO22 |ALT4 | 15       |
-| 5      |TDI   |GPIO4  |ALT5 | 7        |
+| 5      |TDI   |GPIO26 |ALT4 | 37       |
 | 7      |TMS   |GPIO27 |ALT4 | 13       |
 | 9      |TCK   |GPIO25 |ALT4 | 22       |
 | 11     |RTCK  |GPIO23 |ALT4 | 16       |
