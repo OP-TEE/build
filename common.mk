@@ -339,7 +339,7 @@ helloworld-clean-common:
 ################################################################################
 # benchmark_app
 ################################################################################
-BENCHMARK_APP_COMMON_FLAGS ?= HOST_CROSS_COMPILE=$(CROSS_COMPILE_NS_USER) \
+BENCHMARK_APP_COMMON_FLAGS ?= CROSS_COMPILE=$(CROSS_COMPILE_NS_USER) \
 	TEEC_EXPORT=$(OPTEE_CLIENT_EXPORT) \
 	TEEC_INTERNAL_INCLUDES=$(OPTEE_CLIENT_PATH)/libteec
 
