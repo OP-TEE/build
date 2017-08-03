@@ -243,7 +243,7 @@ define run-help
 	@echo
 endef
 
-ifneq ("", $(LAUNCH_TERMINAL))
+ifneq (, $(LAUNCH_TERMINAL))
 define launch-terminal
 	@nc -z  127.0.0.1 $(1) || \
 		$(LAUNCH_TERMINAL) $(SOC_TERM_PATH)/soc_term $(1) &
