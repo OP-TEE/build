@@ -21,10 +21,9 @@ ARM_TF_BIN			?= $(ARM_TF_PATH)/build/mt8173/debug/bl31.bin
 ################################################################################
 # Targets
 ################################################################################
-all: arm-tf linux optee-os optee-client xtest helloworld
+all: arm-tf linux optee-os optee-client xtest optee-examples
 clean: arm-tf-clean linux-clean busybox-clean optee-os-clean \
-	optee-client-clean
-
+	optee-client-clean optee-examples-clean
 
 -include toolchain.mk
 
@@ -104,10 +103,11 @@ xtest-clean: xtest-clean-common
 xtest-patch: xtest-patch-common
 
 ################################################################################
-# hello_world
+# Sample applications / optee_examples
 ################################################################################
-helloworld: helloworld-common
-helloworld-clean: helloworld-clean-common
+optee-examples: optee-examples-common
+
+optee-examples-clean: optee-examples-clean-common
 
 ################################################################################
 # Root FS

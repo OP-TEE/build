@@ -3,8 +3,10 @@
 ###############################################################################
 .PHONY: all clean cleaner prepare
 
-all: u-boot linux optee-os optee-client xtest helloworld build-fit update_rootfs
-clean: linux-clean busybox-clean u-boot-clean optee-os-clean optee-client-clean build-fit-clean
+all: u-boot linux optee-os optee-client xtest build-fit \
+	update_rootfs optee-examples
+clean: linux-clean busybox-clean u-boot-clean optee-os-clean \
+	optee-client-clean build-fit-clean optee-examples-clean
 cleaner: clean prepare-cleaner busybox-cleaner linux-cleaner
 
 -include toolchain.mk
@@ -73,13 +75,12 @@ xtest: xtest-common
 xtest-clean: xtest-clean-common
 xtest-patch: xtest-patch-common
 
-###############################################################################
-# hello_world
-###############################################################################
-.PHONY: helloworld helloworld-clean
+################################################################################
+# Sample applications / optee_examples
+################################################################################
+optee-examples: optee-examples-common
 
-helloworld: helloworld-common
-helloworld-clean: helloworld-clean-common
+optee-examples-clean: optee-examples-clean-common
 
 ###############################################################################
 # Busybox

@@ -60,11 +60,14 @@ PATCHES_PATH			?=$(ROOT)/patches_hikey
 ################################################################################
 # Targets
 ################################################################################
-all: prepare arm-tf boot-img lloader nvme strace
+all: prepare arm-tf boot-img lloader nvme strace optee-examples
 
-clean: arm-tf-clean busybox-clean edk2-clean linux-clean optee-os-clean optee-client-clean xtest-clean helloworld-clean strace-clean update_rootfs-clean boot-img-clean lloader-clean grub-clean
+clean: arm-tf-clean busybox-clean edk2-clean linux-clean optee-os-clean \
+		optee-client-clean xtest-clean optee-examples-clean strace-clean \
+		update_rootfs-clean boot-img-clean lloader-clean grub-clean
 
-cleaner: clean prepare-cleaner busybox-cleaner linux-cleaner strace-cleaner nvme-cleaner grub-cleaner
+cleaner: clean prepare-cleaner busybox-cleaner linux-cleaner strace-cleaner \
+		nvme-cleaner grub-cleaner
 
 -include toolchain.mk
 
@@ -216,11 +219,11 @@ xtest-clean: xtest-clean-common
 xtest-patch: xtest-patch-common
 
 ################################################################################
-# hello_world
+# Sample applications / optee_examples
 ################################################################################
-helloworld: helloworld-common
+optee-examples: optee-examples-common
 
-helloworld-clean: helloworld-clean-common
+optee-examples-clean: optee-examples-clean-common
 
 ################################################################################
 # strace

@@ -61,10 +61,11 @@ ifeq ($(CFG_TEE_BENCHMARK),y)
 all: benchmark-app
 clean: benchmark-app-clean
 endif
-all: rpi3-firmware arm-tf optee-os optee-client xtest u-boot u-boot-rpi-bin\
-	linux update_rootfs
-clean: arm-tf-clean busybox-clean u-boot-clean u-boot-rpi-bin-clean \
-	optee-os-clean optee-client-clean rpi3-firmware-clean head-bin-clean
+all: rpi3-firmware arm-tf optee-os optee-client xtest u-boot u-boot-jtag-bin\
+	linux update_rootfs optee-examples
+clean: arm-tf-clean busybox-clean u-boot-clean u-boot-jtag-bin-clean \
+	optee-os-clean optee-client-clean rpi3-firmware-clean head-bin-clean \
+	optee-examples-clean
 
 -include toolchain.mk
 
@@ -235,11 +236,11 @@ xtest-clean: xtest-clean-common
 xtest-patch: xtest-patch-common
 
 ################################################################################
-# hello_world
+# Sample applications / optee_examples
 ################################################################################
-helloworld: helloworld-common
+optee-examples: optee-examples-common
 
-helloworld-clean: helloworld-clean-common
+optee-examples-clean: optee-examples-clean-common
 
 ################################################################################
 # benchmark

@@ -27,9 +27,9 @@ endif
 ################################################################################
 # Targets
 ################################################################################
-all: arm-tf edk2 linux optee-os optee-client xtest helloworld
+all: arm-tf edk2 linux optee-os optee-client xtest optee-examples
 clean: arm-tf-clean busybox-clean edk2-clean optee-os-clean \
-	optee-client-clean
+	optee-client-clean optee-examples-clean
 
 
 -include toolchain.mk
@@ -131,11 +131,11 @@ xtest-clean: xtest-clean-common
 xtest-patch: xtest-patch-common
 
 ################################################################################
-# hello_world
+# Sample applications / optee_examples
 ################################################################################
-helloworld: helloworld-common
+optee-examples: optee-examples-common
 
-helloworld-clean: helloworld-clean-common
+optee-examples-clean: optee-examples-clean-common
 
 ################################################################################
 # Root FS

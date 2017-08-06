@@ -32,10 +32,10 @@ ifeq ($(CFG_TEE_BENCHMARK),y)
 all: benchmark-app
 clean: benchmark-app-clean
 endif
-all: arm-tf edk2 qemu soc-term linux strace update_rootfs
+all: arm-tf edk2 qemu soc-term linux strace update_rootfs optee-examples
 clean: arm-tf-clean busybox-clean edk2-clean linux-clean \
 	optee-os-clean optee-client-clean qemu-clean \
-	soc-term-clean check-clean strace-clean
+	soc-term-clean check-clean strace-clean optee-examples-clean
 
 -include toolchain.mk
 
@@ -164,11 +164,11 @@ xtest-clean: xtest-clean-common
 xtest-patch: xtest-patch-common
 
 ################################################################################
-# hello_world
+# Sample applications / optee_examples
 ################################################################################
-helloworld: helloworld-common
+optee-examples: optee-examples-common
 
-helloworld-clean: helloworld-clean-common
+optee-examples-clean: optee-examples-clean-common
 
 ################################################################################
 # strace

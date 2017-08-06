@@ -88,11 +88,14 @@ DEBPKG_CONTROL_PATH		?= $(DEBPKG_PATH)/DEBIAN
 ################################################################################
 # Targets
 ################################################################################
-all: arm-tf linux boot-img lloader system-img nvme deb
+all: arm-tf linux boot-img lloader system-img nvme deb optee-examples
 
-clean: arm-tf-clean edk2-clean linux-clean optee-os-clean optee-client-clean xtest-clean helloworld-clean boot-img-clean lloader-clean grub-clean
+clean: arm-tf-clean edk2-clean linux-clean optee-os-clean optee-client-clean \
+		xtest-clean boot-img-clean lloader-clean grub-clean \
+		optee-examples-clean
 
-cleaner: clean prepare-cleaner linux-cleaner nvme-cleaner system-img-cleaner grub-cleaner
+cleaner: clean prepare-cleaner linux-cleaner nvme-cleaner \
+			system-img-cleaner grub-cleaner
 
 -include toolchain.mk
 
@@ -227,11 +230,11 @@ xtest-clean: xtest-clean-common
 xtest-patch: xtest-patch-common
 
 ################################################################################
-# hello_world
+# Sample applications / optee_examples
 ################################################################################
-helloworld: helloworld-common
+optee-examples: optee-examples-common
 
-helloworld-clean: helloworld-clean-common
+optee-examples-clean: optee-examples-clean-common
 
 ################################################################################
 # grub
@@ -353,7 +356,7 @@ Architecture: arm64
 Depends:
 Maintainer: Joakim Bech <joakim.bech@linaro.org>
 Description: OP-TEE client binaries, test program and Trusted Applications
- Package contains tee-supplicant, libtee.so, xtest, hello_world and a set of
+ Package contains tee-supplicant, libtee.so, xtest, optee-examples and a set of
  Trusted Applications.
  NOTE! This package should only be used for testing and development.
 endef
@@ -361,19 +364,20 @@ endef
 export CONTROL_TEXT
 
 .PHONY: deb
-deb: prepare xtest helloworld optee-client
+deb: prepare xtest optee-examples optee-client
 	@mkdir -p $(DEBPKG_BIN_PATH) && cd $(DEBPKG_BIN_PATH) && \
 		cp -f $(OPTEE_CLIENT_EXPORT)/bin/tee-supplicant . && \
-		cp -f $(OPTEE_TEST_OUT_PATH)/xtest/xtest . && \
-		cp -f $(HELLOWORLD_PATH)/host/hello_world .
-
+		cp -f $(OPTEE_TEST_OUT_PATH)/xtest/xtest .
+	@if [ -e $(OPTEE_EXAMPLES_PATH)/out/ca ]; then \
+		for example in $(OPTEE_EXAMPLES_PATH)/out/ca/*; do \
+			cp -f $$example .; \
+		done; \
+	fi
 	@mkdir -p $(DEBPKG_LIB_PATH) && cd $(DEBPKG_LIB_PATH) && \
 		cp $(OPTEE_CLIENT_EXPORT)/lib/libtee* .
-
 	@mkdir -p $(DEBPKG_TA_PATH) && cd $(DEBPKG_TA_PATH) && \
 		cp $(HELLOWORLD_PATH)/ta/*.ta . && \
 		find $(OPTEE_TEST_OUT_PATH)/ta -name "*.ta" -exec cp {} . \;
-
 	@mkdir -p $(DEBPKG_CONTROL_PATH)
 	@echo "$$CONTROL_TEXT" > $(DEBPKG_CONTROL_PATH)/control
 	@cd $(OUT_PATH) && dpkg-deb --build optee_$(OPTEE_PKG_VERSION)

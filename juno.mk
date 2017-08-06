@@ -23,9 +23,10 @@ U-BOOT_BIN		?= $(U-BOOT_PATH)/u-boot.bin
 ################################################################################
 # Targets
 ################################################################################
-all: arm-tf u-boot linux optee-os optee-client xtest helloworld update_rootfs
+all: arm-tf u-boot linux optee-os optee-client xtest optee-examples \
+	update_rootfs
 clean: arm-tf-clean busybox-clean u-boot-clean optee-os-clean \
-	optee-client-clean
+	optee-client-clean optee-examples-clean
 
 
 -include toolchain.mk
@@ -129,11 +130,11 @@ xtest-clean: xtest-clean-common
 xtest-patch: xtest-patch-common
 
 ################################################################################
-# hello_world
+# Sample applications / optee_examples
 ################################################################################
-helloworld: helloworld-common
+optee-examples: optee-examples-common
 
-helloworld-clean: helloworld-clean-common
+optee-examples-clean: optee-examples-clean-common
 
 ################################################################################
 # Root FS
