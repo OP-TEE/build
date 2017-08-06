@@ -27,9 +27,10 @@ ifeq ($(CFG_TEE_BENCHMARK),y)
 all: benchmark-app
 clean: benchmark-app-clean
 endif
-all: bios-qemu qemu soc-term
+all: bios-qemu qemu soc-term optee-examples
 clean: bios-qemu-clean busybox-clean linux-clean optee-os-clean \
-	optee-client-clean qemu-clean soc-term-clean check-clean
+	optee-client-clean qemu-clean soc-term-clean check-clean \
+	optee-examples-clean
 
 -include toolchain.mk
 
@@ -128,11 +129,11 @@ xtest-clean: xtest-clean-common
 xtest-patch: xtest-patch-common
 
 ################################################################################
-# hello_world
+# Sample applications / optee_examples
 ################################################################################
-helloworld: helloworld-common
+optee-examples: optee-examples-common
 
-helloworld-clean: helloworld-clean-common
+optee-examples-clean: optee-examples-clean-common
 
 ################################################################################
 # benchmark

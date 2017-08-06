@@ -16,7 +16,7 @@ OPTEE_CLIENT_PATH		?= $(ROOT)/optee_client
 OPTEE_CLIENT_EXPORT		?= $(OPTEE_CLIENT_PATH)/out/export
 OPTEE_TEST_PATH			?= $(ROOT)/optee_test
 OPTEE_TEST_OUT_PATH		?= $(ROOT)/optee_test/out
-HELLOWORLD_PATH			?= $(ROOT)/hello_world
+OPTEE_EXAMPLES_PATH		?= $(ROOT)/optee_examples
 BENCHMARK_APP_PATH		?= $(ROOT)/optee_benchmark
 
 # default high verbosity. slow uarts shall specify lower if prefered
@@ -297,7 +297,7 @@ OPTEE_OS_CLEAN_COMMON_FLAGS ?= $(OPTEE_OS_COMMON_EXTRA_FLAGS)
 ifeq ($(CFG_TEE_BENCHMARK),y)
 optee-os-clean-common: benchmark-app-clean-common
 endif
-optee-os-clean-common: xtest-clean helloworld-clean
+optee-os-clean-common: xtest-clean optee-examples-clean
 	$(MAKE) -C $(OPTEE_OS_PATH) $(OPTEE_OS_CLEAN_COMMON_FLAGS) clean
 
 OPTEE_CLIENT_COMMON_FLAGS ?= CROSS_COMPILE=$(CROSS_COMPILE_NS_USER) \
@@ -343,22 +343,23 @@ xtest-patch-common:
 	$(MAKE) -C $(OPTEE_TEST_PATH) $(XTEST_PATCH_COMMON_FLAGS) patch
 
 ################################################################################
-# hello_world
+# sample applications / optee_examples
 ################################################################################
-HELLOWORLD_COMMON_FLAGS ?= HOST_CROSS_COMPILE=$(CROSS_COMPILE_NS_USER)\
+OPTEE_EXAMPLES_COMMON_FLAGS ?= HOST_CROSS_COMPILE=$(CROSS_COMPILE_NS_USER)\
 	TA_CROSS_COMPILE=$(CROSS_COMPILE_S_USER) \
 	TA_DEV_KIT_DIR=$(OPTEE_OS_TA_DEV_KIT_DIR) \
 	TEEC_EXPORT=$(OPTEE_CLIENT_EXPORT)
 
-.PHONY: helloworld-common
-helloworld-common: optee-os optee-client
-	$(MAKE) -C $(HELLOWORLD_PATH) $(HELLOWORLD_COMMON_FLAGS)
+.PHONY: optee-examples-common
+optee-examples-common: optee-os optee-client
+	$(MAKE) -C $(OPTEE_EXAMPLES_PATH) $(OPTEE_EXAMPLES_COMMON_FLAGS)
 
-HELLOWORLD_CLEAN_COMMON_FLAGS ?= TA_DEV_KIT_DIR=$(OPTEE_OS_TA_DEV_KIT_DIR)
+OPTEE_EXAMPLES_CLEAN_COMMON_FLAGS ?= TA_DEV_KIT_DIR=$(OPTEE_OS_TA_DEV_KIT_DIR)
 
-.PHONY: helloworld-clean-common
-helloworld-clean-common:
-	$(MAKE) -C $(HELLOWORLD_PATH) $(HELLOWORLD_CLEAN_COMMON_FLAGS) clean
+.PHONY: optee-examples-clean-common
+optee-examples-clean-common:
+	$(MAKE) -C $(OPTEE_EXAMPLES_PATH) \
+			$(OPTEE_EXAMPLES_CLEAN_COMMON_FLAGS) clean
 
 ################################################################################
 # benchmark_app
@@ -398,22 +399,27 @@ ifeq ($(CFG_TEE_BENCHMARK),y)
 filelist-tee-common: benchmark-app
 endif
 filelist-tee-common: fl:=$(GEN_ROOTFS_FILELIST)
-filelist-tee-common: optee-client xtest helloworld
+filelist-tee-common: optee-client xtest optee-examples
 	@echo "# filelist-tee-common /start" 				> $(fl)
 	@echo "dir /lib/optee_armtz 755 0 0" 				>> $(fl)
+	@if [ -e $(OPTEE_EXAMPLES_PATH)/out/ca ]; then \
+		for file in $(OPTEE_EXAMPLES_PATH)/out/ca/*; do \
+			echo "file /usr/bin/$$(basename $$file)" \
+			"$$file 755 0 0"	>> $(fl); \
+		done; \
+	fi
+	@if [ -e $(OPTEE_EXAMPLES_PATH)/out/ta ]; then \
+		for file in $(OPTEE_EXAMPLES_PATH)/out/ta/*; do \
+			echo "file /lib/optee_armtz/$$(basename $$file)" \
+			"$$example 755 0 0"	>> $(fl); \
+		done; \
+	fi
 	@echo "# xtest / optee_test" 					>> $(fl)
 	@find $(OPTEE_TEST_OUT_PATH) -type f -name "xtest" | \
 		sed 's/\(.*\)/file \/bin\/xtest \1 755 0 0/g' 		>> $(fl)
 	@find $(OPTEE_TEST_OUT_PATH) -name "*.ta" | \
 		sed 's/\(.*\)\/\(.*\)/file \/lib\/optee_armtz\/\2 \1\/\2 444 0 0/g' \
 									>> $(fl)
-	@if [ -e $(HELLOWORLD_PATH)/host/hello_world ]; then \
-		echo "file /bin/hello_world" \
-			"$(HELLOWORLD_PATH)/host/hello_world 755 0 0"	>> $(fl); \
-		echo "file /lib/optee_armtz/8aaaf200-2450-11e4-abe2-0002a5d5c51b.ta" \
-			"$(HELLOWORLD_PATH)/ta/8aaaf200-2450-11e4-abe2-0002a5d5c51b.ta" \
-			"444 0 0" 					>> $(fl); \
-	fi
 	@if [ -e $(BENCHMARK_APP_PATH)/benchmark ]; then \
 		echo "file /bin/benchmark" \
 			"$(BENCHMARK_APP_PATH)/benchmark 755 0 0"	>> $(fl); \
