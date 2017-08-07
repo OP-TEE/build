@@ -117,6 +117,13 @@ endif
 define KERNEL_VERSION
 $(shell cd $(LINUX_PATH) && $(MAKE) --no-print-directory kernelversion)
 endef
+
+# Read stdin, expand ${VAR} environment variables, output to stdout
+# http://superuser.com/a/302847
+define expand-env-var
+awk '{while(match($$0,"[$$]{[^}]*}")) {var=substr($$0,RSTART+2,RLENGTH -3);gsub("[$$]{"var"}",ENVIRON[var])}}1'
+endef
+
 DEBUG ?= 0
 
 ################################################################################
