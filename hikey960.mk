@@ -258,12 +258,6 @@ strace-cleaner: strace-clean
 ################################################################################
 # Root FS
 ################################################################################
-# Read stdin, expand ${VAR} environment variables, output to stdout
-# http://superuser.com/a/302847
-define expand-env-var
-awk '{while(match($$0,"[$$]{[^}]*}")) {var=substr($$0,RSTART+2,RLENGTH -3);gsub("[$$]{"var"}",ENVIRON[var])}}1'
-endef
-
 .PHONY: filelist-tee
 filelist-tee: filelist-tee-common
 	env TOP=$(ROOT) $(expand-env-var) <$(PATCHES_PATH)/rootfs/initramfs-add-files.txt >> $(GEN_ROOTFS_FILELIST)
