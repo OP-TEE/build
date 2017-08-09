@@ -36,6 +36,7 @@ env:
   - $REPO_PROJ=default
   - $REPO_PROJ=fvp
   - $REPO_PROJ=hikey
+  - $REPO_PROJ=hikey960
   - $REPO_PROJ=juno
   - $REPO_PROJ=mt8173-evb
   - $REPO_PROJ=qemu_v8
