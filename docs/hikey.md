@@ -4,7 +4,7 @@
 1. [Introduction](#1-introduction)
 2. [Multiple sources for HiKey and OP-TEE instructions?](#2-multiple-sources-for-hikey-and-op-tee-instructions)
 3. [Supported HiKey boards?](#3-supported-hikey-boards)
-4. [Regular builds](#4-regular-build)
+4. [Regular build](#4-regular-build)
 5. [Debian based build](#5-debian-based-build)
 6. [Recovery](#6-recovery)
 
@@ -39,19 +39,18 @@ There are four different versions of the HiKey board.
 
 | Name | Manufacturer | Memory | Flash | Comment |
 |------|--------------|--------|-------|---------|
-| Kirin 620 | CircuitCo | 1GB | 4GB | UART0 pins pre-soldered |
-| HiKey | CircuitCo | 1GB | 4GB | Heatsink pre-installed (give away at HKG15) |
-| HiKey | LeMaker | 1GB | 8GB | |
-| HiKey | LeMaker | 2GB | 8GB | |
+| HiKey | CircuitCo | 1GB | 4GB | Green solder mask |
+| HiKey | LeMaker | 1GB | 8GB | Black solder mask |
+| HiKey | LeMaker | 2GB | 8GB | Black solder mask |
 
 All of them works, but where differences apply we have default configurations
-that works for the old CircuitCo 4GB eMMC versions.
+that works for the LeMaker 8GB eMMC versions.
 
 ## 3.1 UART adapter board
-Everything is configured to use the [96Boards UART Adapter Board], that means
-that the UART in is by default configured to UART3. If you don't have any UART
-adapter board and instead would like to use UART0, then you need to change that
-before building, see [UART in hikey.mk].
+Everything is configured to use the [96Boards UART Adapter Board]. The UART is
+by default configured to UART3. If you don't have any UART adapter board and
+instead would like to use UART0, then you need to change that before building.
+See `CFG_NW_CONSOLE_UART` and `CFG_NW_CONSOLE_UART` in [hikey.mk].
 
 # 4. Regular build
 Just follow the "Get and build the solution" in the [README.md] file. The `make
@@ -59,11 +58,11 @@ flash` step will tell you how you should set the jumpers on the board.
 
 # 5. Debian based build
 The intention here was to do almost the same kind of build as the regular where
-the big difference is the kernel in use and the root fs. The kernel currently
-comes from the 96Boards team, but that might change soon again. The root fs is a
-Debian based root file system.
+the big difference is the kernel in use and the rootfs. The kernel currently
+comes from the 96Boards team, but that might change soon again. The rootfs is
+Debian based.
 
-In the root fs OP-TEE binaries can be installed via `apt`. After building the
+In the rootfs OP-TEE binaries can be installed via `apt`. After building the
 solution one must replace those, since they can be a bit dated (see below about
 how to dpkg force install a couple of OP-TEE Debian packages).
 
@@ -140,5 +139,5 @@ $ make recovery
 [official HiKey documentation]: http://www.96boards.org/documentation/ConsumerEdition/HiKey/README.md
 [OP-TEE Android Manifest]: https://github.com/linaro-swg/optee_android_manifest
 [README.md]: ../README.md
-[UART in hikey.mk]: https://github.com/OP-TEE/build/blob/master/hikey.mk#L11-L13
+[hikey.mk]: https://github.com/OP-TEE/build/blob/master/hikey.mk
 [96Boards UART Adapter Board]: http://www.96boards.org/product/uarts
