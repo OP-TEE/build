@@ -129,6 +129,7 @@ DEBUG ?= 0
 ################################################################################
 # default target is all
 ################################################################################
+.PHONY: all
 all:
 
 ################################################################################
@@ -137,6 +138,7 @@ all:
 BUSYBOX_COMMON_TARGET		?= TOBEDEFINED
 BUSYBOX_CLEAN_COMMON_TARGET	?= TOBEDEFINED
 
+.PHONY: busybox-common
 busybox-common: linux
 	cd $(GEN_ROOTFS_PATH) &&  \
 		CROSS_COMPILE=$(CROSS_COMPILE_NS_USER) \
@@ -144,11 +146,13 @@ busybox-common: linux
 		$(GEN_ROOTFS_PATH)/generate-cpio-rootfs.sh \
 			$(BUSYBOX_COMMON_TARGET)
 
+.PHONY: busybox-clean-common
 busybox-clean-common:
 	cd $(GEN_ROOTFS_PATH) && \
 	$(GEN_ROOTFS_PATH)/generate-cpio-rootfs.sh  \
 		$(BUSYBOX_CLEAN_COMMON_TARGET)
 
+.PHONY: busybox-cleaner-common
 busybox-cleaner-common:
 	rm -rf $(GEN_ROOTFS_PATH)/build
 	rm -rf $(GEN_ROOTFS_PATH)/filelist-final.txt
@@ -162,6 +166,7 @@ endif
 
 LINUX_COMMON_FLAGS ?= LOCALVERSION= CROSS_COMPILE=$(CROSS_COMPILE_NS_KERNEL)
 
+.PHONY: linux-common
 linux-common: linux-defconfig
 	$(MAKE) -C $(LINUX_PATH) $(LINUX_COMMON_FLAGS)
 
@@ -171,18 +176,17 @@ $(LINUX_PATH)/.config: $(LINUX_DEFCONFIG_COMMON_FILES)
 		scripts/kconfig/merge_config.sh $(LINUX_DEFCONFIG_COMMON_FILES) \
 			$(LINUX_DEFCONFIG_BENCH)
 
+.PHONY: linux-defconfig-clean-common
 linux-defconfig-clean-common:
 	rm -f $(LINUX_PATH)/.config
 
-# LINUX_CLEAN_COMMON_FLAGS can be defined in specific makefiles (hikey.mk,...)
-# if necessary
-
+# LINUX_CLEAN_COMMON_FLAGS should be defined in specific makefiles (hikey.mk,...)
+.PHONY: linux-clean-common
 linux-clean-common: linux-defconfig-clean
 	$(MAKE) -C $(LINUX_PATH) $(LINUX_CLEAN_COMMON_FLAGS) clean
 
-# LINUX_CLEANER_COMMON_FLAGS can be defined in specific makefiles (hikey.mk,...)
-# if necessary
-
+# LINUX_CLEANER_COMMON_FLAGS should be defined in specific makefiles (hikey.mk,...)
+.PHONY: linux-cleaner-common
 linux-cleaner-common: linux-defconfig-clean
 	$(MAKE) -C $(LINUX_PATH) $(LINUX_CLEANER_COMMON_FLAGS) distclean
 
@@ -195,18 +199,22 @@ $(EDK2_PATH)/Conf/target.txt:
 	set -e && cd $(EDK2_PATH) && source edksetup.sh && \
 	$(MAKE) -j1 -C $(EDK2_PATH)/BaseTools
 
+.PHONY: edk2-common
 edk2-common: $(EDK2_PATH)/Conf/target.txt
 	set -e && cd $(EDK2_PATH) && source edksetup.sh && \
 	$(call edk2-call)
 
+.PHONY: edk2-clean-common
 edk2-clean-common:
 	set -e && cd $(EDK2_PATH) && source edksetup.sh && \
 	$(call edk2-call) clean && \
 	$(MAKE) -j1 -C $(EDK2_PATH)/BaseTools clean
 	rm -rf $(EDK2_PATH)/Build
+	rm -rf $(EDK2_PATH)/Conf/.cache
 	rm -f $(EDK2_PATH)/Conf/build_rule.txt
 	rm -f $(EDK2_PATH)/Conf/target.txt
 	rm -f $(EDK2_PATH)/Conf/tools_def.txt
+
 ################################################################################
 # QEMU / QEMUv8
 ################################################################################
@@ -279,11 +287,13 @@ OPTEE_OS_COMMON_FLAGS ?= \
 	DEBUG=$(DEBUG) \
 	CFG_TEE_BENCHMARK=$(CFG_TEE_BENCHMARK)
 
+.PHONY: optee-os-common
 optee-os-common:
 	$(MAKE) -C $(OPTEE_OS_PATH) $(OPTEE_OS_COMMON_FLAGS)
 
 OPTEE_OS_CLEAN_COMMON_FLAGS ?= $(OPTEE_OS_COMMON_EXTRA_FLAGS)
 
+.PHONY: optee-os-clean-common
 ifeq ($(CFG_TEE_BENCHMARK),y)
 optee-os-clean-common: benchmark-app-clean-common
 endif
@@ -293,12 +303,14 @@ optee-os-clean-common: xtest-clean helloworld-clean
 OPTEE_CLIENT_COMMON_FLAGS ?= CROSS_COMPILE=$(CROSS_COMPILE_NS_USER) \
 	CFG_TEE_BENCHMARK=$(CFG_TEE_BENCHMARK) \
 
+.PHONY: optee-client-common
 optee-client-common:
 	$(MAKE) -C $(OPTEE_CLIENT_PATH) $(OPTEE_CLIENT_COMMON_FLAGS)
 
 # OPTEE_CLIENT_CLEAN_COMMON_FLAGS can be defined in specific makefiles
 # (hikey.mk,...) if necessary
 
+.PHONY: optee-client-clean-common
 optee-client-clean-common:
 	$(MAKE) -C $(OPTEE_CLIENT_PATH) $(OPTEE_CLIENT_CLEAN_COMMON_FLAGS) \
 		clean
@@ -313,17 +325,20 @@ XTEST_COMMON_FLAGS ?= CROSS_COMPILE_HOST=$(CROSS_COMPILE_NS_USER)\
 	COMPILE_NS_USER=$(COMPILE_NS_USER) \
 	O=$(OPTEE_TEST_OUT_PATH)
 
+.PHONY: xtest-common
 xtest-common: optee-os optee-client
 	$(MAKE) -C $(OPTEE_TEST_PATH) $(XTEST_COMMON_FLAGS)
 
 XTEST_CLEAN_COMMON_FLAGS ?= O=$(OPTEE_TEST_OUT_PATH) \
 	TA_DEV_KIT_DIR=$(OPTEE_OS_TA_DEV_KIT_DIR) \
 
+.PHONY: xtest-clean-common
 xtest-clean-common:
 	$(MAKE) -C $(OPTEE_TEST_PATH) $(XTEST_CLEAN_COMMON_FLAGS) clean
 
 XTEST_PATCH_COMMON_FLAGS ?= $(XTEST_COMMON_FLAGS)
 
+.PHONY: xtest-patch-common
 xtest-patch-common:
 	$(MAKE) -C $(OPTEE_TEST_PATH) $(XTEST_PATCH_COMMON_FLAGS) patch
 
@@ -335,11 +350,13 @@ HELLOWORLD_COMMON_FLAGS ?= HOST_CROSS_COMPILE=$(CROSS_COMPILE_NS_USER)\
 	TA_DEV_KIT_DIR=$(OPTEE_OS_TA_DEV_KIT_DIR) \
 	TEEC_EXPORT=$(OPTEE_CLIENT_EXPORT)
 
+.PHONY: helloworld-common
 helloworld-common: optee-os optee-client
 	$(MAKE) -C $(HELLOWORLD_PATH) $(HELLOWORLD_COMMON_FLAGS)
 
 HELLOWORLD_CLEAN_COMMON_FLAGS ?= TA_DEV_KIT_DIR=$(OPTEE_OS_TA_DEV_KIT_DIR)
 
+.PHONY: helloworld-clean-common
 helloworld-clean-common:
 	$(MAKE) -C $(HELLOWORLD_PATH) $(HELLOWORLD_CLEAN_COMMON_FLAGS) clean
 
@@ -350,15 +367,18 @@ BENCHMARK_APP_COMMON_FLAGS ?= CROSS_COMPILE=$(CROSS_COMPILE_NS_USER) \
 	TEEC_EXPORT=$(OPTEE_CLIENT_EXPORT) \
 	TEEC_INTERNAL_INCLUDES=$(OPTEE_CLIENT_PATH)/libteec
 
+.PHONY: benchmark-app-common
 benchmark-app-common: optee-os optee-client
 	$(MAKE) -C $(BENCHMARK_APP_PATH) $(BENCHMARK_APP_COMMON_FLAGS)
 
+.PHONY: benchmark-app-clean-common
 benchmark-app-clean-common:
 	$(MAKE) -C $(BENCHMARK_APP_PATH) clean
 
 ################################################################################
 # rootfs
 ################################################################################
+.PHONY: update_rootfs-common
 update_rootfs-common: busybox filelist-tee
 	cat $(GEN_ROOTFS_PATH)/filelist-final.txt > $(GEN_ROOTFS_PATH)/filelist.tmp
 	cat $(GEN_ROOTFS_FILELIST) >> $(GEN_ROOTFS_PATH)/filelist.tmp
@@ -366,12 +386,14 @@ update_rootfs-common: busybox filelist-tee
 	        $(LINUX_PATH)/usr/gen_init_cpio $(GEN_ROOTFS_PATH)/filelist.tmp | \
 			gzip > $(GEN_ROOTFS_PATH)/filesystem.cpio.gz
 
+.PHONY: update_rootfs-clean-common
 update_rootfs-clean-common:
 	rm -f $(GEN_ROOTFS_PATH)/filesystem.cpio.gz
 	rm -f $(GEN_ROOTFS_PATH)/filelist-all.txt
 	rm -f $(GEN_ROOTFS_PATH)/filelist-tmp.txt
 	rm -f $(GEN_ROOTFS_FILELIST)
 
+.PHONY: filelist-tee-common
 ifeq ($(CFG_TEE_BENCHMARK),y)
 filelist-tee-common: benchmark-app
 endif
