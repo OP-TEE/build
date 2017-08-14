@@ -402,6 +402,7 @@ recovery: recov_cfg
 	@read -r -p "Enter the device node. Press enter for /dev/ttyUSB1: " DEV && \
 		DEV=$${DEV:-/dev/ttyUSB1} && \
 		cd $(IMAGE_TOOLS_PATH) && \
+		ln -sf $(LLOADER_PATH)/l-loader.bin && \
 		sudo ./hikey_idt -c $(IMAGE_TOOLS_CONFIG) -p $$DEV && \
 		rm -f $(IMAGE_TOOLS_CONFIG)
 	@echo
