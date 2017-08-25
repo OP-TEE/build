@@ -38,7 +38,7 @@ ARM_TF_BOOT             ?= $(ARM_TF_OUT)/optee.bin
 
 U-BOOT_PATH		?= $(ROOT)/u-boot
 U-BOOT_BIN		?= $(U-BOOT_PATH)/u-boot.bin
-U-BOOT_JTAG_BIN		?= $(U-BOOT_PATH)/u-boot-jtag.bin
+U-BOOT_RPI_BIN		?= $(U-BOOT_PATH)/u-boot-rpi.bin
 
 RPI3_FIRMWARE_PATH		?= $(BUILD_PATH)/rpi3/firmware
 RPI3_HEAD_BIN			?= $(ROOT)/out/head.bin
@@ -61,9 +61,9 @@ ifeq ($(CFG_TEE_BENCHMARK),y)
 all: benchmark-app
 clean: benchmark-app-clean
 endif
-all: rpi3-firmware arm-tf optee-os optee-client xtest u-boot u-boot-jtag-bin\
+all: rpi3-firmware arm-tf optee-os optee-client xtest u-boot u-boot-rpi-bin\
 	linux update_rootfs
-clean: arm-tf-clean busybox-clean u-boot-clean u-boot-jtag-bin-clean \
+clean: arm-tf-clean busybox-clean u-boot-clean u-boot-rpi-bin-clean \
 	optee-os-clean optee-client-clean rpi3-firmware-clean head-bin-clean
 
 -include toolchain.mk
@@ -111,11 +111,11 @@ u-boot: $(RPI3_HEAD_BIN)
 u-boot-clean:
 	$(U-BOOT_EXPORTS) $(MAKE) -C $(U-BOOT_PATH) clean
 
-u-boot-jtag-bin: $(RPI3_UBOOT_ENV) u-boot
-	cd $(U-BOOT_PATH) && cat $(RPI3_HEAD_BIN) $(U-BOOT_BIN) > $(U-BOOT_JTAG_BIN)
+u-boot-rpi-bin: $(RPI3_UBOOT_ENV) u-boot
+	cd $(U-BOOT_PATH) && cat $(RPI3_HEAD_BIN) $(U-BOOT_BIN) > $(U-BOOT_RPI_BIN)
 
-u-boot-jtag-bin-clean:
-	rm -f $(U-BOOT_JTAG_BIN)
+u-boot-rpi-bin-clean:
+	rm -f $(U-BOOT_RPI_BIN)
 
 $(RPI3_HEAD_BIN): $(RPI3_FIRMWARE_PATH)/head.S
 	mkdir -p $(ROOT)/out/
@@ -261,7 +261,7 @@ filelist-tee: filelist-tee-common
 	@echo "file /boot/Image $(LINUX_IMAGE) 755 0 0" >> $(GEN_ROOTFS_FILELIST)
 	@echo "file /boot/optee.bin $(ARM_TF_BOOT) 755 0 0" >> $(GEN_ROOTFS_FILELIST)
 	@echo "file /boot/uboot.env $(RPI3_UBOOT_ENV) 755 0 0" >> $(GEN_ROOTFS_FILELIST)
-	@echo "file /boot/u-boot-jtag.bin $(U-BOOT_JTAG_BIN) 755 0 0" >> $(GEN_ROOTFS_FILELIST)
+	@echo "file /boot/u-boot-rpi.bin $(U-BOOT_RPI_BIN) 755 0 0" >> $(GEN_ROOTFS_FILELIST)
 	@cd $(MODULE_OUTPUT) && find ! -path . -type d | sed 's/\.\(.*\)/dir \1 755 0 0/g' >> $(GEN_ROOTFS_FILELIST)
 	@cd $(MODULE_OUTPUT) && find -type f | sed "s|\.\(.*\)|file \1 $(MODULE_OUTPUT)\1 755 0 0|g" >> $(GEN_ROOTFS_FILELIST)
 	@echo "file /boot/bootcode.bin $(RPI3_STOCK_FW_PATH)/boot/bootcode.bin 755 0 0" >> $(GEN_ROOTFS_FILELIST)
