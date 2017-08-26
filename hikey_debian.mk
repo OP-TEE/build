@@ -52,20 +52,22 @@ endif
 # Paths to git projects and various binaries
 ################################################################################
 ARM_TF_PATH			?= $(ROOT)/arm-trusted-firmware
+ATF_FB_PATH			?= $(ROOT)/atf-fastboot
 ifeq ($(DEBUG),1)
 ARM_TF_BUILD			?= debug
+ATF_FB_BUILD			?= debug
 else
 ARM_TF_BUILD			?= release
+ATF_FB_BUILD			?= release
 endif
 
 EDK2_PATH 			?= $(ROOT)/edk2
 ifeq ($(DEBUG),1)
-EDK2_BIN 			?= $(EDK2_PATH)/Build/HiKey/DEBUG_GCC49/FV/BL33_AP_UEFI.fd
 EDK2_BUILD			?= DEBUG
 else
-EDK2_BIN 			?= $(EDK2_PATH)/Build/HiKey/RELEASE_GCC49/FV/BL33_AP_UEFI.fd
 EDK2_BUILD			?= RELEASE
 endif
+EDK2_BIN			?= $(EDK2_PATH)/Build/HiKey/$(EDK2_BUILD)_$(EDK2_TOOLCHAIN)/FV/BL33_AP_UEFI.fd
 OPENPLATPKG_PATH		?= $(ROOT)/OpenPlatformPkg
 
 OUT_PATH			?= $(ROOT)/out
@@ -88,19 +90,23 @@ DEBPKG_CONTROL_PATH		?= $(DEBPKG_PATH)/DEBIAN
 ################################################################################
 # Targets
 ################################################################################
-all: arm-tf linux boot-img lloader system-img nvme deb optee-examples
+.PHONY: all
+all: arm-tf linux boot-img lloader system-img nvme deb
 
+.PHONY: clean
 clean: arm-tf-clean edk2-clean linux-clean optee-os-clean optee-client-clean \
 		xtest-clean boot-img-clean lloader-clean grub-clean \
-		optee-examples-clean
+		optee-examples-clean deb-clean
 
+.PHONY: cleaner
 cleaner: clean prepare-cleaner linux-cleaner nvme-cleaner \
 			system-img-cleaner grub-cleaner
 
 -include toolchain.mk
 
+.PHONY: prepare
 prepare:
-	@mkdir -p $(OUT_PATH)
+	mkdir -p $(OUT_PATH)
 
 .PHONY: prepare-cleaner
 prepare-cleaner:
@@ -110,13 +116,14 @@ prepare-cleaner:
 # ARM Trusted Firmware
 ################################################################################
 ARM_TF_EXPORTS ?= \
-	CFLAGS="-O0 -gdwarf-2" \
 	CROSS_COMPILE="$(CCACHE)$(AARCH64_CROSS_COMPILE)"
 
 ARM_TF_FLAGS ?= \
-	BL32=$(OPTEE_OS_BIN) \
+	BL32=$(OPTEE_OS_HEADER_V2_BIN) \
+	BL32_EXTRA1=$(OPTEE_OS_PAGER_V2_BIN) \
+	BL32_EXTRA2=$(OPTEE_OS_PAGEABLE_V2_BIN) \
 	BL33=$(EDK2_BIN) \
-	BL30=$(MCUIMAGE_BIN) \
+	SCP_BL2=$(MCUIMAGE_BIN) \
 	DEBUG=$(DEBUG) \
 	PLAT=hikey \
 	SPD=opteed
@@ -127,6 +134,7 @@ ifeq ($(ARM_TF_CONSOLE_UART),0)
 			CRASH_CONSOLE_BASE=PL011_UART0_BASE
 endif
 
+.PHONY: arm-tf
 arm-tf: optee-os edk2
 	$(ARM_TF_EXPORTS) $(MAKE) -C $(ARM_TF_PATH) $(ARM_TF_FLAGS) all fip
 
@@ -147,8 +155,9 @@ ifeq ($(EDK2_CONSOLE_UART),0)
 endif
 
 define edk2-call
-	GCC49_AARCH64_PREFIX=$(LEGACY_AARCH64_CROSS_COMPILE) \
-	build -n 1 -a $(EDK2_ARCH) -t $(EDK2_TOOLCHAIN) -p $(EDK2_DSC) \
+	$(EDK2_TOOLCHAIN)_$(EDK2_ARCH)_PREFIX=$(LEGACY_AARCH64_CROSS_COMPILE) \
+	build -n `getconf _NPROCESSORS_ONLN` -a $(EDK2_ARCH) \
+		-t $(EDK2_TOOLCHAIN) -p $(EDK2_DSC) \
 		-b $(EDK2_BUILD) $(EDK2_BUILDFLAGS)
 endef
 
@@ -156,15 +165,17 @@ endef
 edk2:
 	cd $(EDK2_PATH) && rm -rf OpenPlatformPkg && \
 		ln -s $(OPENPLATPKG_PATH)
-	set -e && cd $(EDK2_PATH) && source edksetup.sh BaseTools && \
+	set -e && cd $(EDK2_PATH) && source edksetup.sh && \
 		$(MAKE) -j1 -C $(EDK2_PATH)/BaseTools && \
 		$(call edk2-call)
 
 .PHONY: edk2-clean
 edk2-clean:
-	set -e && cd $(EDK2_PATH) && source edksetup.sh BaseTools && \
+	set -e && cd $(EDK2_PATH) && source edksetup.sh && \
+		$(call edk2-call) cleanall && \
 		$(MAKE) -j1 -C $(EDK2_PATH)/BaseTools clean
 	rm -rf $(EDK2_PATH)/Build
+	rm -rf $(EDK2_PATH)/Conf/.cache
 	rm -f $(EDK2_PATH)/Conf/build_rule.txt
 	rm -f $(EDK2_PATH)/Conf/target.txt
 	rm -f $(EDK2_PATH)/Conf/tools_def.txt
@@ -173,14 +184,18 @@ edk2-clean:
 # Linux kernel
 ################################################################################
 LINUX_DEFCONFIG_COMMON_ARCH ?= arm64
-LINUX_DEFCONFIG_COMMON_FILES ?= $(DEBPKG_SRC_PATH)/debian/config/config \
+LINUX_DEFCONFIG_COMMON_FILES ?=	$(DEBPKG_SRC_PATH)/debian/config/config \
 				$(DEBPKG_SRC_PATH)/debian/config/arm64/config \
-				$(CURDIR)/kconfigs/hikey_debian.conf
+				$(CURDIR)/kconfigs/hikey_debian.conf \
+				$(PATCHES_PATH)/kernel_config/usb_net_dm9601.conf \
+				$(PATCHES_PATH)/kernel_config/ftrace.conf
 
+.PHONY: linux-defconfig
 linux-defconfig: $(LINUX_PATH)/.config
 
 LINUX_COMMON_FLAGS += ARCH=arm64 deb-pkg LOCALVERSION=-optee-rpb
 
+.PHONY: linux
 linux: linux-common
 
 .PHONY: linux-defconfig-clean
@@ -190,6 +205,7 @@ LINUX_CLEAN_COMMON_FLAGS += ARCH=arm64
 
 .PHONY: linux-clean
 linux-clean: linux-clean-common
+	rm -f $(ROOT)/linux-*
 
 LINUX_CLEANER_COMMON_FLAGS += ARCH=arm64
 
@@ -204,11 +220,13 @@ OPTEE_OS_COMMON_FLAGS += PLATFORM=hikey \
 			 CFG_SECURE_DATA_PATH=n
 OPTEE_OS_CLEAN_COMMON_FLAGS += PLATFORM=hikey
 
+.PHONY: optee-os
 optee-os: optee-os-common
 
 .PHONY: optee-os-clean
 optee-os-clean: optee-os-clean-common
 
+.PHONY: optee-client
 optee-client: optee-client-common
 
 .PHONY: optee-client-clean
@@ -217,7 +235,7 @@ optee-client-clean: optee-client-clean-common
 ################################################################################
 # xtest / optee_test
 ################################################################################
-
+.PHONY: xtest
 xtest: xtest-common
 
 # FIXME:
@@ -289,17 +307,35 @@ grub-cleaner: grub-clean
 # Boot Image
 ################################################################################
 .PHONY: boot-img
-boot-img: grub edk2
+boot-img: edk2 grub
 	rm -f $(BOOT_IMG)
 	/sbin/mkfs.fat -F32 -n "boot" -C $(BOOT_IMG) 65536
 	mmd -i $(BOOT_IMG) EFI
 	mmd -i $(BOOT_IMG) EFI/BOOT
-	mcopy -i $(BOOT_IMG) $(EDK2_PATH)/Build/HiKey/$(EDK2_BUILD)_GCC49/AARCH64/AndroidFastbootApp.efi ::/EFI/BOOT/fastboot.efi
-	mcopy -i $(BOOT_IMG) $(OUT_PATH)/grubaa64.efi ::/EFI/BOOT/grubaa64.efi
+	mcopy -i $(BOOT_IMG) $(OUT_PATH)/grubaa64.efi ::/EFI/BOOT/
+	mcopy -i $(BOOT_IMG) $(EDK2_PATH)/Build/HiKey/$(EDK2_BUILD)_$(EDK2_TOOLCHAIN)/$(EDK2_ARCH)/AndroidFastbootApp.efi ::/EFI/BOOT/fastboot.efi
 
 .PHONY: boot-img-clean
 boot-img-clean:
 	rm -f $(BOOT_IMG)
+
+################################################################################
+# atf-fastboot
+################################################################################
+ARM_TF_EXPORTS ?= \
+	CROSS_COMPILE="$(CCACHE)$(AARCH64_CROSS_COMPILE)"
+
+ATF_FB_FLAGS ?= \
+	DEBUG=$(DEBUG) \
+	PLAT=hikey
+
+.PHONY: atf-fb
+atf-fb:
+	$(ARM_TF_EXPORTS) $(MAKE) -C $(ATF_FB_PATH) $(ATF_FB_FLAGS)
+
+.PHONY: atf-fb-clean
+atf-fb-clean:
+	$(ARM_TF_EXPORTS) $(MAKE) -C $(ATF_FB_PATH) $(ATF_FB_FLAGS) clean
 
 ################################################################################
 # system image
@@ -324,12 +360,35 @@ system-img-cleaner:
 ################################################################################
 # l-loader
 ################################################################################
-lloader: arm-tf
-	$(MAKE) -C $(LLOADER_PATH) BL1=$(ARM_TF_PATH)/build/hikey/$(ARM_TF_BUILD)/bl1.bin CROSS_COMPILE="$(CCACHE)$(AARCH32_CROSS_COMPILE)" PTABLE_LST=linux-$(CFG_FLASH_SIZE)g
+.PHONY: lloader-bin
+lloader-bin: arm-tf atf-fb
+	 cd $(LLOADER_PATH) && \
+		ln -sf $(ARM_TF_PATH)/build/hikey/$(ARM_TF_BUILD)/bl1.bin && \
+		ln -sf $(ATF_FB_PATH)/build/hikey/$(ATF_FB_BUILD)/bl1.bin fastboot.bin && \
+		$(AARCH32_CROSS_COMPILE)gcc -c -o start.o start.S && \
+		$(AARCH32_CROSS_COMPILE)ld -Bstatic -Tl-loader.lds -Ttext 0xf9800800 start.o -o loader && \
+		$(AARCH32_CROSS_COMPILE)objcopy -O binary loader temp && \
+		python gen_loader_hikey.py -o l-loader.bin --img_loader=temp --img_bl1=bl1.bin --img_ns_bl1u=fastboot.bin
+
+.PHONY: lloader-bin-clean
+lloader-bin-clean:
+	cd $(LLOADER_PATH) && \
+		rm -f l-loader.bin temp loader start.o
+
+.PHONY: lloader-ptbl
+lloader-ptbl:
+	cd $(LLOADER_PATH) && \
+		PTABLE=linux-$(CFG_FLASH_SIZE)g SECTOR_SIZE=512 bash -x generate_ptable.sh
+
+.PHONY: lloader-ptbl-clean
+lloader-ptbl-clean:
+	cd $(LLOADER_PATH) && rm -f prm_ptable.img sec_ptable.im
+
+.PHONY: lloader
+lloader: lloader-bin lloader-ptbl
 
 .PHONY: lloader-clean
-lloader-clean:
-	$(MAKE) -C $(LLOADER_PATH) clean
+lloader-clean: lloader-bin-clean lloader-ptbl-clean
 
 ################################################################################
 # nvme image
@@ -382,6 +441,10 @@ deb: prepare xtest optee-examples optee-client
 	@echo "$$CONTROL_TEXT" > $(DEBPKG_CONTROL_PATH)/control
 	@cd $(OUT_PATH) && dpkg-deb --build optee_$(OPTEE_PKG_VERSION)
 
+.PHONY: deb-clean
+deb-clean:
+	rm -rf $(OUT_PATH)/optee_*
+
 ################################################################################
 # Send built files to the host, note this require that the IP corresponds to
 # the device. One can run:
@@ -400,8 +463,8 @@ send:
 # Flash
 ################################################################################
 define flash_help
-	@read -r -p "1. Connect USB OTG cable, the micro USB cable (press any key)" dummy
-	@read -r -p "2. Connect HiKey to power up (press any key)" dummy
+	@read -r -p "1. Connect USB OTG cable, the micro USB cable (press enter)" dummy
+	@read -r -p "2. Connect HiKey to power up (press enter)" dummy
 endef
 
 .PHONY: recovery
@@ -413,28 +476,44 @@ recovery:
 	@echo '  SUBSYSTEM=="usb", ATTRS{idVendor}=="18d1", ATTRS{idProduct}=="d00d", MODE="0666"'
 	@echo '  SUBSYSTEM=="usb", ATTRS{idVendor}=="12d1", MODE="0666", ENV{ID_MM_DEVICE_IGNORE}="1"'
 	@echo
+	@echo "Set jumpers as follows:"
 	@echo "Jumper 1-2: Closed (Auto power up = Boot up when power is applied)"
 	@echo "       3-4: Closed (Boot Select = Recovery: program eMMC from USB OTG)"
+	@echo "       5-6: Open (GPIO3-1 = High: UEFI runs normally)"
+	@read -r -p "Press enter to continue" dummy
+	@echo
 	$(call flash_help)
+	@echo
 	python $(ROOT)/burn-boot/hisi-idt.py --img1=$(LLOADER_PATH)/l-loader.bin
+	@echo
+	@echo "3. Wait until you see the (UART) message"
+	@echo "    \"Enter downloading mode. Please run fastboot command on Host.\""
+	@echo "    \"usb: online (highspeed)\""
 	@$(MAKE) --no-print flash FROM_RECOVERY=1
 
 .PHONY: flash
 flash:
 ifneq ($(FROM_RECOVERY),1)
 	@echo "Flash binaries using fastboot"
+	@echo
+	@echo "Set jumpers as follows:"
 	@echo "Jumper 1-2: Closed (Auto power up = Boot up when power is applied)"
-	@echo "       3-4: Open   (Boot Select = Boot from eMMC)"
+	@echo "       3-4: Open (Boot Select = Boot from eMMC)"
 	@echo "       5-6: Closed (GPIO3-1 = Low: UEFI runs Fastboot app)"
+	@read -r -p "Press enter to continue" dummy
+	@echo
 	$(call flash_help)
 	@echo "3. Wait until you see the (UART) message"
 	@echo "    \"Android Fastboot mode - version x.x Press any key to quit.\""
-	@read -r -p "   Then press any key to continue flashing" dummy
 endif
+	@read -r -p "Then press enter to continue flashing" dummy
+	@echo
 	@echo "If the board stalls while flashing $(SYSTEM_IMG),"
 	@echo "i.e. does not complete after more than 5 minutes,"
 	@echo "please try running 'make recovery' instead"
-	fastboot flash ptable $(LLOADER_PATH)/ptable-linux-$(CFG_FLASH_SIZE)g.img
+	@read -r -p "Press enter to continue" dummy
+	@echo
+	fastboot flash ptable $(LLOADER_PATH)/prm_ptable.img
 	fastboot flash fastboot $(ARM_TF_PATH)/build/hikey/$(ARM_TF_BUILD)/fip.bin
 	fastboot flash nvme $(NVME_IMG)
 	fastboot flash boot $(BOOT_IMG)

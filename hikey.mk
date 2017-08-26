@@ -15,6 +15,9 @@ CFG_SW_CONSOLE_UART ?= 3
 # eMMC flash size: 8 or 4 GB [default 8]
 CFG_FLASH_SIZE ?= 8
 
+# URL to images
+NVME_IMG_URL=https://builds.96boards.org/releases/hikey/linaro/binaries/latest/nvme.img
+
 ################################################################################
 # Includes
 ################################################################################
@@ -33,46 +36,53 @@ endif
 # Paths to git projects and various binaries
 ################################################################################
 ARM_TF_PATH			?= $(ROOT)/arm-trusted-firmware
+ATF_FB_PATH			?= $(ROOT)/atf-fastboot
 ifeq ($(DEBUG),1)
 ARM_TF_BUILD			?= debug
+ATF_FB_BUILD			?= debug
 else
 ARM_TF_BUILD			?= release
+ATF_FB_BUILD			?= release
 endif
 
 EDK2_PATH 			?= $(ROOT)/edk2
 ifeq ($(DEBUG),1)
-EDK2_BIN 			?= $(EDK2_PATH)/Build/HiKey/DEBUG_GCC49/FV/BL33_AP_UEFI.fd
 EDK2_BUILD			?= DEBUG
 else
-EDK2_BIN 			?= $(EDK2_PATH)/Build/HiKey/RELEASE_GCC49/FV/BL33_AP_UEFI.fd
 EDK2_BUILD			?= RELEASE
 endif
+EDK2_BIN 			?= $(EDK2_PATH)/Build/HiKey/$(EDK2_BUILD)_$(EDK2_TOOLCHAIN)/FV/BL33_AP_UEFI.fd
+OPENPLATPKG_PATH		?= $(ROOT)/OpenPlatformPkg
 
-MCUIMAGE_BIN			?=$(EDK2_PATH)/HisiPkg/HiKeyPkg/NonFree/mcuimage.bin
-STRACE_PATH			?=$(ROOT)/strace
-BOOT_IMG			?=$(ROOT)/out/boot-fat.uefi.img
-LLOADER_PATH			?=$(ROOT)/l-loader
-NVME_IMG			?=$(ROOT)/out/nvme.img
 OUT_PATH			?=$(ROOT)/out
+MCUIMAGE_BIN			?= $(OPENPLATPKG_PATH)/Platforms/Hisilicon/HiKey/Binary/mcuimage.bin
+BOOT_IMG			?=$(ROOT)/out/boot-fat.uefi.img
+NVME_IMG			?=$(ROOT)/out/nvme.img
 GRUB_PATH			?=$(ROOT)/grub
+LLOADER_PATH			?=$(ROOT)/l-loader
 PATCHES_PATH			?=$(ROOT)/patches_hikey
+STRACE_PATH			?=$(ROOT)/strace
 
 ################################################################################
 # Targets
 ################################################################################
-all: prepare arm-tf boot-img lloader nvme strace optee-examples
+.PHONY: all
+all: prepare arm-tf boot-img lloader nvme strace
 
+.PHONY: clean
 clean: arm-tf-clean busybox-clean edk2-clean linux-clean optee-os-clean \
 		optee-client-clean xtest-clean optee-examples-clean strace-clean \
 		update_rootfs-clean boot-img-clean lloader-clean grub-clean
 
+.PHONY: cleaner
 cleaner: clean prepare-cleaner busybox-cleaner linux-cleaner strace-cleaner \
 		nvme-cleaner grub-cleaner
 
 -include toolchain.mk
 
+.PHONY: prepare
 prepare:
-	@if [ ! -d $(ROOT)/out ]; then mkdir $(ROOT)/out; fi
+	mkdir -p $(OUT_PATH)
 
 .PHONY: prepare-cleaner
 prepare-cleaner:
@@ -82,13 +92,14 @@ prepare-cleaner:
 # ARM Trusted Firmware
 ################################################################################
 ARM_TF_EXPORTS ?= \
-	CFLAGS="-O0 -gdwarf-2" \
 	CROSS_COMPILE="$(CCACHE)$(AARCH64_CROSS_COMPILE)"
 
 ARM_TF_FLAGS ?= \
-	BL32=$(OPTEE_OS_BIN) \
+	BL32=$(OPTEE_OS_HEADER_V2_BIN) \
+	BL32_EXTRA1=$(OPTEE_OS_PAGER_V2_BIN) \
+	BL32_EXTRA2=$(OPTEE_OS_PAGEABLE_V2_BIN) \
 	BL33=$(EDK2_BIN) \
-	BL30=$(MCUIMAGE_BIN) \
+	SCP_BL2=$(MCUIMAGE_BIN) \
 	DEBUG=$(DEBUG) \
 	PLAT=hikey \
 	SPD=opteed
@@ -99,6 +110,7 @@ ifeq ($(ARM_TF_CONSOLE_UART),0)
 			CRASH_CONSOLE_BASE=PL011_UART0_BASE
 endif
 
+.PHONY: arm-tf
 arm-tf: optee-os edk2
 	$(ARM_TF_EXPORTS) $(MAKE) -C $(ARM_TF_PATH) $(ARM_TF_FLAGS) all fip
 
@@ -112,6 +124,7 @@ arm-tf-clean:
 BUSYBOX_COMMON_TARGET = hikey nocpio
 BUSYBOX_CLEAN_COMMON_TARGET = hikey clean
 
+.PHONY: busybox
 busybox: busybox-common
 
 .PHONY: busybox-clean
@@ -123,26 +136,40 @@ busybox-cleaner: busybox-clean-common busybox-cleaner-common
 ################################################################################
 # EDK2 / Tianocore
 ################################################################################
-EDK2_VARS ?= EDK2_ARCH=AARCH64 \
-		EDK2_DSC=HisiPkg/HiKeyPkg/HiKey.dsc \
-		EDK2_TOOLCHAIN=GCC49 \
-		EDK2_BUILD=$(EDK2_BUILD)
+EDK2_ARCH ?= AARCH64
+EDK2_DSC ?= OpenPlatformPkg/Platforms/Hisilicon/HiKey/HiKey.dsc
+EDK2_TOOLCHAIN ?= GCC49
 
 EDK2_CONSOLE_UART ?= $(CFG_NW_CONSOLE_UART)
 ifeq ($(EDK2_CONSOLE_UART),0)
-	EDK2_VARS += EDK2_MACROS="-DSERIAL_BASE=0xF8015000"
+	EDK2_BUILDFLAGS += -DSERIAL_BASE=0xF8015000
 endif
 
 define edk2-call
-	GCC49_AARCH64_PREFIX=$(LEGACY_AARCH64_CROSS_COMPILE) \
-	$(MAKE) -j1 -C $(EDK2_PATH) \
-		-f HisiPkg/HiKeyPkg/Makefile $(EDK2_VARS)
+	$(EDK2_TOOLCHAIN)_$(EDK2_ARCH)_PREFIX=$(LEGACY_AARCH64_CROSS_COMPILE) \
+	build -n `getconf _NPROCESSORS_ONLN` -a $(EDK2_ARCH) \
+		-t $(EDK2_TOOLCHAIN) -p $(EDK2_DSC) \
+		-b $(EDK2_BUILD) $(EDK2_BUILDFLAGS)
 endef
 
-edk2: edk2-common
+.PHONY: edk2
+edk2:
+	cd $(EDK2_PATH) && rm -rf OpenPlatformPkg && \
+		ln -s $(OPENPLATPKG_PATH)
+	set -e && cd $(EDK2_PATH) && source edksetup.sh && \
+		$(MAKE) -j1 -C $(EDK2_PATH)/BaseTools && \
+		$(call edk2-call)
 
 .PHONY: edk2-clean
-edk2-clean: edk2-clean-common
+edk2-clean:
+	set -e && cd $(EDK2_PATH) && source edksetup.sh && \
+		$(call edk2-call) cleanall && \
+		$(MAKE) -j1 -C $(EDK2_PATH)/BaseTools clean
+	rm -rf $(EDK2_PATH)/Build
+	rm -rf $(EDK2_PATH)/Conf/.cache
+	rm -f $(EDK2_PATH)/Conf/build_rule.txt
+	rm -f $(EDK2_PATH)/Conf/target.txt
+	rm -f $(EDK2_PATH)/Conf/tools_def.txt
 
 ################################################################################
 # Linux kernel
@@ -153,8 +180,10 @@ LINUX_DEFCONFIG_COMMON_FILES ?= $(LINUX_PATH)/arch/arm64/configs/defconfig \
 				$(PATCHES_PATH)/kernel_config/usb_net_dm9601.conf \
 				$(PATCHES_PATH)/kernel_config/ftrace.conf
 
+.PHONY: linux-defconfig
 linux-defconfig: $(LINUX_PATH)/.config
 
+.PHONY: linux-gen_init_cpio
 linux-gen_init_cpio: linux-defconfig
 	$(MAKE) -C $(LINUX_PATH)/usr \
 		CROSS_COMPILE=$(CROSS_COMPILE_NS_KERNEL) \
@@ -162,16 +191,9 @@ linux-gen_init_cpio: linux-defconfig
 		LOCALVERSION= \
 		gen_init_cpio
 
-LINUX_COMMON_FLAGS += ARCH=arm64 Image modules
-UPSTREAM_KERNEL := $(if $(wildcard $(LINUX_PATH)/arch/arm64/boot/dts/hisilicon/hi6220-hikey.dts),1,0)
-ifeq ($(UPSTREAM_KERNEL),0)
-LINUX_COMMON_FLAGS += hi6220-hikey.dtb
-DTB = $(LINUX_PATH)/arch/arm64/boot/dts/hi6220-hikey.dtb
-else
-LINUX_COMMON_FLAGS += hisilicon/hi6220-hikey.dtb
-DTB = $(LINUX_PATH)/arch/arm64/boot/dts/hisilicon/hi6220-hikey.dtb
-endif
+LINUX_COMMON_FLAGS += ARCH=arm64 Image modules hisilicon/hi6220-hikey.dtb
 
+.PHONY: linux
 linux: linux-common
 
 .PHONY: linux-defconfig-clean
@@ -190,14 +212,17 @@ linux-cleaner: linux-cleaner-common
 ################################################################################
 # OP-TEE
 ################################################################################
-OPTEE_OS_COMMON_FLAGS += PLATFORM=hikey CFG_CONSOLE_UART=$(CFG_SW_CONSOLE_UART)
+OPTEE_OS_COMMON_FLAGS += PLATFORM=hikey \
+			CFG_CONSOLE_UART=$(CFG_SW_CONSOLE_UART)
 OPTEE_OS_CLEAN_COMMON_FLAGS += PLATFORM=hikey
 
+.PHONY: optee-os
 optee-os: optee-os-common
 
 .PHONY: optee-os-clean
 optee-os-clean: optee-os-clean-common
 
+.PHONY: optee-client
 optee-client: optee-client-common
 
 .PHONY: optee-client-clean
@@ -206,7 +231,7 @@ optee-client-clean: optee-client-clean-common
 ################################################################################
 # xtest / optee_test
 ################################################################################
-
+.PHONY: xtest
 xtest: xtest-common
 
 # FIXME:
@@ -228,6 +253,7 @@ optee-examples-clean: optee-examples-clean-common
 ################################################################################
 # strace
 ################################################################################
+.PHONY: strace
 strace:
 	cd $(STRACE_PATH); \
 	./bootstrap; \
@@ -237,7 +263,7 @@ strace:
 
 .PHONY: strace-clean
 strace-clean:
-	@if [ -e $(STRACE_PATH)/Makefile ]; then $(MAKE) -C $(STRACE_PATH) clean; fi
+	if [ -e $(STRACE_PATH)/Makefile ]; then $(MAKE) -C $(STRACE_PATH) clean; fi
 
 .PHONY: strace-cleaner
 strace-cleaner: strace-clean
@@ -266,72 +292,124 @@ grub-flags := CC="$(CCACHE)gcc" \
 	TARGET_RANLIB="$(AARCH64_CROSS_COMPILE)ranlib" \
 	TARGET_STRIP="$(AARCH64_CROSS_COMPILE)strip"
 
+GRUB_MODULES += boot chain configfile echo efinet eval ext2 fat font gettext \
+                gfxterm gzio help linux loadenv lsefi normal part_gpt \
+                part_msdos read regexp search search_fs_file search_fs_uuid \
+                search_label terminal terminfo test tftp time
+
+$(GRUB_PATH)/configure: $(GRUB_PATH)/configure.ac
+	cd $(GRUB_PATH) && ./autogen.sh
+
+$(GRUB_PATH)/Makefile: $(GRUB_PATH)/configure
+	cd $(GRUB_PATH) && ./configure --target=aarch64 --enable-boot-time $(grub-flags)
+
 .PHONY: grub
-grub: prepare
-	cd $(GRUB_PATH); \
-	./autogen.sh; \
-	./configure --target=aarch64 --enable-boot-time $(grub-flags); \
+grub: prepare $(GRUB_PATH)/Makefile
 	$(MAKE) -C $(GRUB_PATH); \
-	./grub-mkimage \
+	cd $(GRUB_PATH) && ./grub-mkimage \
 		--verbose \
 		--output=$(OUT_PATH)/grubaa64.efi \
 		--config=$(PATCHES_PATH)/grub/grub.configfile \
 		--format=arm64-efi \
 		--directory=grub-core \
 		--prefix=/boot/grub \
-		boot chain configfile efinet ext2 fat gettext help linux loadenv lsefi normal part_gpt part_msdos read search search_fs_file search_fs_uuid search_label terminal terminfo tftp time
+		$(GRUB_MODULES)
 
 .PHONY: grub-clean
 grub-clean:
-	@if [ -e $(GRUB_PATH)/Makefile ]; then $(MAKE) -C $(GRUB_PATH) clean; fi
+	if [ -e $(GRUB_PATH)/Makefile ]; then $(MAKE) -C $(GRUB_PATH) clean; fi
 	rm -f $(OUT_PATH)/grubaa64.efi
 
 .PHONY: grub-cleaner
 grub-cleaner: grub-clean
-	@if [ -e $(GRUB_PATH)/Makefile ]; then $(MAKE) -C $(GRUB_PATH) distclean; fi
+	if [ -e $(GRUB_PATH)/Makefile ]; then $(MAKE) -C $(GRUB_PATH) distclean; fi
 	rm -f $(GRUB_PATH)/configure
 
 ################################################################################
 # Boot Image
 ################################################################################
-LINUX_CONSOLE_UART ?= $(CFG_NW_CONSOLE_UART)
-ifeq ($(LINUX_CONSOLE_UART),3)
+ifeq ($(CFG_NW_CONSOLE_UART),3)
 GRUBCFG = $(PATCHES_PATH)/grub/grub_uart3.cfg
 else
 GRUBCFG = $(PATCHES_PATH)/grub/grub_uart0.cfg
 endif
 
+.PHONY: boot-img
 boot-img: linux update_rootfs edk2 grub
 	rm -f $(BOOT_IMG)
 	mformat -i $(BOOT_IMG) -n 64 -h 255 -T 131072 -v "BOOT IMG" -C ::
-	mcopy -i $(BOOT_IMG) $(LINUX_PATH)/arch/arm64/boot/Image $(DTB) ::
+	mcopy -i $(BOOT_IMG) $(LINUX_PATH)/arch/arm64/boot/Image ::
+	mcopy -i $(BOOT_IMG) $(LINUX_PATH)/arch/arm64/boot/dts/hisilicon/hi6220-hikey.dtb ::
 	mmd -i $(BOOT_IMG) ::/EFI
 	mmd -i $(BOOT_IMG) ::/EFI/BOOT
 	mcopy -i $(BOOT_IMG) $(OUT_PATH)/grubaa64.efi ::/EFI/BOOT/
 	mcopy -i $(BOOT_IMG) $(GRUBCFG) ::/EFI/BOOT/grub.cfg
 	mcopy -i $(BOOT_IMG) $(GEN_ROOTFS_PATH)/filesystem.cpio.gz ::/initrd.img
-	mcopy -i $(BOOT_IMG) $(EDK2_PATH)/Build/HiKey/$(EDK2_BUILD)_GCC49/AARCH64/AndroidFastbootApp.efi ::/EFI/BOOT/fastboot.efi
+	mcopy -i $(BOOT_IMG) $(EDK2_PATH)/Build/HiKey/$(EDK2_BUILD)_$(EDK2_TOOLCHAIN)/$(EDK2_ARCH)/AndroidFastbootApp.efi ::/EFI/BOOT/fastboot.efi
 
 .PHONY: boot-img-clean
 boot-img-clean:
 	rm -f $(BOOT_IMG)
 
 ################################################################################
+# atf-fastboot
+################################################################################
+ARM_TF_EXPORTS ?= \
+	CROSS_COMPILE="$(CCACHE)$(AARCH64_CROSS_COMPILE)"
+
+ATF_FB_FLAGS ?= \
+	DEBUG=$(DEBUG) \
+	PLAT=hikey
+
+.PHONY: atf-fb
+atf-fb:
+	$(ARM_TF_EXPORTS) $(MAKE) -C $(ATF_FB_PATH) $(ATF_FB_FLAGS)
+
+.PHONY: atf-fb-clean
+atf-fb-clean:
+	$(ARM_TF_EXPORTS) $(MAKE) -C $(ATF_FB_PATH) $(ATF_FB_FLAGS) clean
+
+################################################################################
 # l-loader
 ################################################################################
-lloader: arm-tf
-	$(MAKE) -C $(LLOADER_PATH) BL1=$(ARM_TF_PATH)/build/hikey/$(ARM_TF_BUILD)/bl1.bin CROSS_COMPILE="$(CCACHE)$(AARCH32_CROSS_COMPILE)" PTABLE_LST=linux-$(CFG_FLASH_SIZE)g
+.PHONY: lloader-bin
+lloader-bin: arm-tf atf-fb
+	cd $(LLOADER_PATH) && \
+		ln -sf $(ARM_TF_PATH)/build/hikey/$(ARM_TF_BUILD)/bl1.bin && \
+		ln -sf $(ATF_FB_PATH)/build/hikey/$(ATF_FB_BUILD)/bl1.bin fastboot.bin && \
+		$(AARCH32_CROSS_COMPILE)gcc -c -o start.o start.S && \
+		$(AARCH32_CROSS_COMPILE)ld -Bstatic -Tl-loader.lds -Ttext 0xf9800800 start.o -o loader && \
+		$(AARCH32_CROSS_COMPILE)objcopy -O binary loader temp && \
+		python gen_loader_hikey.py -o l-loader.bin --img_loader=temp --img_bl1=bl1.bin --img_ns_bl1u=fastboot.bin
+
+.PHONY: lloader-bin-clean
+lloader-bin-clean:
+	cd $(LLOADER_PATH) && \
+		rm -f l-loader.bin temp loader start.o
+
+.PHONY: lloader-ptbl
+lloader-ptbl:
+	cd $(LLOADER_PATH) && \
+		PTABLE=linux-$(CFG_FLASH_SIZE)g SECTOR_SIZE=512 bash -x generate_ptable.sh
+
+.PHONY: lloader-ptbl-clean
+lloader-ptbl-clean:
+	cd $(LLOADER_PATH) && rm -f prm_ptable.img sec_ptable.img
+
+.PHONY: lloader
+lloader: lloader-bin lloader-ptbl
 
 .PHONY: lloader-clean
-lloader-clean:
-	$(MAKE) -C $(LLOADER_PATH) clean
+lloader-clean: lloader-bin-clean lloader-ptbl-clean
 
 ################################################################################
 # nvme image
 ################################################################################
 .PHONY: nvme
 nvme: prepare
-	wget https://builds.96boards.org/releases/hikey/linaro/binaries/latest/nvme.img -O $(NVME_IMG)
+ifeq ("$(wildcard $(NVME_IMG))","")
+	wget $(NVME_IMG_URL) -O $(NVME_IMG)
+endif
 
 .PHONY: nvme-cleaner
 nvme-cleaner:
@@ -341,8 +419,8 @@ nvme-cleaner:
 # Flash
 ################################################################################
 define flash_help
-	@read -r -p "1. Connect USB OTG cable, the micro USB cable (press any key)" dummy
-	@read -r -p "2. Connect HiKey to power up (press any key)" dummy
+	@read -r -p "1. Connect USB OTG cable, the micro USB cable (press enter)" dummy
+	@read -r -p "2. Connect HiKey to power up (press enter)" dummy
 endef
 
 .PHONY: recovery
@@ -354,25 +432,39 @@ recovery:
 	@echo '  SUBSYSTEM=="usb", ATTRS{idVendor}=="18d1", ATTRS{idProduct}=="d00d", MODE="0666"'
 	@echo '  SUBSYSTEM=="usb", ATTRS{idVendor}=="12d1", MODE="0666", ENV{ID_MM_DEVICE_IGNORE}="1"'
 	@echo
+	@echo "Set jumpers as follows:"
 	@echo "Jumper 1-2: Closed (Auto power up = Boot up when power is applied)"
 	@echo "       3-4: Closed (Boot Select = Recovery: program eMMC from USB OTG)"
+	@echo "       5-6: Open (GPIO3-1 = High: UEFI runs normally)"
+	@read -r -p "Press enter to continue" dummy
+	@echo
 	$(call flash_help)
+	@echo
 	python $(ROOT)/burn-boot/hisi-idt.py --img1=$(LLOADER_PATH)/l-loader.bin
+	@echo
+	@echo "3. Wait until you see the (UART) message"
+	@echo "    \"Enter downloading mode. Please run fastboot command on Host.\""
+	@echo "    \"usb: online (highspeed)\""
 	@$(MAKE) --no-print flash FROM_RECOVERY=1
 
 .PHONY: flash
 flash:
 ifneq ($(FROM_RECOVERY),1)
 	@echo "Flash binaries using fastboot"
+	@echo
+	@echo "Set jumpers as follows:"
 	@echo "Jumper 1-2: Closed (Auto power up = Boot up when power is applied)"
-	@echo "       3-4: Open   (Boot Select = Boot from eMMC)"
+	@echo "       3-4: Open (Boot Select = Boot from eMMC)"
 	@echo "       5-6: Closed (GPIO3-1 = Low: UEFI runs Fastboot app)"
+	@read -r -p "Press enter to continue" dummy
+	@echo
 	$(call flash_help)
 	@echo "3. Wait until you see the (UART) message"
 	@echo "    \"Android Fastboot mode - version x.x Press any key to quit.\""
-	@read -r -p "   Then press any key to continue flashing" dummy
 endif
-	fastboot flash ptable $(LLOADER_PATH)/ptable-linux-$(CFG_FLASH_SIZE)g.img
+	@read -r -p "Then press enter to continue flashing" dummy
+	@echo
+	fastboot flash ptable $(LLOADER_PATH)/prm_ptable.img
 	fastboot flash fastboot $(ARM_TF_PATH)/build/hikey/$(ARM_TF_BUILD)/fip.bin
 	fastboot flash nvme $(NVME_IMG)
 	fastboot flash boot $(BOOT_IMG)
