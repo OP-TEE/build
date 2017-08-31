@@ -9,8 +9,8 @@
 		1. [ddd](#151-ddd)
 		1. [GNU Visual Debugger (gvd)](#152-gnu-visual-debugger-gvd)
 		1. [Affinic Debugger](#153-affinic-debugger)
+	1. [Known issues](#16-known-issues)
 2. [Ftrace](#2-ftrace)
-3. [Known issues](#3-known-issues)
 
 In this document we would like to describe how to debug OP-TEE. Depending on the
 platform you are using you will have a couple of different options.
@@ -132,6 +132,13 @@ Similarly to ddd, just simply run `optee` in the lower gdb command pane in gvd.
 [Affinic Debugger] seems to be the most stable graphical front end. It's not
 free (at this moment it costs roughly $50 USD). If you can afford it and prefer
 graphical frontends we highly recommend this tool.
+
+## 1.6 Known issues
+1. Printing the call stack using `bt` makes gdb go into an endless loop.
+   Temporary workaround, in gdb, instead of simply writing `bt`, also mention
+   how many frames you would like to see, for example `bt 10`.
+2. Cannot set breakpoints when the system is up and running. Workaround, set the
+   breakpoints before booting up the system.
 
 # 2. Ftrace
 Ftrace is useful set of tools for debugging both kernel and to some extent user
@@ -286,13 +293,6 @@ graph-time.
 ```bash
 $ echo 0 > options/graph-time
 ```
-
-# 3. Known issues
-1. Printing the call stack using `bt` makes gdb go into an endless loop.
-   Temporary workaround, in gdb, instead of simply writing `bt`, also mention
-   how many frames you would like to see, for example `bt 10`.
-2. Cannot set breakpoints when the system is up and running. Workaround, set the
-   breakpoints before booting up the system.
 
 [Affinic Debugger]: http://www.affinic.com/?page_id=109
 [README.md]: ../README.md
