@@ -47,7 +47,9 @@ ARM_TF_EXPORTS ?= \
 	CROSS_COMPILE="$(CCACHE)$(AARCH64_CROSS_COMPILE)"
 
 ARM_TF_FLAGS ?= \
-	BL32=$(OPTEE_OS_BIN) \
+	BL32=$(OPTEE_OS_HEADER_V2_BIN) \
+	BL32_EXTRA1=$(OPTEE_OS_PAGER_V2_BIN) \
+	BL32_EXTRA2=$(OPTEE_OS_PAGEABLE_V2_BIN) \
 	BL33=$(EDK2_BIN) \
 	ARM_TSP_RAM_LOCATION=tdram \
 	PLAT=qemu \
@@ -59,7 +61,12 @@ ARM_TF_FLAGS ?= \
 
 arm-tf: optee-os edk2
 	$(ARM_TF_EXPORTS) $(MAKE) -C $(ARM_TF_PATH) $(ARM_TF_FLAGS) all fip
-	ln -sf $(OPTEE_OS_BIN) $(ARM_TF_PATH)/build/qemu/release/bl32.bin
+	ln -sf $(OPTEE_OS_HEADER_V2_BIN) \
+		$(ARM_TF_PATH)/build/qemu/release/bl32.bin
+	ln -sf $(OPTEE_OS_PAGER_V2_BIN) \
+		$(ARM_TF_PATH)/build/qemu/release/bl32_extra1.bin
+	ln -sf $(OPTEE_OS_PAGEABLE_V2_BIN) \
+		$(ARM_TF_PATH)/build/qemu/release/bl32_extra2.bin
 	ln -sf $(EDK2_BIN) $(ARM_TF_PATH)/build/qemu/release/bl33.bin
 
 arm-tf-clean:
