@@ -61,9 +61,9 @@ ifeq ($(CFG_TEE_BENCHMARK),y)
 all: benchmark-app
 clean: benchmark-app-clean
 endif
-all: rpi3-firmware arm-tf optee-os optee-client xtest u-boot u-boot-jtag-bin\
+all: rpi3-firmware arm-tf optee-os optee-client xtest u-boot u-boot-rpi-bin\
 	linux update_rootfs optee-examples
-clean: arm-tf-clean busybox-clean u-boot-clean u-boot-jtag-bin-clean \
+clean: arm-tf-clean busybox-clean u-boot-clean u-boot-rpi-bin-clean \
 	optee-os-clean optee-client-clean rpi3-firmware-clean head-bin-clean \
 	optee-examples-clean
 
