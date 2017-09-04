@@ -61,7 +61,9 @@ STRACE_PATH			?=$(ROOT)/strace
 all: arm-tf boot-img lloader strace
 
 .PHONY: clean
-clean: arm-tf-clean busybox-clean edk2-clean linux-clean optee-os-clean optee-client-clean xtest-clean helloworld-clean strace-clean update_rootfs-clean boot-img-clean lloader-clean grub-clean
+clean: arm-tf-clean busybox-clean edk2-clean linux-clean optee-os-clean \
+		optee-client-clean xtest-clean optee-examples-clean strace-clean \
+		update_rootfs-clean boot-img-clean lloader-clean grub-clean
 
 .PHONY: cleaner
 cleaner: clean prepare-cleaner busybox-cleaner linux-cleaner strace-cleaner grub-cleaner
@@ -228,13 +230,13 @@ xtest-clean: xtest-clean-common
 xtest-patch: xtest-patch-common
 
 ################################################################################
-# hello_world
+# Sample applications / optee_examples
 ################################################################################
-.PHONY: helloworld
-helloworld: helloworld-common
+.PHONY: optee-examples
+optee-examples: optee-examples-common
 
-.PHONY: helloworld-clean
-helloworld-clean: helloworld-clean-common
+.PHONY: optee-examples-clean
+optee-examples-clean: optee-examples-clean-common
 
 ################################################################################
 # strace
