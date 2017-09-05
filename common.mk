@@ -405,13 +405,13 @@ filelist-tee-common: optee-client xtest optee-examples
 	@if [ -e $(OPTEE_EXAMPLES_PATH)/out/ca ]; then \
 		for file in $(OPTEE_EXAMPLES_PATH)/out/ca/*; do \
 			echo "file /usr/bin/$$(basename $$file)" \
-			"$$file 755 0 0"	>> $(fl); \
+			"$$file 755 0 0"				>> $(fl); \
 		done; \
 	fi
 	@if [ -e $(OPTEE_EXAMPLES_PATH)/out/ta ]; then \
 		for file in $(OPTEE_EXAMPLES_PATH)/out/ta/*; do \
 			echo "file /lib/optee_armtz/$$(basename $$file)" \
-			"$$example 755 0 0"	>> $(fl); \
+			"$$file 755 0 0"				>> $(fl); \
 		done; \
 	fi
 	@echo "# xtest / optee_test" 					>> $(fl)
