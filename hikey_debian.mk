@@ -370,7 +370,7 @@ deb: prepare xtest optee-examples optee-client
 		cp -f $(OPTEE_TEST_OUT_PATH)/xtest/xtest .
 	@if [ -e $(OPTEE_EXAMPLES_PATH)/out/ca ]; then \
 		for example in $(OPTEE_EXAMPLES_PATH)/out/ca/*; do \
-			cp -f $$example .; \
+			cp -f $$example $(DEBPKG_BIN_PATH)/; \
 		done; \
 	fi
 	@mkdir -p $(DEBPKG_LIB_PATH) && cd $(DEBPKG_LIB_PATH) && \
