@@ -376,7 +376,7 @@ deb: prepare xtest optee-examples optee-client
 	@mkdir -p $(DEBPKG_LIB_PATH) && cd $(DEBPKG_LIB_PATH) && \
 		cp $(OPTEE_CLIENT_EXPORT)/lib/libtee* .
 	@mkdir -p $(DEBPKG_TA_PATH) && cd $(DEBPKG_TA_PATH) && \
-		cp $(HELLOWORLD_PATH)/ta/*.ta . && \
+		cp $(OPTEE_EXAMPLES_PATH)/out/ta/*.ta . && \
 		find $(OPTEE_TEST_OUT_PATH)/ta -name "*.ta" -exec cp {} . \;
 	@mkdir -p $(DEBPKG_CONTROL_PATH)
 	@echo "$$CONTROL_TEXT" > $(DEBPKG_CONTROL_PATH)/control
