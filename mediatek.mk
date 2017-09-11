@@ -8,7 +8,7 @@ override COMPILE_NS_KERNEL := 64
 override COMPILE_S_USER    := 32
 override COMPILE_S_KERNEL  := 64
 
--include common.mk
+include common.mk
 
 ################################################################################
 # Paths to git projects and various binaries
@@ -25,7 +25,7 @@ all: arm-tf linux optee-os optee-client xtest optee-examples
 clean: arm-tf-clean linux-clean busybox-clean optee-os-clean \
 	optee-client-clean optee-examples-clean
 
--include toolchain.mk
+include toolchain.mk
 
 ################################################################################
 # ARM Trusted Firmware

@@ -9,7 +9,7 @@ clean: linux-clean busybox-clean u-boot-clean optee-os-clean \
 	optee-client-clean build-fit-clean optee-examples-clean
 cleaner: clean prepare-cleaner busybox-cleaner linux-cleaner
 
--include toolchain.mk
+include toolchain.mk
 
 prepare:
 	@if [ ! -d $(STAGING_AREA) ]; then mkdir -p $(STAGING_AREA); fi

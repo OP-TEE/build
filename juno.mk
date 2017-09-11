@@ -10,7 +10,7 @@ override COMPILE_S_KERNEL  := 64
 
 DEBUG ?= 0
 
--include common.mk
+include common.mk
 
 ################################################################################
 # Paths to git projects and various binaries
@@ -29,7 +29,7 @@ clean: arm-tf-clean busybox-clean u-boot-clean optee-os-clean \
 	optee-client-clean optee-examples-clean
 
 
--include toolchain.mk
+include toolchain.mk
 
 ################################################################################
 # ARM Trusted Firmware

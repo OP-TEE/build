@@ -34,7 +34,7 @@ endif
 ################################################################################
 # Includes
 ################################################################################
--include common.mk
+include common.mk
 
 OPTEE_PKG_VERSION := $(shell cd $(OPTEE_OS_PATH) && git describe)-0
 
@@ -92,7 +92,7 @@ clean: arm-tf-clean atf-fb-clean edk2-clean linux-clean optee-os-clean \
 cleaner: clean prepare-cleaner linux-cleaner nvme-cleaner \
 			system-img-cleaner grub-cleaner
 
--include toolchain.mk
+include toolchain.mk
 
 .PHONY: prepare
 prepare:
