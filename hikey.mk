@@ -18,7 +18,7 @@ CFG_FLASH_SIZE ?= 8
 ################################################################################
 # Includes
 ################################################################################
--include common.mk
+include common.mk
 
 ################################################################################
 # Paths to git projects and various binaries
@@ -67,7 +67,7 @@ clean: arm-tf-clean atf-fb-clean busybox-clean edk2-clean linux-clean \
 cleaner: clean prepare-cleaner busybox-cleaner linux-cleaner strace-cleaner \
 		nvme-cleaner grub-cleaner
 
--include toolchain.mk
+include toolchain.mk
 
 .PHONY: prepare
 prepare:

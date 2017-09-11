@@ -14,7 +14,7 @@ CFG_CONSOLE_UART ?= 6
 ################################################################################
 # Includes
 ################################################################################
--include common.mk
+include common.mk
 
 ################################################################################
 # Paths to git projects and various binaries
@@ -59,7 +59,7 @@ clean: arm-tf-clean busybox-clean edk2-clean linux-clean optee-os-clean \
 .PHONY: cleaner
 cleaner: clean prepare-cleaner busybox-cleaner linux-cleaner strace-cleaner grub-cleaner
 
--include toolchain.mk
+include toolchain.mk
 
 .PHONY: prepare
 prepare:

@@ -8,7 +8,7 @@ override COMPILE_NS_KERNEL := 32
 override COMPILE_S_USER    := 32
 override COMPILE_S_KERNEL  := 32
 
--include common.mk
+include common.mk
 
 ################################################################################
 # Paths to git projects and various binaries
@@ -33,7 +33,7 @@ clean: bios-qemu-clean busybox-clean linux-clean optee-os-clean \
 	optee-client-clean qemu-clean soc-term-clean check-clean \
 	optee-examples-clean
 
--include toolchain.mk
+include toolchain.mk
 
 ################################################################################
 # QEMU
