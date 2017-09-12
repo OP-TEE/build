@@ -395,10 +395,15 @@ lloader-clean: lloader-bin-clean lloader-ptbl-clean
 
 ################################################################################
 # nvme image
+#
+# nvme partition is used to store UEFI non-volatile variables,
+# but nvme image is currently an empty list
 ################################################################################
 .PHONY: nvme
 nvme: prepare
-	wget https://builds.96boards.org/releases/hikey/linaro/binaries/latest/nvme.img -O $(NVME_IMG)
+ifeq ("$(wildcard $(NVME_IMG))","")
+	dd if=/dev/zero of=$(NVME_IMG) bs=1K count=128
+endif
 
 .PHONY: nvme-cleaner
 nvme-cleaner:
