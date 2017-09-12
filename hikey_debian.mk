@@ -22,7 +22,6 @@ IP ?= 127.0.0.1
 
 # URL to images
 SYSTEM_IMG_URL=https://builds.96boards.org/releases/reference-platform/debian/hikey/16.06/hikey-rootfs-debian-jessie-alip-20160629-120.emmc.img.gz
-NVME_IMG_URL=https://builds.96boards.org/releases/hikey/linaro/binaries/latest/nvme.img
 WIFI_FW_URL=http://http.us.debian.org/debian/pool/non-free/f/firmware-nonfree/firmware-ti-connectivity_20161130-3_all.deb
 
 ################################################################################
@@ -392,11 +391,14 @@ lloader-clean: lloader-bin-clean lloader-ptbl-clean
 
 ################################################################################
 # nvme image
+#
+# nvme partition is used to store UEFI non-volatile variables,
+# but nvme image is currently an empty list
 ################################################################################
 .PHONY: nvme
 nvme: prepare
 ifeq ("$(wildcard $(NVME_IMG))","")
-	wget $(NVME_IMG_URL) -O $(NVME_IMG)
+	dd if=/dev/zero of=$(NVME_IMG) bs=1K count=128
 endif
 
 .PHONY: nvme-cleaner

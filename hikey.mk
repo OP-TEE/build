@@ -15,9 +15,6 @@ CFG_SW_CONSOLE_UART ?= 3
 # eMMC flash size: 8 or 4 GB [default 8]
 CFG_FLASH_SIZE ?= 8
 
-# URL to images
-NVME_IMG_URL=https://builds.96boards.org/releases/hikey/linaro/binaries/latest/nvme.img
-
 ################################################################################
 # Includes
 ################################################################################
@@ -404,11 +401,14 @@ lloader-clean: lloader-bin-clean lloader-ptbl-clean
 
 ################################################################################
 # nvme image
+#
+# nvme partition is used to store UEFI non-volatile variables,
+# but nvme image is currently an empty list
 ################################################################################
 .PHONY: nvme
 nvme: prepare
 ifeq ("$(wildcard $(NVME_IMG))","")
-	wget $(NVME_IMG_URL) -O $(NVME_IMG)
+	dd if=/dev/zero of=$(NVME_IMG) bs=1K count=128
 endif
 
 .PHONY: nvme-cleaner
