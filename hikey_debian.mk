@@ -40,15 +40,6 @@ endif
 OPTEE_PKG_VERSION := $(shell cd $(OPTEE_OS_PATH) && git describe)-0
 
 ################################################################################
-# Mandatory definition to use common.mk
-################################################################################
-ifeq ($(COMPILE_NS_USER),64)
-MULTIARCH			:= aarch64-linux-gnu
-else
-MULTIARCH			:= arm-linux-gnueabihf
-endif
-
-################################################################################
 # Paths to git projects and various binaries
 ################################################################################
 ARM_TF_PATH			?= $(ROOT)/arm-trusted-firmware

@@ -36,6 +36,16 @@ QEMU_VIRTFS_HOST_DIR	?= $(ROOT)
 
 # Enable SLiRP user networking
 QEMU_USERNET_ENABLE		?= n
+
+################################################################################
+# Mandatory for autotools (for specifying --host)
+################################################################################
+ifeq ($(COMPILE_NS_USER),64)
+MULTIARCH			:= aarch64-linux-gnu
+else
+MULTIARCH			:= arm-linux-gnueabihf
+endif
+
 ################################################################################
 # Check coherency of compilation mode
 ################################################################################
