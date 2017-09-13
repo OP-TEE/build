@@ -17,15 +17,6 @@ CFG_CONSOLE_UART ?= 6
 -include common.mk
 
 ################################################################################
-# Mandatory definition to use common.mk
-################################################################################
-ifeq ($(COMPILE_NS_USER),64)
-MULTIARCH			:= aarch64-linux-gnu
-else
-MULTIARCH			:= arm-linux-gnueabihf
-endif
-
-################################################################################
 # Paths to git projects and various binaries
 ################################################################################
 ARM_TF_PATH			?= $(ROOT)/arm-trusted-firmware
