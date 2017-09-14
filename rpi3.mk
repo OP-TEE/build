@@ -8,13 +8,6 @@ override COMPILE_NS_KERNEL := 64
 override COMPILE_S_USER    := 64
 override COMPILE_S_KERNEL  := 64
 
-# Firmware package to download, for convenience later on when unpacking etc,
-# we split it up in three different variables. Note that this should be updated
-# when newer firmware packages will be used.
-RPI3_FIRMWARE_URL = https://github.com/raspberrypi/firmware/archive
-RPI3_FIRMWARE_FILE = da504fcd4c673ecf85841ea80c28a8bb8b94e612
-RPI3_FIRMWARE_FILE_EXT = zip
-
 -include common.mk
 
 ################################################################################
@@ -36,9 +29,8 @@ RPI3_HEAD_BIN			?= $(ROOT)/out/head.bin
 RPI3_BOOT_CONFIG		?= $(RPI3_FIRMWARE_PATH)/config.txt
 RPI3_UBOOT_ENV			?= $(ROOT)/out/uboot.env
 RPI3_UBOOT_ENV_TXT		?= $(RPI3_FIRMWARE_PATH)/uboot.env.txt
-RPI3_STOCK_FW_PATH		?= $(ROOT)/rpi3_firmware
+RPI3_STOCK_FW_PATH		?= $(ROOT)/firmware
 RPI3_STOCK_FW_PATH_BOOT	?= $(RPI3_STOCK_FW_PATH)/boot
-RPI3_STOCK_ZIP_BOOT		?= firmware-$(RPI3_FIRMWARE_FILE)/boot
 OPTEE_OS_PAGER			?= $(OPTEE_OS_PATH)/out/arm/core/tee-pager.bin
 
 LINUX_IMAGE		?= $(LINUX_PATH)/arch/arm64/boot/Image
@@ -52,10 +44,10 @@ ifeq ($(CFG_TEE_BENCHMARK),y)
 all: benchmark-app
 clean: benchmark-app-clean
 endif
-all: rpi3-firmware arm-tf optee-os optee-client xtest u-boot u-boot-rpi-bin\
+all: arm-tf optee-os optee-client xtest u-boot u-boot-rpi-bin\
 	linux update_rootfs optee-examples
 clean: arm-tf-clean busybox-clean u-boot-clean u-boot-rpi-bin-clean \
-	optee-os-clean optee-client-clean rpi3-firmware-clean head-bin-clean \
+	optee-os-clean optee-client-clean head-bin-clean \
 	optee-examples-clean
 
 -include toolchain.mk
@@ -174,50 +166,6 @@ optee-client: optee-client-common
 optee-client-clean: optee-client-clean-common
 
 ################################################################################
-# Raspberry Pi 3 firmware
-################################################################################
-.PHONY: rpi3-firmware
-rpi3-firmware:
-ifeq ("$(wildcard $(ROOT)/out/$(RPI3_FIRMWARE_FILE).$(RPI3_FIRMWARE_FILE_EXT))","")
-	echo "Downloading Raspberry Pi 3 firmware ..."
-	mkdir -p $(ROOT)/out
-	mkdir -p $(RPI3_STOCK_FW_PATH)/boot
-	wget $(RPI3_FIRMWARE_URL)/$(RPI3_FIRMWARE_FILE).$(RPI3_FIRMWARE_FILE_EXT) -O $(ROOT)/out/$(RPI3_FIRMWARE_FILE).$(RPI3_FIRMWARE_FILE_EXT)
-	unzip -aj $(ROOT)/out/$(RPI3_FIRMWARE_FILE).$(RPI3_FIRMWARE_FILE_EXT) \
-	'$(RPI3_STOCK_ZIP_BOOT)/bootcode.bin' \
-	'$(RPI3_STOCK_ZIP_BOOT)/COPYING.linux' \
-	'$(RPI3_STOCK_ZIP_BOOT)/fixup_cd.dat' \
-	'$(RPI3_STOCK_ZIP_BOOT)/fixup.dat' \
-	'$(RPI3_STOCK_ZIP_BOOT)/fixup_db.dat' \
-	'$(RPI3_STOCK_ZIP_BOOT)/fixup_x.dat' \
-	'$(RPI3_STOCK_ZIP_BOOT)/LICENCE.broadcom' \
-	'$(RPI3_STOCK_ZIP_BOOT)/start_cd.elf' \
-	'$(RPI3_STOCK_ZIP_BOOT)/start_db.elf' \
-	'$(RPI3_STOCK_ZIP_BOOT)/start.elf' \
-	'$(RPI3_STOCK_ZIP_BOOT)/start_x.elf' -d $(RPI3_STOCK_FW_PATH)/boot
-endif
-
-.PHONY: rpi3-firmware-clean
-rpi3-firmware-clean:
-	rm -f $(ROOT)/out/$(RPI3_FIRMWARE_FILE).$(RPI3_FIRMWARE_FILE_EXT)
-	if [ -d "$(RPI3_STOCK_FW_PATH_BOOT)" ]; then \
-		rm -f '$(RPI3_STOCK_FW_PATH_BOOT)/bootcode.bin' \
-		'$(RPI3_STOCK_FW_PATH_BOOT)/COPYING.linux' \
-		'$(RPI3_STOCK_FW_PATH_BOOT)/fixup_cd.dat' \
-		'$(RPI3_STOCK_FW_PATH_BOOT)/fixup.dat' \
-		'$(RPI3_STOCK_FW_PATH_BOOT)/fixup_db.dat' \
-		'$(RPI3_STOCK_FW_PATH_BOOT)/fixup_x.dat' \
-		'$(RPI3_STOCK_FW_PATH_BOOT)/LICENCE.broadcom' \
-		'$(RPI3_STOCK_FW_PATH_BOOT)/start_cd.elf' \
-		'$(RPI3_STOCK_FW_PATH_BOOT)/start_db.elf' \
-		'$(RPI3_STOCK_FW_PATH_BOOT)/start.elf' \
-		'$(RPI3_STOCK_FW_PATH_BOOT)/start_x.elf'; \
-		rmdir $(RPI3_STOCK_FW_PATH_BOOT); \
-		rmdir $(RPI3_STOCK_FW_PATH); \
-	fi
-
-
-################################################################################
 # xtest / optee_test
 ################################################################################
 xtest: xtest-common
@@ -244,7 +192,7 @@ benchmark-app-clean: benchmark-app-clean-common
 # Root FS
 ################################################################################
 .PHONY: filelist-tee
-filelist-tee: linux rpi3-firmware
+filelist-tee: linux
 filelist-tee: filelist-tee-common
 	@echo "dir /usr/bin 755 0 0" >> $(GEN_ROOTFS_FILELIST)
 	@echo "dir /boot 755 0 0" >> $(GEN_ROOTFS_FILELIST)
@@ -269,7 +217,7 @@ filelist-tee: filelist-tee-common
 	@echo "file /boot/start_x.elf $(RPI3_STOCK_FW_PATH)/boot/start_x.elf 755 0 0" >> $(GEN_ROOTFS_FILELIST)
 
 .PHONY: update_rootfs
-update_rootfs: arm-tf u-boot rpi3-firmware
+update_rootfs: arm-tf u-boot
 update_rootfs: update_rootfs-common
 
 # Creating images etc, could wipe out a drive on the system, therefore we don't
