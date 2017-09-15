@@ -87,7 +87,7 @@ all: arm-tf linux boot-img lloader system-img nvme deb
 .PHONY: clean
 clean: arm-tf-clean atf-fb-clean edk2-clean linux-clean optee-os-clean \
 		optee-client-clean xtest-clean optee-examples-clean \
-		boot-img-clean lloader-clean grub-clean
+		boot-img-clean lloader-clean grub-clean deb-clean
 
 .PHONY: cleaner
 cleaner: clean prepare-cleaner linux-cleaner nvme-cleaner \
@@ -430,6 +430,10 @@ deb: prepare xtest optee-examples optee-client
 	@mkdir -p $(DEBPKG_CONTROL_PATH)
 	@echo "$$CONTROL_TEXT" > $(DEBPKG_CONTROL_PATH)/control
 	@cd $(OUT_PATH) && dpkg-deb --build optee_$(OPTEE_PKG_VERSION)
+
+.PHONY: deb-clean
+deb-clean:
+	rm -rf $(OUT_PATH)/optee_*
 
 ################################################################################
 # Send built files to the host, note this require that the IP corresponds to
