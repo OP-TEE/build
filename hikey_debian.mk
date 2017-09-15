@@ -196,6 +196,7 @@ LINUX_CLEAN_COMMON_FLAGS += ARCH=arm64
 
 .PHONY: linux-clean
 linux-clean: linux-clean-common
+	rm -f $(ROOT)/linux-*optee*.*
 
 LINUX_CLEANER_COMMON_FLAGS += ARCH=arm64
 
