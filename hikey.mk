@@ -363,12 +363,35 @@ atf-fb-clean:
 ################################################################################
 # l-loader
 ################################################################################
-lloader: arm-tf
-	$(MAKE) -C $(LLOADER_PATH) BL1=$(ARM_TF_PATH)/build/hikey/$(ARM_TF_BUILD)/bl1.bin CROSS_COMPILE="$(CCACHE)$(AARCH32_CROSS_COMPILE)" PTABLE_LST=linux-$(CFG_FLASH_SIZE)g
+.PHONY: lloader-bin
+lloader-bin: arm-tf atf-fb
+	cd $(LLOADER_PATH) && \
+		ln -sf $(ARM_TF_PATH)/build/hikey/$(ARM_TF_BUILD)/bl1.bin && \
+		ln -sf $(ATF_FB_PATH)/build/hikey/$(ATF_FB_BUILD)/bl1.bin fastboot.bin && \
+		$(AARCH32_CROSS_COMPILE)gcc -c -o start.o start.S && \
+		$(AARCH32_CROSS_COMPILE)ld -Bstatic -Tl-loader.lds -Ttext 0xf9800800 start.o -o loader && \
+		$(AARCH32_CROSS_COMPILE)objcopy -O binary loader temp && \
+		python gen_loader_hikey.py -o l-loader.bin --img_loader=temp --img_bl1=bl1.bin --img_ns_bl1u=fastboot.bin
+
+.PHONY: lloader-bin-clean
+lloader-bin-clean:
+	cd $(LLOADER_PATH) && \
+		rm -f l-loader.bin temp loader start.o
+
+.PHONY: lloader-ptbl
+lloader-ptbl:
+	cd $(LLOADER_PATH) && \
+		PTABLE=linux-$(CFG_FLASH_SIZE)g SECTOR_SIZE=512 bash -x generate_ptable.sh
+
+.PHONY: lloader-ptbl-clean
+lloader-ptbl-clean:
+	cd $(LLOADER_PATH) && rm -f prm_ptable.img sec_ptable.img
+
+.PHONY: lloader
+lloader: lloader-bin lloader-ptbl
 
 .PHONY: lloader-clean
-lloader-clean:
-	$(MAKE) -C $(LLOADER_PATH) clean
+lloader-clean: lloader-bin-clean lloader-ptbl-clean
 
 ################################################################################
 # nvme image
@@ -430,7 +453,7 @@ ifneq ($(FROM_RECOVERY),1)
 endif
 	@read -r -p "Then press enter to continue flashing" dummy
 	@echo
-	fastboot flash ptable $(LLOADER_PATH)/ptable-linux-$(CFG_FLASH_SIZE)g.img
+	fastboot flash ptable $(LLOADER_PATH)/prm_ptable.img
 	fastboot flash fastboot $(ARM_TF_PATH)/build/hikey/$(ARM_TF_BUILD)/fip.bin
 	fastboot flash nvme $(NVME_IMG)
 	fastboot flash boot $(BOOT_IMG)
