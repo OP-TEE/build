@@ -283,20 +283,28 @@ grub-flags := CC="$(CCACHE)gcc" \
 	TARGET_RANLIB="$(AARCH64_CROSS_COMPILE)ranlib" \
 	TARGET_STRIP="$(AARCH64_CROSS_COMPILE)strip"
 
+GRUB_MODULES += boot chain configfile efinet ext2 fat gettext \
+                help linux loadenv lsefi normal part_gpt \
+                part_msdos read search search_fs_file search_fs_uuid \
+                search_label terminal terminfo tftp time
+
+$(GRUB_PATH)/configure: $(GRUB_PATH)/configure.ac
+	cd $(GRUB_PATH) && ./autogen.sh
+
+$(GRUB_PATH)/Makefile: $(GRUB_PATH)/configure
+	cd $(GRUB_PATH) && ./configure --target=aarch64 --enable-boot-time $(grub-flags)
+
 .PHONY: grub
-grub: prepare
-	cd $(GRUB_PATH); \
-	./autogen.sh; \
-	./configure --target=aarch64 --enable-boot-time $(grub-flags); \
+grub: prepare $(GRUB_PATH)/Makefile
 	$(MAKE) -C $(GRUB_PATH); \
-	./grub-mkimage \
+	cd $(GRUB_PATH) && ./grub-mkimage \
 		--verbose \
 		--output=$(OUT_PATH)/grubaa64.efi \
 		--config=$(PATCHES_PATH)/grub/grub.configfile \
 		--format=arm64-efi \
 		--directory=grub-core \
 		--prefix=/boot/grub \
-		boot chain configfile efinet ext2 fat gettext help linux loadenv lsefi normal part_gpt part_msdos read search search_fs_file search_fs_uuid search_label terminal terminfo tftp time
+		$(GRUB_MODULES)
 
 .PHONY: grub-clean
 grub-clean:
