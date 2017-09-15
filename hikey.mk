@@ -35,15 +35,15 @@ endif
 
 EDK2_PATH 			?= $(ROOT)/edk2
 ifeq ($(DEBUG),1)
-EDK2_BIN 			?= $(EDK2_PATH)/Build/HiKey/DEBUG_GCC49/FV/BL33_AP_UEFI.fd
 EDK2_BUILD			?= DEBUG
 else
-EDK2_BIN 			?= $(EDK2_PATH)/Build/HiKey/RELEASE_GCC49/FV/BL33_AP_UEFI.fd
 EDK2_BUILD			?= RELEASE
 endif
+EDK2_BIN 			?= $(EDK2_PATH)/Build/HiKey/$(EDK2_BUILD)_$(EDK2_TOOLCHAIN)/FV/BL33_AP_UEFI.fd
+OPENPLATPKG_PATH		?= $(ROOT)/OpenPlatformPkg
 
 OUT_PATH			?=$(ROOT)/out
-MCUIMAGE_BIN			?=$(EDK2_PATH)/HisiPkg/HiKeyPkg/NonFree/mcuimage.bin
+MCUIMAGE_BIN			?= $(OPENPLATPKG_PATH)/Platforms/Hisilicon/HiKey/Binary/mcuimage.bin
 BOOT_IMG			?=$(ROOT)/out/boot-fat.uefi.img
 NVME_IMG			?=$(ROOT)/out/nvme.img
 GRUB_PATH			?=$(ROOT)/grub
@@ -124,26 +124,40 @@ busybox-cleaner: busybox-clean-common busybox-cleaner-common
 ################################################################################
 # EDK2 / Tianocore
 ################################################################################
-EDK2_VARS ?= EDK2_ARCH=AARCH64 \
-		EDK2_DSC=HisiPkg/HiKeyPkg/HiKey.dsc \
-		EDK2_TOOLCHAIN=GCC49 \
-		EDK2_BUILD=$(EDK2_BUILD)
+EDK2_ARCH ?= AARCH64
+EDK2_DSC ?= OpenPlatformPkg/Platforms/Hisilicon/HiKey/HiKey.dsc
+EDK2_TOOLCHAIN ?= GCC49
 
 EDK2_CONSOLE_UART ?= $(CFG_NW_CONSOLE_UART)
 ifeq ($(EDK2_CONSOLE_UART),0)
-	EDK2_VARS += EDK2_MACROS="-DSERIAL_BASE=0xF8015000"
+	EDK2_BUILDFLAGS += -DSERIAL_BASE=0xF8015000
 endif
 
 define edk2-call
-	GCC49_AARCH64_PREFIX=$(LEGACY_AARCH64_CROSS_COMPILE) \
-	$(MAKE) -j1 -C $(EDK2_PATH) \
-		-f HisiPkg/HiKeyPkg/Makefile $(EDK2_VARS)
+	$(EDK2_TOOLCHAIN)_$(EDK2_ARCH)_PREFIX=$(LEGACY_AARCH64_CROSS_COMPILE) \
+	build -n `getconf _NPROCESSORS_ONLN` -a $(EDK2_ARCH) \
+		-t $(EDK2_TOOLCHAIN) -p $(EDK2_DSC) \
+		-b $(EDK2_BUILD) $(EDK2_BUILDFLAGS)
 endef
 
-edk2: edk2-common
+.PHONY: edk2
+edk2:
+	cd $(EDK2_PATH) && rm -rf OpenPlatformPkg && \
+		ln -s $(OPENPLATPKG_PATH)
+	set -e && cd $(EDK2_PATH) && source edksetup.sh && \
+		$(MAKE) -j1 -C $(EDK2_PATH)/BaseTools && \
+		$(call edk2-call)
 
 .PHONY: edk2-clean
-edk2-clean: edk2-clean-common
+edk2-clean:
+	set -e && cd $(EDK2_PATH) && source edksetup.sh && \
+		$(call edk2-call) cleanall && \
+		$(MAKE) -j1 -C $(EDK2_PATH)/BaseTools clean
+	rm -rf $(EDK2_PATH)/Build
+	rm -rf $(EDK2_PATH)/Conf/.cache
+	rm -f $(EDK2_PATH)/Conf/build_rule.txt
+	rm -f $(EDK2_PATH)/Conf/target.txt
+	rm -f $(EDK2_PATH)/Conf/tools_def.txt
 
 ################################################################################
 # Linux kernel
@@ -313,7 +327,7 @@ boot-img: linux update_rootfs edk2 grub
 	mcopy -i $(BOOT_IMG) $(OUT_PATH)/grubaa64.efi ::/EFI/BOOT/
 	mcopy -i $(BOOT_IMG) $(GRUBCFG) ::/EFI/BOOT/grub.cfg
 	mcopy -i $(BOOT_IMG) $(GEN_ROOTFS_PATH)/filesystem.cpio.gz ::/initrd.img
-	mcopy -i $(BOOT_IMG) $(EDK2_PATH)/Build/HiKey/$(EDK2_BUILD)_GCC49/AARCH64/AndroidFastbootApp.efi ::/EFI/BOOT/fastboot.efi
+	mcopy -i $(BOOT_IMG) $(EDK2_PATH)/Build/HiKey/$(EDK2_BUILD)_$(EDK2_TOOLCHAIN)/$(EDK2_ARCH)/AndroidFastbootApp.efi ::/EFI/BOOT/fastboot.efi
 
 .PHONY: boot-img-clean
 boot-img-clean:
