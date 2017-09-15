@@ -24,10 +24,13 @@ CFG_FLASH_SIZE ?= 8
 # Paths to git projects and various binaries
 ################################################################################
 ARM_TF_PATH			?= $(ROOT)/arm-trusted-firmware
+ATF_FB_PATH			?= $(ROOT)/atf-fastboot
 ifeq ($(DEBUG),1)
 ARM_TF_BUILD			?= debug
+ATF_FB_BUILD			?= debug
 else
 ARM_TF_BUILD			?= release
+ATF_FB_BUILD			?= release
 endif
 
 EDK2_PATH 			?= $(ROOT)/edk2
@@ -55,9 +58,10 @@ STRACE_PATH			?=$(ROOT)/strace
 all: prepare arm-tf boot-img lloader nvme strace optee-examples
 
 .PHONY: clean
-clean: arm-tf-clean busybox-clean edk2-clean linux-clean optee-os-clean \
-		optee-client-clean xtest-clean optee-examples-clean strace-clean \
-		update_rootfs-clean boot-img-clean lloader-clean grub-clean
+clean: arm-tf-clean atf-fb-clean busybox-clean edk2-clean linux-clean \
+		optee-os-clean optee-client-clean xtest-clean \
+		optee-examples-clean strace-clean update_rootfs-clean \
+		boot-img-clean lloader-clean grub-clean
 
 .PHONY: cleaner
 cleaner: clean prepare-cleaner busybox-cleaner linux-cleaner strace-cleaner \
@@ -314,6 +318,24 @@ boot-img: linux update_rootfs edk2 grub
 .PHONY: boot-img-clean
 boot-img-clean:
 	rm -f $(BOOT_IMG)
+
+################################################################################
+# atf-fastboot
+################################################################################
+ATF_FB_EXPORTS ?= \
+	CROSS_COMPILE="$(CCACHE)$(AARCH64_CROSS_COMPILE)"
+
+ATF_FB_FLAGS ?= \
+	DEBUG=$(DEBUG) \
+	PLAT=hikey
+
+.PHONY: atf-fb
+atf-fb:
+	$(ATF_FB_EXPORTS) $(MAKE) -C $(ATF_FB_PATH) $(ATF_FB_FLAGS)
+
+.PHONY: atf-fb-clean
+atf-fb-clean:
+	$(ATF_FB_EXPORTS) $(MAKE) -C $(ATF_FB_PATH) $(ATF_FB_FLAGS) clean
 
 ################################################################################
 # l-loader

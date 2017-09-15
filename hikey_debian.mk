@@ -43,10 +43,13 @@ OPTEE_PKG_VERSION := $(shell cd $(OPTEE_OS_PATH) && git describe)-0
 # Paths to git projects and various binaries
 ################################################################################
 ARM_TF_PATH			?= $(ROOT)/arm-trusted-firmware
+ATF_FB_PATH			?= $(ROOT)/atf-fastboot
 ifeq ($(DEBUG),1)
 ARM_TF_BUILD			?= debug
+ATF_FB_BUILD			?= debug
 else
 ARM_TF_BUILD			?= release
+ATF_FB_BUILD			?= release
 endif
 
 EDK2_PATH 			?= $(ROOT)/edk2
@@ -83,9 +86,9 @@ DEBPKG_CONTROL_PATH		?= $(DEBPKG_PATH)/DEBIAN
 all: arm-tf linux boot-img lloader system-img nvme deb optee-examples
 
 .PHONY: clean
-clean: arm-tf-clean edk2-clean linux-clean optee-os-clean optee-client-clean \
-		xtest-clean optee-examples-clean boot-img-clean lloader-clean \
-		grub-clean
+clean: arm-tf-clean atf-fb-clean edk2-clean linux-clean optee-os-clean \
+		optee-client-clean xtest-clean optee-examples-clean \
+		boot-img-clean lloader-clean grub-clean
 
 .PHONY: cleaner
 cleaner: clean prepare-cleaner linux-cleaner nvme-cleaner \
@@ -302,6 +305,24 @@ boot-img: edk2 grub
 .PHONY: boot-img-clean
 boot-img-clean:
 	rm -f $(BOOT_IMG)
+
+################################################################################
+# atf-fastboot
+################################################################################
+ATF_FB_EXPORTS ?= \
+	CROSS_COMPILE="$(CCACHE)$(AARCH64_CROSS_COMPILE)"
+
+ATF_FB_FLAGS ?= \
+	DEBUG=$(DEBUG) \
+	PLAT=hikey
+
+.PHONY: atf-fb
+atf-fb:
+	$(ATF_FB_EXPORTS) $(MAKE) -C $(ATF_FB_PATH) $(ATF_FB_FLAGS)
+
+.PHONY: atf-fb-clean
+atf-fb-clean:
+	$(ATF_FB_EXPORTS) $(MAKE) -C $(ATF_FB_PATH) $(ATF_FB_FLAGS) clean
 
 ################################################################################
 # system image
