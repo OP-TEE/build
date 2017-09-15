@@ -351,6 +351,20 @@ thread from a TA. If you need to run tasks in parallel, then you should
 probably look into running two TAs or more simultaneously and then let them
 communicate with each other using the TA2TA interface.
 
+### How can I use or call OP-TEE (GlobalPlatform) APIs from an Android (.apk) app?
+Use JNI. First get familiar with [sample_hellojni.html] and make sure you can
+run the sample. After that, replace the C-side Implementation with say one of
+the examples in [optee_examples].
+Note that the examples are built as executables, and have to be modified to be
+built as a .so shared library instead so that it can be loaded by the Java-side
+Implementation.
+
+Note that .apk apps by default have no access to the TEE driver. See
+[Issue#903] for details. The workaround is to disable SELinux before launching
+any .apk app that calls into OP-TEE. The solution is to create/write SELinux
+domains/rules to allow any required access, but since this is not a
+TEE-related issue, it is left as an exercise for the users.
+
 ### I've heard that there is a Widevine and PlayReady TA, how do I get access?
 Those can only be shared are under NDA with Google and Microsoft. Linaro can
 help members of Linaro to get access to those. As of now, we cannot share it
@@ -398,6 +412,7 @@ using [Travis for OP-TEE].
 [LICENSE]: https://github.com/OP-TEE/optee_os/blob/master/LICENSE
 [linux-next]: https://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git/tree/drivers/tee?id=refs/tags/next-20170403
 [Notice.md]: https://github.com/OP-TEE/optee_os/blob/master/Notice.md
+[optee_examples]: https://github.com/linaro-swg/optee_examples
 [optee_os]: https://github.com/OP-TEE/optee_os
 [optee_test]: https://github.com/OP-TEE/optee_test
 [OP-TEE]: https://github.com/OP-TEE
@@ -414,6 +429,7 @@ using [Travis for OP-TEE].
 [qemu.md]: docs/qemu.md
 [Raspberry Pi3 port]: https://github.com/OP-TEE/optee_os/commit/66d9cacf37e6bd4b0d86e7b32e4e5edefe8decfd
 [Run xtest]: README.md#79-run-xtest
+[sample_hellojni.html]: https://developer.android.com/ndk/samples/sample_hellojni.html
 [Security Advisories]: https://www.op-tee.org/security-advisories/
 [sign.py]: https://github.com/OP-TEE/optee_os/blob/master/scripts/sign.py
 [TAs in xtest]: https://github.com/OP-TEE/optee_test/tree/master/ta
@@ -427,6 +443,7 @@ using [Travis for OP-TEE].
 [Issue#601]: https://github.com/OP-TEE/optee_os/issues/601
 [Issue#846]: https://github.com/OP-TEE/optee_os/issues/846
 [Issue#901]: https://github.com/OP-TEE/optee_os/issues/901
+[Issue#903]: https://github.com/OP-TEE/optee_os/issues/903
 [Issue#953]: https://github.com/OP-TEE/optee_os/issues/953
 [Issue#967]: https://github.com/OP-TEE/optee_os/issues/967
 [Issue#1003]: https://github.com/OP-TEE/optee_os/issues/1003
