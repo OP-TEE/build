@@ -82,7 +82,7 @@ DEBPKG_CONTROL_PATH		?= $(DEBPKG_PATH)/DEBIAN
 # Targets
 ################################################################################
 .PHONY: all
-all: arm-tf linux boot-img lloader system-img nvme deb optee-examples
+all: arm-tf linux boot-img lloader system-img nvme deb
 
 .PHONY: clean
 clean: arm-tf-clean atf-fb-clean edk2-clean linux-clean optee-os-clean \

@@ -55,7 +55,7 @@ STRACE_PATH			?=$(ROOT)/strace
 # Targets
 ################################################################################
 .PHONY: all
-all: prepare arm-tf boot-img lloader nvme strace optee-examples
+all: prepare arm-tf boot-img lloader nvme strace
 
 .PHONY: clean
 clean: arm-tf-clean atf-fb-clean busybox-clean edk2-clean linux-clean \
