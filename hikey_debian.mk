@@ -54,12 +54,11 @@ endif
 
 EDK2_PATH 			?= $(ROOT)/edk2
 ifeq ($(DEBUG),1)
-EDK2_BIN 			?= $(EDK2_PATH)/Build/HiKey/DEBUG_GCC49/FV/BL33_AP_UEFI.fd
 EDK2_BUILD			?= DEBUG
 else
-EDK2_BIN 			?= $(EDK2_PATH)/Build/HiKey/RELEASE_GCC49/FV/BL33_AP_UEFI.fd
 EDK2_BUILD			?= RELEASE
 endif
+EDK2_BIN			?= $(EDK2_PATH)/Build/HiKey/$(EDK2_BUILD)_$(EDK2_TOOLCHAIN)/FV/BL33_AP_UEFI.fd
 OPENPLATPKG_PATH		?= $(ROOT)/OpenPlatformPkg
 
 OUT_PATH			?= $(ROOT)/out
@@ -146,8 +145,9 @@ ifeq ($(EDK2_CONSOLE_UART),0)
 endif
 
 define edk2-call
-	GCC49_AARCH64_PREFIX=$(LEGACY_AARCH64_CROSS_COMPILE) \
-	build -n 1 -a $(EDK2_ARCH) -t $(EDK2_TOOLCHAIN) -p $(EDK2_DSC) \
+	$(EDK2_TOOLCHAIN)_$(EDK2_ARCH)_PREFIX=$(LEGACY_AARCH64_CROSS_COMPILE) \
+	build -n `getconf _NPROCESSORS_ONLN` -a $(EDK2_ARCH) \
+		-t $(EDK2_TOOLCHAIN) -p $(EDK2_DSC) \
 		-b $(EDK2_BUILD) $(EDK2_BUILDFLAGS)
 endef
 
@@ -155,15 +155,17 @@ endef
 edk2:
 	cd $(EDK2_PATH) && rm -rf OpenPlatformPkg && \
 		ln -s $(OPENPLATPKG_PATH)
-	set -e && cd $(EDK2_PATH) && source edksetup.sh BaseTools && \
+	set -e && cd $(EDK2_PATH) && source edksetup.sh && \
 		$(MAKE) -j1 -C $(EDK2_PATH)/BaseTools && \
 		$(call edk2-call)
 
 .PHONY: edk2-clean
 edk2-clean:
-	set -e && cd $(EDK2_PATH) && source edksetup.sh BaseTools && \
+	set -e && cd $(EDK2_PATH) && source edksetup.sh && \
+		$(call edk2-call) cleanall && \
 		$(MAKE) -j1 -C $(EDK2_PATH)/BaseTools clean
 	rm -rf $(EDK2_PATH)/Build
+	rm -rf $(EDK2_PATH)/Conf/.cache
 	rm -f $(EDK2_PATH)/Conf/build_rule.txt
 	rm -f $(EDK2_PATH)/Conf/target.txt
 	rm -f $(EDK2_PATH)/Conf/tools_def.txt
@@ -300,7 +302,7 @@ boot-img: edk2 grub
 	mmd -i $(BOOT_IMG) EFI
 	mmd -i $(BOOT_IMG) EFI/BOOT
 	mcopy -i $(BOOT_IMG) $(OUT_PATH)/grubaa64.efi ::/EFI/BOOT/
-	mcopy -i $(BOOT_IMG) $(EDK2_PATH)/Build/HiKey/$(EDK2_BUILD)_GCC49/AARCH64/AndroidFastbootApp.efi ::/EFI/BOOT/fastboot.efi
+	mcopy -i $(BOOT_IMG) $(EDK2_PATH)/Build/HiKey/$(EDK2_BUILD)_$(EDK2_TOOLCHAIN)/$(EDK2_ARCH)/AndroidFastbootApp.efi ::/EFI/BOOT/fastboot.efi
 
 .PHONY: boot-img-clean
 boot-img-clean:
