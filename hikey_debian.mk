@@ -177,7 +177,9 @@ edk2-clean:
 LINUX_DEFCONFIG_COMMON_ARCH ?= arm64
 LINUX_DEFCONFIG_COMMON_FILES ?= $(DEBPKG_SRC_PATH)/debian/config/config \
 				$(DEBPKG_SRC_PATH)/debian/config/arm64/config \
-				$(CURDIR)/kconfigs/hikey_debian.conf
+				$(CURDIR)/kconfigs/hikey_debian.conf \
+				$(PATCHES_PATH)/kernel_config/usb_net_dm9601.conf \
+				$(PATCHES_PATH)/kernel_config/ftrace.conf
 
 .PHONY: linux-defconfig
 linux-defconfig: $(LINUX_PATH)/.config
