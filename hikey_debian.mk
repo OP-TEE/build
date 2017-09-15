@@ -79,19 +79,23 @@ DEBPKG_CONTROL_PATH		?= $(DEBPKG_PATH)/DEBIAN
 ################################################################################
 # Targets
 ################################################################################
+.PHONY: all
 all: arm-tf linux boot-img lloader system-img nvme deb optee-examples
 
+.PHONY: clean
 clean: arm-tf-clean edk2-clean linux-clean optee-os-clean optee-client-clean \
-		xtest-clean boot-img-clean lloader-clean grub-clean \
-		optee-examples-clean
+		xtest-clean optee-examples-clean boot-img-clean lloader-clean \
+		grub-clean
 
+.PHONY: cleaner
 cleaner: clean prepare-cleaner linux-cleaner nvme-cleaner \
 			system-img-cleaner grub-cleaner
 
 -include toolchain.mk
 
+.PHONY: prepare
 prepare:
-	@mkdir -p $(OUT_PATH)
+	mkdir -p $(OUT_PATH)
 
 .PHONY: prepare-cleaner
 prepare-cleaner:
@@ -118,6 +122,7 @@ ifeq ($(ARM_TF_CONSOLE_UART),0)
 			CRASH_CONSOLE_BASE=PL011_UART0_BASE
 endif
 
+.PHONY: arm-tf
 arm-tf: optee-os edk2
 	$(ARM_TF_EXPORTS) $(MAKE) -C $(ARM_TF_PATH) $(ARM_TF_FLAGS) all fip
 
@@ -168,10 +173,12 @@ LINUX_DEFCONFIG_COMMON_FILES ?= $(DEBPKG_SRC_PATH)/debian/config/config \
 				$(DEBPKG_SRC_PATH)/debian/config/arm64/config \
 				$(CURDIR)/kconfigs/hikey_debian.conf
 
+.PHONY: linux-defconfig
 linux-defconfig: $(LINUX_PATH)/.config
 
 LINUX_COMMON_FLAGS += ARCH=arm64 deb-pkg LOCALVERSION=-optee-rpb
 
+.PHONY: linux
 linux: linux-common
 
 .PHONY: linux-defconfig-clean
@@ -195,11 +202,13 @@ OPTEE_OS_COMMON_FLAGS += PLATFORM=hikey \
 			 CFG_SECURE_DATA_PATH=n
 OPTEE_OS_CLEAN_COMMON_FLAGS += PLATFORM=hikey
 
+.PHONY: optee-os
 optee-os: optee-os-common
 
 .PHONY: optee-os-clean
 optee-os-clean: optee-os-clean-common
 
+.PHONY: optee-client
 optee-client: optee-client-common
 
 .PHONY: optee-client-clean
@@ -208,7 +217,7 @@ optee-client-clean: optee-client-clean-common
 ################################################################################
 # xtest / optee_test
 ################################################################################
-
+.PHONY: xtest
 xtest: xtest-common
 
 # FIXME:
@@ -223,8 +232,10 @@ xtest-patch: xtest-patch-common
 ################################################################################
 # Sample applications / optee_examples
 ################################################################################
+.PHONY: optee-examples
 optee-examples: optee-examples-common
 
+.PHONY: optee-examples-clean
 optee-examples-clean: optee-examples-clean-common
 
 ################################################################################
@@ -280,13 +291,13 @@ grub-cleaner: grub-clean
 # Boot Image
 ################################################################################
 .PHONY: boot-img
-boot-img: grub edk2
+boot-img: edk2 grub
 	rm -f $(BOOT_IMG)
 	/sbin/mkfs.fat -F32 -n "boot" -C $(BOOT_IMG) 65536
 	mmd -i $(BOOT_IMG) EFI
 	mmd -i $(BOOT_IMG) EFI/BOOT
+	mcopy -i $(BOOT_IMG) $(OUT_PATH)/grubaa64.efi ::/EFI/BOOT/
 	mcopy -i $(BOOT_IMG) $(EDK2_PATH)/Build/HiKey/$(EDK2_BUILD)_GCC49/AARCH64/AndroidFastbootApp.efi ::/EFI/BOOT/fastboot.efi
-	mcopy -i $(BOOT_IMG) $(OUT_PATH)/grubaa64.efi ::/EFI/BOOT/grubaa64.efi
 
 .PHONY: boot-img-clean
 boot-img-clean:
@@ -391,8 +402,8 @@ send:
 # Flash
 ################################################################################
 define flash_help
-	@read -r -p "1. Connect USB OTG cable, the micro USB cable (press any key)" dummy
-	@read -r -p "2. Connect HiKey to power up (press any key)" dummy
+	@read -r -p "1. Connect USB OTG cable, the micro USB cable (press enter)" dummy
+	@read -r -p "2. Connect HiKey to power up (press enter)" dummy
 endef
 
 .PHONY: recovery
@@ -404,27 +415,43 @@ recovery:
 	@echo '  SUBSYSTEM=="usb", ATTRS{idVendor}=="18d1", ATTRS{idProduct}=="d00d", MODE="0666"'
 	@echo '  SUBSYSTEM=="usb", ATTRS{idVendor}=="12d1", MODE="0666", ENV{ID_MM_DEVICE_IGNORE}="1"'
 	@echo
+	@echo "Set jumpers as follows:"
 	@echo "Jumper 1-2: Closed (Auto power up = Boot up when power is applied)"
 	@echo "       3-4: Closed (Boot Select = Recovery: program eMMC from USB OTG)"
+	@echo "       5-6: Open (GPIO3-1 = High: UEFI runs normally)"
+	@read -r -p "Press enter to continue" dummy
+	@echo
 	$(call flash_help)
+	@echo
 	python $(ROOT)/burn-boot/hisi-idt.py --img1=$(LLOADER_PATH)/l-loader.bin
+	@echo
+	@echo "3. Wait until you see the (UART) message"
+	@echo "    \"Enter downloading mode. Please run fastboot command on Host.\""
+	@echo "    \"usb: online (highspeed)\""
 	@$(MAKE) --no-print flash FROM_RECOVERY=1
 
 .PHONY: flash
 flash:
 ifneq ($(FROM_RECOVERY),1)
 	@echo "Flash binaries using fastboot"
+	@echo
+	@echo "Set jumpers as follows:"
 	@echo "Jumper 1-2: Closed (Auto power up = Boot up when power is applied)"
-	@echo "       3-4: Open   (Boot Select = Boot from eMMC)"
+	@echo "       3-4: Open (Boot Select = Boot from eMMC)"
 	@echo "       5-6: Closed (GPIO3-1 = Low: UEFI runs Fastboot app)"
+	@read -r -p "Press enter to continue" dummy
+	@echo
 	$(call flash_help)
 	@echo "3. Wait until you see the (UART) message"
 	@echo "    \"Android Fastboot mode - version x.x Press any key to quit.\""
-	@read -r -p "   Then press any key to continue flashing" dummy
 endif
+	@read -r -p "Then press enter to continue flashing" dummy
+	@echo
 	@echo "If the board stalls while flashing $(SYSTEM_IMG),"
 	@echo "i.e. does not complete after more than 5 minutes,"
 	@echo "please try running 'make recovery' instead"
+	@read -r -p "Press enter to continue" dummy
+	@echo
 	fastboot flash ptable $(LLOADER_PATH)/ptable-linux-$(CFG_FLASH_SIZE)g.img
 	fastboot flash fastboot $(ARM_TF_PATH)/build/hikey/$(ARM_TF_BUILD)/fip.bin
 	fastboot flash nvme $(NVME_IMG)
