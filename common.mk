@@ -24,6 +24,9 @@ LIBYAML_LIB_PATH		?= $(BENCHMARK_APP_PATH)/libyaml/out/lib
 CFG_TEE_CORE_LOG_LEVEL		?= 3
 
 # default disable latency benchmarks (over all OP-TEE layers)
+# To be able to run benchmarks on TI platforms "OP-TEE Benchmark" patch 
+# for linux optee driver should be applied manually, CONFIG_OPTEE_BENCHMARK=y
+# flag should be added to ti_config_fragments/baseport.cfg.
 CFG_TEE_BENCHMARK			?= n
 
 CCACHE ?= $(shell which ccache) # Don't remove this comment (space is needed)

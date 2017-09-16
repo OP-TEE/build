@@ -3,6 +3,10 @@
 ###############################################################################
 .PHONY: all clean cleaner prepare
 
+ifeq ($(CFG_TEE_BENCHMARK),y)
+all: benchmark-app
+clean: benchmark-app-clean
+endif
 all: u-boot linux optee-os optee-client xtest build-fit \
 	update_rootfs optee-examples
 clean: linux-clean busybox-clean u-boot-clean optee-os-clean \
@@ -93,6 +97,13 @@ BUSYBOX_CLEAN_COMMON_TARGET = $(BUSYBOX_COMMON_TARGET) clean
 busybox: busybox-common
 busybox-clean: busybox-clean-common
 busybox-cleaner: busybox-cleaner-common
+
+################################################################################
+# optee_benchmark
+################################################################################
+benchmark-app: benchmark-app-common
+
+benchmark-app-clean: benchmark-app-clean-common
 
 ###############################################################################
 # Build FIT
