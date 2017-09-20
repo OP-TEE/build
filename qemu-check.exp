@@ -42,7 +42,7 @@ info "Starting QEMU..."
 open "serial1.log" "w+"
 spawn -open [open "|tail -f serial1.log"]
 set teecore $spawn_id
-spawn ../qemu/arm-softmmu/qemu-system-arm -nographic -monitor none -machine virt -machine secure=on -cpu cortex-a15 -m 1057 -serial stdio -serial file:serial1.log -bios $bios
+spawn $::env(QEMU) -nographic -monitor none -machine virt -machine secure=on -cpu cortex-a15 -d unimp  -semihosting-config enable,target=native -m 1057 -serial stdio -serial file:serial1.log -bios $bios
 expect {
 	"Kernel panic" {
 		info "!!! Kernel panic\n"
