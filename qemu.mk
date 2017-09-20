@@ -189,7 +189,9 @@ check-args += --timeout $(TIMEOUT)
 endif
 
 check: $(CHECK_DEPS)
-	expect qemu-check.exp -- $(check-args) || \
+	cd $(BINARIES_PATH) && \
+		export QEMU=$(ROOT)/qemu/arm-softmmu/qemu-system-arm && \
+		expect $(ROOT)/build/qemu-check.exp -- $(check-args) || \
 		(if [ "$(DUMP_LOGS_ON_ERROR)" ]; then \
 			echo "== $$PWD/serial0.log:"; \
 			cat serial0.log; \
