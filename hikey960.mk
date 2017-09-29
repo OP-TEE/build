@@ -335,31 +335,16 @@ boot-img-clean:
 ################################################################################
 # l-loader
 ################################################################################
-.PHONY: lloader-bin
-lloader-bin: arm-tf
+.PHONY: lloader
+lloader:
 	cd $(LLOADER_PATH) && \
 		ln -sf $(ARM_TF_PATH)/build/hikey960/$(ARM_TF_BUILD)/bl1.bin && \
-		python gen_loader_hikey960.py -o l-loader.bin --img_bl1=bl1.bin --img_ns_bl1u=$(EDK2_BIN)
-
-.PHONY: lloader-bin-clean
-lloader-bin-clean:
-	cd $(LLOADER_PATH) && \
-		rm -f l-loader.bin
-
-.PHONY: lloader-ptbl
-lloader-ptbl:
-	cd $(LLOADER_PATH) && \
-		PTABLE=linux-32g SECTOR_SIZE=4096 SGDISK=./sgdisk bash -x generate_ptable.sh
-
-.PHONY: lloader-ptbl-clean
-lloader-ptbl-clean:
-	cd $(LLOADER_PATH) && rm -f prm_ptable.img sec_ptable.img
-
-.PHONY: lloader
-lloader: lloader-bin lloader-ptbl
+		ln -sf $(EDK2_BIN) && \
+		$(MAKE) hikey960 PTABLE_LST=linux-32g
 
 .PHONY: lloader-clean
-lloader-clean: lloader-bin-clean lloader-ptbl-clean
+lloader-clean:
+	$(MAKE) -C $(LLOADER_PATH) hikey960-clean
 
 ################################################################################
 # Flash
