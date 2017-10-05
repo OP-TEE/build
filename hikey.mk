@@ -51,6 +51,11 @@ PATCHES_PATH			?=$(ROOT)/patches_hikey
 ################################################################################
 # Targets
 ################################################################################
+ifeq ($(CFG_TEE_BENCHMARK),y)
+all: benchmark-app
+clean: benchmark-app-clean
+endif
+
 all: prepare arm-tf boot-img lloader nvme strace optee-examples
 
 clean: arm-tf-clean busybox-clean edk2-clean linux-clean optee-os-clean \
@@ -193,6 +198,13 @@ optee-client: optee-client-common
 
 .PHONY: optee-client-clean
 optee-client-clean: optee-client-clean-common
+
+################################################################################
+# optee_benchmark
+################################################################################
+benchmark-app: benchmark-app-common
+
+benchmark-app-clean: benchmark-app-clean-common
 
 ################################################################################
 # xtest / optee_test
