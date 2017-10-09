@@ -336,7 +336,7 @@ boot-img-clean:
 # l-loader
 ################################################################################
 .PHONY: lloader
-lloader:
+lloader: arm-tf edk2
 	cd $(LLOADER_PATH) && \
 		ln -sf $(ARM_TF_PATH)/build/hikey960/$(ARM_TF_BUILD)/bl1.bin && \
 		ln -sf $(EDK2_BIN) && \
