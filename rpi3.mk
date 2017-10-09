@@ -56,7 +56,6 @@ clean: arm-tf-clean busybox-clean u-boot-clean u-boot-rpi-bin-clean \
 # ARM Trusted Firmware
 ################################################################################
 ARM_TF_EXPORTS ?= \
-	CFLAGS="-O0 -gdwarf-2" \
 	CROSS_COMPILE="$(CCACHE)$(AARCH64_CROSS_COMPILE)"
 
 ARM_TF_FLAGS ?= \
