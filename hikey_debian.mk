@@ -353,7 +353,7 @@ system-img-cleaner:
 # l-loader
 ################################################################################
 .PHONY: lloader
-lloader:
+lloader: arm-tf atf-fb
 	cd $(LLOADER_PATH) && \
 		ln -sf $(ARM_TF_PATH)/build/hikey/$(ARM_TF_BUILD)/bl1.bin && \
 		ln -sf $(ATF_FB_PATH)/build/hikey/$(ATF_FB_BUILD)/bl1.bin fastboot.bin && \
