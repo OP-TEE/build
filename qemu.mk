@@ -188,7 +188,7 @@ ifneq ($(TIMEOUT),)
 check-args += --timeout $(TIMEOUT)
 endif
 
-QEMU_SMP ?= 4
+QEMU_SMP ?= 1
 check: $(CHECK_DEPS)
 	cd $(BINARIES_PATH) && \
 		export QEMU=$(ROOT)/qemu/arm-softmmu/qemu-system-arm && \
