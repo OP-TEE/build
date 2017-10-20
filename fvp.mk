@@ -160,7 +160,7 @@ run-only:
 	@ln -sf $(GEN_ROOTFS_PATH)/filesystem.cpio.gz $(FOUNDATION_PATH)/filesystem.cpio.gz
 	@ln -sf $(LINUX_PATH)/arch/arm64/boot/dts/arm/foundation-v8.dtb $(FOUNDATION_PATH)/fdt.dtb
 	@cd $(FOUNDATION_PATH); \
-	$(FOUNDATION_PATH)/models/Linux64_GCC-4.7/Foundation_Platform \
+	$(FOUNDATION_PATH)/models/Linux64_GCC-4.9/Foundation_Platform \
 	--arm-v8.0 \
 	--cores=4 \
 	--secure-memory \
