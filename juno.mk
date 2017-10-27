@@ -160,4 +160,6 @@ flash:
 	$(FTP-UPLOAD) $(ARM_TF_PATH)/build/juno/release/fip.bin
 	$(FTP-UPLOAD) $(ROOT)/linux/arch/arm64/boot/Image
 	$(FTP-UPLOAD) $(ROOT)/linux/arch/arm64/boot/dts/arm/juno.dtb
+	$(FTP-UPLOAD) $(ROOT)/linux/arch/arm64/boot/dts/arm/juno-r1.dtb
+	$(FTP-UPLOAD) $(ROOT)/linux/arch/arm64/boot/dts/arm/juno-r2.dtb
 	$(FTP-UPLOAD) $(ROOT)/gen_rootfs/ramdisk.img
