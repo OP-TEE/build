@@ -55,7 +55,7 @@ STRACE_PATH			?=$(ROOT)/strace
 # Targets
 ################################################################################
 .PHONY: all
-all: prepare arm-tf boot-img lloader nvme strace
+all: prepare arm-tf boot-img lloader nvme
 
 .PHONY: clean
 clean: arm-tf-clean atf-fb-clean busybox-clean edk2-clean linux-clean \
@@ -264,7 +264,7 @@ strace-cleaner: strace-clean
 # Root FS
 ################################################################################
 .PHONY: filelist-tee
-filelist-tee: filelist-tee-common
+filelist-tee: strace filelist-tee-common
 	env TOP=$(ROOT) $(expand-env-var) <$(PATCHES_PATH)/rootfs/initramfs-add-files.txt >> $(GEN_ROOTFS_FILELIST)
 
 .PHONY: update_rootfs
