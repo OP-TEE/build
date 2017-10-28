@@ -32,7 +32,7 @@ ifeq ($(CFG_TEE_BENCHMARK),y)
 all: benchmark-app
 clean: benchmark-app-clean
 endif
-all: arm-tf edk2 qemu soc-term linux strace update_rootfs optee-examples
+all: arm-tf edk2 qemu soc-term linux update_rootfs optee-examples
 clean: arm-tf-clean busybox-clean edk2-clean linux-clean \
 	optee-os-clean optee-client-clean qemu-clean \
 	soc-term-clean check-clean strace-clean optee-examples-clean
@@ -203,7 +203,7 @@ benchmark-app-clean: benchmark-app-clean-common
 ################################################################################
 # Root FS
 ################################################################################
-filelist-tee: filelist-tee-common
+filelist-tee: strace filelist-tee-common
 ifneq ("$(wildcard $(STRACE_PATH)/strace)","")
 	@echo "file /bin/strace $(STRACE_PATH)/strace 755 0 0" >> $(GEN_ROOTFS_FILELIST)
 endif
