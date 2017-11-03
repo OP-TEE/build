@@ -5,11 +5,12 @@
 	1. [Download gdb for ARM](#12-download-gdb-for-arm)
 	1. [Scripts](#13-scripts)
 	1. [Debug](#14-debug)
-	1. [Use graphical frontends](#15-use-graphical-frontends)
-		1. [ddd](#151-ddd)
-		1. [GNU Visual Debugger (gvd)](#152-gnu-visual-debugger-gvd)
-		1. [Affinic Debugger](#153-affinic-debugger)
-	1. [Known issues](#16-known-issues)
+	1. [Debugging TA](#15-debugging-ta)
+	1. [Use graphical frontends](#16-use-graphical-frontends)
+		1. [ddd](#161-ddd)
+		1. [GNU Visual Debugger (gvd)](#162-gnu-visual-debugger-gvd)
+		1. [Affinic Debugger](#163-affinic-debugger)
+	1. [Known issues](#17-known-issues)
 2. [Ftrace](#2-ftrace)
 3. [Abort dumps](#3-abort-dumps-panics)
 
@@ -104,8 +105,123 @@ Breakpoint 1, tee_entry_std (smc_args=0x7df6ff98 <stack_thread+8216>)
 (gdb)
 ```
 
-## 1.5. Use graphical frontends
-### 1.5.1 ddd
+## 1.5 Debugging TA
+Assumptions:
+1.	You already know how to setup `gdb` from the previous chapter;
+2.	We use the Hello World TA ([`linaro-swg/optee_examples/hello_world`](https://github.com/linaro-swg/optee_examples/));
+3.	`pwd` is `…/hello_world/ta`
+
+First, we need to find out the LMA (Load Memory Address) of Hello World TA.
+To do that run `objdump` utility (you might need to use platform specific one
+from the toolchain of the platform you are building for):
+```bash
+$ objdump -h 8aaaf200-2450-11e4-abe2-0002a5d5c51b.elf
+```
+
+The result will look something like this:
+```
+Sections:
+Idx   Name       Size      VMA               LMA               File off  Algn
+   0   .ta_head  00000020  0000000000000000  0000000000000000  00010000  2**3
+                 CONTENTS, ALLOC, LOAD, DATA
+   1   .text     0000c614  0000000000000020  0000000000000020  00010020  2**3
+                 CONTENTS, ALLOC, LOAD, READONLY, CODE
+   2   .rodata   00002382  000000000000c638  000000000000c638  0001c638  2**3
+```
+
+Here, we are interested in the LMA (Load Memory Address) of `.text` section.
+
+The effective virtual address of the TA is computed at runtime from a
+load base address and the LMA of the `.text` section in  the TA ELF file.
+We will see below how to get this virtual memory load base address.
+
+Now, you can run gdb and connect to QEMU session.
+
+```
+(gdb) optee
+SIGTRAP is used by the debugger.
+Are you sure you want to change it? (y or n) [answered Y; input not from
+terminal]
+0x00000000 in ?? ()
+```
+
+We have to set a breakpoint inside the OP-TEE OS. Since we want to debug
+the TA, we can set a breakpoint at a stage where the OS has fully loaded and
+mapped the TA so we can access its whole memory. The best candidate seems
+`thread_enter_user_mode`. It is called when OP-TEE OS executes a TA entrypoint.
+```
+(gdb) b tee_thread_enter_user_mode
+Breakpoint 1 at 0xe106974: file core/arch/arm/kernel/thread.c, line 1100.
+```
+
+then continue the execution of vm:
+```
+(gdb) c
+Continuing.
+```
+
+Now you can run Hello World CA (Client Application) from Normal World FVP terminal:
+```bash
+root@FVP:/ optee_hello_world
+```
+
+`gdb` will hit the breakpoint at `tee_thread_enter_user_mode`, which will look something
+like this:
+```
+Breakpoint 1, thread_enter_user_mode (a0=0, a1=409104, a2=1073747840, a3=0, user_sp=1073747840, entry_func=1073803664,
+    is_32bit=false, exit_status0=0xe163b00, exit_status1=0xe163b04) at core/arch/arm/kernel/thread.c:1105
+1105            if (!get_spsr(is_32bit, entry_func, &spsr)) {
+(gdb)
+```
+
+In the Secure World terminal window you should be able to see something like this:
+```
+DEBUG: [0x0] TEE-CORE:tee_ta_init_pseudo_ta_session:259: Lookup for pseudo TA 8aaaf200-2450-11e4-abe2-0002a5d5c51b
+DEBUG: [0x0] TEE-CORE:tee_ta_init_user_ta_session:610: Load user TA 8aaaf200-2450-11e4-abe2-0002a5d5c51b
+DEBUG: [0x0] TEE-CORE:ta_load:316: ELF load address 0x40001000
+```
+
+Here, we are interested in ELF load address value, in this case it is `0x40001000`.
+This is the actual address of Hello World TA loaded by OP-TEE OS.
+
+To be able to debug Hello World TA you have to add symbols of the application
+into `gdb` using `add-symbol-file [file] [address]` command, were `[address]` is
+ELF load address + LMA of `.text` section. In this case, it is `0x40001000 + 0x20`
+
+Let’s add those symbols:
+```
+(gdb) add-symbol-file ./8aaaf200-2450-11e4-abe2-0002a5d5c51b.elf 0x40001020
+```
+
+You should see something like:
+```
+add symbol table from file "./8aaaf200-2450-11e4-abe2-0002a5d5c51b.elf" at .text_addr = 0x40001020
+```
+
+Let's setup a breakpoint inside Hello World TA, for example:
+```
+(gdb) b TA_InvokeCommandEntryPoint
+Breakpoint 2 at 0x400028e0: file hello_world_ta.c, line 135.
+```
+
+Here one can remove the optee core breakpoint (`thread_enter_user_mode`) and continue
+the execution of vm:
+```
+(gdb) del 1
+(gdb) c
+Continuing.
+```
+
+Voila! `gdb` should hit the breakpoint inside Hello World TA and you should be
+able to see something like this:
+```
+Breakpoint 2, TA_InvokeCommandEntryPoint (sess_ctx=0x0 <ta_head>, cmd_id=cmd_id@entry=0,
+    param_types=param_types@entry=3, params=params@entry=0x40000f40) at hello_world_ta.c:135
+135             switch (cmd_id) {
+```
+
+## 1.6. Use graphical frontends
+### 1.6.1 ddd
 With the `PATH` exported to the `arm-none-eabi-gdb` binary and the `optee`
 helper function defined as above in the `.gdbinit` file, you invoke ddd by
 typing:
@@ -118,7 +234,7 @@ Then in the lower pane (which is the gdb command window), just simply type
 `optee` and ddd will connect to the remote and load `tee.elf`, just as described
 above for the command line version.
 
-### 1.5.2 GNU Visual Debugger ([gvd](http://gnu.gds.tuwien.ac.at/directory/gnuVisualDebugger.html))
+### 1.6.2 GNU Visual Debugger ([gvd](http://gnu.gds.tuwien.ac.at/directory/gnuVisualDebugger.html))
 This is a rather old frontend for gdb and share a lot of similarities with ddd,
 however it seems like it's more stable compared to ddd. To run it, you simply
 need to tell the path to the `arm-none-eabi-gdb` binary:
@@ -129,12 +245,12 @@ gvd --debugger $HOME/devel/toolchains/gcc-linaro-arm-none-eabi-4.9-2014.09_linux
 
 Similarly to ddd, just simply run `optee` in the lower gdb command pane in gvd.
 
-### 1.5.3 Affinic Debugger / ADG
+### 1.6.3 Affinic Debugger / ADG
 [Affinic Debugger] seems to be the most stable graphical front end. It's not
 free (at this moment it costs roughly $50 USD). If you can afford it and prefer
 graphical frontends we highly recommend this tool.
 
-## 1.6 Known issues
+## 1.7 Known issues
 1. Printing the call stack using `bt` makes gdb go into an endless loop.
    Temporary workaround, in gdb, instead of simply writing `bt`, also mention
    how many frames you would like to see, for example `bt 10`.
