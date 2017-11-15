@@ -207,27 +207,21 @@ linux-cleaner-common: linux-defconfig-clean
 ################################################################################
 # EDK2 / Tianocore
 ################################################################################
-# Make sure edksetup.sh only will be called once and that we don't rebuild
-# BaseTools again and again.
-$(EDK2_PATH)/Conf/target.txt:
-	set -e && cd $(EDK2_PATH) && source edksetup.sh && \
-	$(MAKE) -j1 -C $(EDK2_PATH)/BaseTools
-
 .PHONY: edk2-common
-edk2-common: $(EDK2_PATH)/Conf/target.txt
-	set -e && cd $(EDK2_PATH) && source edksetup.sh && \
-	$(call edk2-call)
+edk2-common:
+	export WORKSPACE=$(ROOT) && \
+	export PACKAGES_PATH=$(EDK2_PATH):$(ROOT)/edk2-platforms && \
+	source $(EDK2_PATH)/edksetup.sh && \
+	$(MAKE) -j1 -C $(EDK2_PATH)/BaseTools && \
+	$(call edk2-call) all
 
 .PHONY: edk2-clean-common
 edk2-clean-common:
-	set -e && cd $(EDK2_PATH) && source edksetup.sh && \
-	$(call edk2-call) clean && \
-	$(MAKE) -j1 -C $(EDK2_PATH)/BaseTools clean
-	rm -rf $(EDK2_PATH)/Build
-	rm -rf $(EDK2_PATH)/Conf/.cache
-	rm -f $(EDK2_PATH)/Conf/build_rule.txt
-	rm -f $(EDK2_PATH)/Conf/target.txt
-	rm -f $(EDK2_PATH)/Conf/tools_def.txt
+	export WORKSPACE=$(ROOT) && \
+	export PACKAGES_PATH=$(EDK2_PATH):$(ROOT)/edk2-platforms && \
+	source $(EDK2_PATH)/edksetup.sh && \
+	$(MAKE) -j1 -C $(EDK2_PATH)/BaseTools clean && \
+	$(call edk2-call) cleanall
 
 ################################################################################
 # QEMU / QEMUv8
