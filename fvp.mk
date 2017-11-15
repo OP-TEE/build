@@ -23,16 +23,26 @@ FOUNDATION_PATH		?= $(ROOT)/Foundation_Platformpkg
 ifeq ($(wildcard $(FOUNDATION_PATH)),)
 $(error $(FOUNDATION_PATH) does not exist)
 endif
+GRUB_PATH		?= $(ROOT)/grub
+GRUB_CONFIG_PATH	?= $(BUILD_PATH)/fvp/grub
+OUT_PATH		?= $(ROOT)/out
+GRUB_BIN		?= $(OUT_PATH)/bootaa64.efi
 
 ################################################################################
 # Targets
 ################################################################################
-all: arm-tf edk2 linux optee-os optee-client xtest optee-examples
-clean: arm-tf-clean busybox-clean edk2-clean optee-os-clean \
+all: arm-tf edk2 grub linux optee-os optee-client xtest optee-examples
+clean: arm-tf-clean busybox-clean edk2-clean grub-clean optee-os-clean \
 	optee-client-clean optee-examples-clean
 
 
 include toolchain.mk
+
+################################################################################
+# Folders
+################################################################################
+$(OUT_PATH):
+	mkdir -p $@
 
 ################################################################################
 # ARM Trusted Firmware
@@ -144,6 +154,45 @@ optee-examples-clean: optee-examples-clean-common
 filelist-tee: filelist-tee-common
 
 update_rootfs: update_rootfs-common
+
+################################################################################
+# grub
+################################################################################
+grub-flags := CC="$(CCACHE)gcc" \
+	TARGET_CC="$(AARCH64_CROSS_COMPILE)gcc" \
+	TARGET_OBJCOPY="$(AARCH64_CROSS_COMPILE)objcopy" \
+	TARGET_NM="$(AARCH64_CROSS_COMPILE)nm" \
+	TARGET_RANLIB="$(AARCH64_CROSS_COMPILE)ranlib" \
+	TARGET_STRIP="$(AARCH64_CROSS_COMPILE)strip"
+
+GRUB_MODULES += boot chain configfile echo efinet eval ext2 fat font gettext \
+		gfxterm gzio help linux loadenv lsefi normal part_gpt \
+		part_msdos read regexp search search_fs_file search_fs_uuid \
+		search_label terminal terminfo test tftp time
+
+$(GRUB_PATH)/configure: $(GRUB_PATH)/configure.ac
+	cd $(GRUB_PATH) && ./autogen.sh
+
+$(GRUB_PATH)/Makefile: $(GRUB_PATH)/configure
+	cd $(GRUB_PATH) && ./configure --target=aarch64 --enable-boot-time $(grub-flags)
+
+.PHONY: grub
+grub: $(GRUB_PATH)/Makefile | $(OUT_PATH)
+	$(MAKE) -C $(GRUB_PATH) && \
+	cd $(GRUB_PATH) && ./grub-mkimage \
+		--output=$(GRUB_BIN) \
+		--config=$(GRUB_CONFIG_PATH)/grub.cfg \
+		--format=arm64-efi \
+		--directory=grub-core \
+		--prefix=/boot/grub \
+		$(GRUB_MODULES)
+
+.PHONY: grub-clean
+grub-clean:
+	@if [ -e $(GRUB_PATH)/Makefile ]; then $(MAKE) -C $(GRUB_PATH) clean; fi
+	@rm -f $(GRUB_BIN)
+	@rm -f $(GRUB_PATH)/configure
+
 
 ################################################################################
 # Run targets
