@@ -18,7 +18,8 @@ include common.mk
 ################################################################################
 ARM_TF_PATH		?= $(ROOT)/arm-trusted-firmware
 EDK2_PATH		?= $(ROOT)/edk2
-EDK2_BIN		?= $(EDK2_PATH)/Build/ArmVExpress-FVP-AArch64/RELEASE_GCC49/FV/FVP_AARCH64_EFI.fd
+EDK2_BIN		?= $(ROOT)/Build/ArmVExpress-FVP-AArch64/RELEASE_GCC49/FV/FVP_AARCH64_EFI.fd
+EDK2_PLATFORMS_PATH	?= $(ROOT)/edk2-platforms
 FOUNDATION_PATH		?= $(ROOT)/Foundation_Platformpkg
 ifeq ($(wildcard $(FOUNDATION_PATH)),)
 $(error $(FOUNDATION_PATH) does not exist)
@@ -27,13 +28,14 @@ GRUB_PATH		?= $(ROOT)/grub
 GRUB_CONFIG_PATH	?= $(BUILD_PATH)/fvp/grub
 OUT_PATH		?= $(ROOT)/out
 GRUB_BIN		?= $(OUT_PATH)/bootaa64.efi
+BOOT_IMG		?= $(OUT_PATH)/boot-fat.uefi.img
 
 ################################################################################
 # Targets
 ################################################################################
-all: arm-tf edk2 grub linux optee-os optee-client xtest optee-examples
-clean: arm-tf-clean busybox-clean edk2-clean grub-clean optee-os-clean \
-	optee-client-clean optee-examples-clean
+all: arm-tf boot-img edk2 grub linux optee-os optee-client xtest optee-examples
+clean: arm-tf-clean boot-img-clean busybox-clean edk2-clean grub-clean \
+	optee-os-clean optee-client-clean optee-examples-clean
 
 
 include toolchain.mk
@@ -84,11 +86,8 @@ busybox-cleaner: busybox-cleaner-common
 ################################################################################
 define edk2-call
 	GCC49_AARCH64_PREFIX=$(LEGACY_AARCH64_CROSS_COMPILE) \
-	     $(MAKE) -j1 -C $(EDK2_PATH) \
-	     -f ArmPlatformPkg/Scripts/Makefile EDK2_ARCH=AARCH64 \
-	     EDK2_DSC=ArmPlatformPkg/ArmVExpressPkg/ArmVExpress-FVP-AArch64.dsc \
-	     EDK2_TOOLCHAIN=GCC49 EDK2_BUILD=RELEASE \
-	     EDK2_MACROS="-n 6 -D ARM_FOUNDATION_FVP=1 -D ARM_FVP_BOOT_ANDROID_FROM_SEMIHOSTING=1"
+	build -n `getconf _NPROCESSORS_ONLN` -a "AARCH64" \
+		-t "GCC49" -p $(EDK2_PLATFORMS_PATH)/Platform/ARM/VExpressPkg/ArmVExpress-FVP-AArch64.dsc -b RELEASE
 endef
 
 edk2: edk2-common
@@ -195,19 +194,32 @@ grub-clean:
 
 
 ################################################################################
+# Boot Image
+################################################################################
+.PHONY: boot-img
+boot-img: linux grub update_rootfs
+	rm -f $(BOOT_IMG)
+	mformat -i $(BOOT_IMG) -n 64 -h 255 -T 131072 -v "BOOT IMG" -C ::
+	mcopy -i $(BOOT_IMG) $(LINUX_PATH)/arch/arm64/boot/Image ::
+	mcopy -i $(BOOT_IMG) $(LINUX_PATH)/arch/arm64/boot/dts/arm/foundation-v8.dtb ::
+	mmd -i $(BOOT_IMG) ::/EFI
+	mmd -i $(BOOT_IMG) ::/EFI/BOOT
+	mcopy -i $(BOOT_IMG) $(GEN_ROOTFS_PATH)/filesystem.cpio.gz ::/initrd.img
+	mcopy -i $(BOOT_IMG) $(GRUB_BIN) ::/EFI/BOOT/bootaa64.efi
+	mcopy -i $(BOOT_IMG) $(GRUB_CONFIG_PATH)/grub.cfg ::/EFI/BOOT/grub.cfg
+
+.PHONY: boot-img-clean
+boot-img-clean:
+	rm -f $(BOOT_IMG)
+
+################################################################################
 # Run targets
 ################################################################################
 # This target enforces updating root fs etc
 run: all
-	$(MAKE) update_rootfs
 	$(MAKE) run-only
 
 run-only:
-	@ln -sf $(LINUX_PATH)/arch/arm64/boot/Image $(FOUNDATION_PATH)/kernel
-	@ln -sf $(GEN_ROOTFS_PATH)/filesystem.cpio.gz $(FOUNDATION_PATH)/ramdisk.img
-	@ln -sf $(LINUX_PATH)/arch/arm64/boot/Image $(FOUNDATION_PATH)/Image
-	@ln -sf $(GEN_ROOTFS_PATH)/filesystem.cpio.gz $(FOUNDATION_PATH)/filesystem.cpio.gz
-	@ln -sf $(LINUX_PATH)/arch/arm64/boot/dts/arm/foundation-v8.dtb $(FOUNDATION_PATH)/fdt.dtb
 	@cd $(FOUNDATION_PATH); \
 	$(FOUNDATION_PATH)/models/Linux64_GCC-4.9/Foundation_Platform \
 	--arm-v8.0 \
@@ -216,5 +228,6 @@ run-only:
 	--visualization \
 	--gicv3 \
 	--data="$(ARM_TF_PATH)/build/fvp/release/bl1.bin"@0x0 \
-	--data="$(ARM_TF_PATH)/build/fvp/release/fip.bin"@0x8000000
+	--data="$(ARM_TF_PATH)/build/fvp/release/fip.bin"@0x8000000 \
+	--block-device=$(BOOT_IMG)
 
