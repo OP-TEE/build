@@ -97,6 +97,10 @@ busybox-cleaner: busybox-cleaner-common
 ################################################################################
 # EDK2 / Tianocore
 ################################################################################
+define edk2-env
+	export WORKSPACE=$(EDK2_PATH)
+endef
+
 define edk2-call
 	GCC49_AARCH64_PREFIX=$(LEGACY_AARCH64_CROSS_COMPILE) \
 		$(MAKE) -j1 -C $(EDK2_PATH) \

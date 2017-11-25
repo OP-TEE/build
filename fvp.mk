@@ -18,8 +18,8 @@ include common.mk
 ################################################################################
 ARM_TF_PATH		?= $(ROOT)/arm-trusted-firmware
 EDK2_PATH		?= $(ROOT)/edk2
-EDK2_BIN		?= $(ROOT)/Build/ArmVExpress-FVP-AArch64/RELEASE_GCC49/FV/FVP_AARCH64_EFI.fd
 EDK2_PLATFORMS_PATH	?= $(ROOT)/edk2-platforms
+EDK2_BIN		?= $(EDK2_PLATFORMS_PATH)/Build/ArmVExpress-FVP-AArch64/RELEASE_GCC49/FV/FVP_AARCH64_EFI.fd
 FOUNDATION_PATH		?= $(ROOT)/Foundation_Platformpkg
 ifeq ($(wildcard $(FOUNDATION_PATH)),)
 $(error $(FOUNDATION_PATH) does not exist)
@@ -84,10 +84,14 @@ busybox-cleaner: busybox-cleaner-common
 ################################################################################
 # EDK2 / Tianocore
 ################################################################################
+define edk2-env
+	export WORKSPACE=$(EDK2_PLATFORMS_PATH)
+endef
+
 define edk2-call
 	GCC49_AARCH64_PREFIX=$(LEGACY_AARCH64_CROSS_COMPILE) \
 	build -n `getconf _NPROCESSORS_ONLN` -a "AARCH64" \
-		-t "GCC49" -p $(EDK2_PLATFORMS_PATH)/Platform/ARM/VExpressPkg/ArmVExpress-FVP-AArch64.dsc -b RELEASE
+		-t "GCC49" -p Platform/ARM/VExpressPkg/ArmVExpress-FVP-AArch64.dsc -b RELEASE
 endef
 
 edk2: edk2-common
