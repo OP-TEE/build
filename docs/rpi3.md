@@ -94,7 +94,7 @@ Suggestions to look into regarding creating a better rootfs
   patches and OP-TEE patches into the official Raspbian Linux kernel build).
 
 Having that said, in the section below about NFS boot, we've been successfully
-using an Ubuntu based root-fs (linaro-vivid).
+using a Debian based Linaro root-fs.
 
 # 5. NFS Boot
 Booting via NFS and TFTP is quite useful for several reasons, but the obvious
@@ -273,10 +273,10 @@ used as initramfs. That is small and is good enough for testing and debugging.
 But sometimes you want to use a more traditional Linux filesystem, such as those
 that are in distros. With such filesystem you can apt-get (if Debian based)
 other useful tools, such as gdb on the device, valgrind etc to mention a few. An
-example of such a rootfs is the [linaro-vivid-developer-20151215-114.tar.gz],
-which is an Ubuntu 15.04 based filesystem. The procedure to use that filesystem
-with NFS is the same as for the CPIO based, you need to extract the files to a
-folder which is known by the NFS server (use regular `tar -xvf ...` command).
+example of such a rootfs is a Debian based [Linaro rootfs]. The procedure to use
+that filesystem with NFS is the same as for the CPIO based, you need to extract
+the files to a folder which is known by the NFS server (use regular `tar -xvf
+...` command).
 
 Then you need to copy `xtest` and `tee-supplicant` to `<NFS>/bin/`, copy
 `libtee.so*` to `<NFS>/lib/` and copy all `*.ta` files to
@@ -485,7 +485,7 @@ improvements, as usual, feel free to contribute.
 [buildroot]: https://buildroot.org
 [Bus Blaster]: http://dangerousprototypes.com/docs/Bus_Blaster
 [J-Link debuggers]: https://www.segger.com/jlink_base.html
-[linaro-vivid-developer-20151215-114.tar.gz]: http://releases.linaro.org/ubuntu/images/developer-arm64/15.12/linaro-vivid-developer-20151215-114.tar.gz
+[Linaro rootfs]: http://releases.linaro.org/debian/images/installer-arm64/latest/linaro*.tar.gz
 [LSK OP-TEE 4.4]: https://git.linaro.org/kernel/linux-linaro-stable.git/log/?h=v4.4/topic/optee
 [arm64: dt: RPI3: Add optee node]: https://github.com/linaro-swg/linux/commit/cc225a78910c37d78f8a00c80dcbf59ef7762884
 [OpenOCD]: http://openocd.org
