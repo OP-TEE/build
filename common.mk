@@ -18,13 +18,14 @@ OPTEE_TEST_PATH			?= $(ROOT)/optee_test
 OPTEE_TEST_OUT_PATH		?= $(ROOT)/optee_test/out
 OPTEE_EXAMPLES_PATH		?= $(ROOT)/optee_examples
 BENCHMARK_APP_PATH		?= $(ROOT)/optee_benchmark
-LIBYAML_LIB_PATH		?= $(BENCHMARK_APP_PATH)/libyaml/out/lib
+BENCHMARK_APP_OUT		?= $(BENCHMARK_APP_PATH)/out
+LIBYAML_LIB_OUT			?= $(BENCHMARK_APP_OUT)/libyaml/out/lib
 
 # default high verbosity. slow uarts shall specify lower if prefered
 CFG_TEE_CORE_LOG_LEVEL		?= 3
 
 # default disable latency benchmarks (over all OP-TEE layers)
-CFG_TEE_BENCHMARK			?= n
+CFG_TEE_BENCHMARK		?= n
 
 CCACHE ?= $(shell which ccache) # Don't remove this comment (space is needed)
 
@@ -429,12 +430,12 @@ filelist-tee-common: optee-client xtest optee-examples
 	@find $(OPTEE_TEST_OUT_PATH) -name "*.ta" | \
 		sed 's/\(.*\)\/\(.*\)/file \/lib\/optee_armtz\/\2 \1\/\2 444 0 0/g' \
 									>> $(fl)
-	@if [ -e $(BENCHMARK_APP_PATH)/benchmark ]; then \
+	@if [ -e $(BENCHMARK_APP_OUT)/benchmark ]; then \
 		echo "file /bin/benchmark" \
-			"$(BENCHMARK_APP_PATH)/benchmark 755 0 0"	>> $(fl); \
+			"$(BENCHMARK_APP_OUT)/benchmark 755 0 0"	>> $(fl); \
 		echo "slink /lib/libyaml-0.so.2 libyaml-0.so.2.0.5 755 0 0" \
 									>> $(fl); \
-		echo "file /lib/libyaml-0.so.2.0.5 $(LIBYAML_LIB_PATH)/libyaml-0.so.2.0.5 755 0 0" \
+		echo "file /lib/libyaml-0.so.2.0.5 $(LIBYAML_LIB_OUT)/libyaml-0.so.2.0.5 755 0 0" \
 									>> $(fl); \
 	fi
 	@if [ "$(QEMU_USERNET_ENABLE)" = "y" ]; then \
