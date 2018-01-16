@@ -239,7 +239,7 @@ strace:
 	cd $(STRACE_PATH); \
 	./bootstrap; \
 	set -e; \
-	./configure --host=$(MULTIARCH) CC="$(CCACHE)$(AARCH$(COMPILE_NS_USER)_CROSS_COMPILE)gcc" LD=$(AARCH$(COMPILE_NS_USER)_CROSS_COMPILE)ld; \
+	./configure --host=$(MULTIARCH) --enable-mpers=no CC="$(CCACHE)$(AARCH$(COMPILE_NS_USER)_CROSS_COMPILE)gcc" LD=$(AARCH$(COMPILE_NS_USER)_CROSS_COMPILE)ld; \
 	CC="$(CCACHE)$(AARCH$(COMPILE_NS_USER)_CROSS_COMPILE)gcc" LD=$(AARCH$(COMPILE_NS_USER)_CROSS_COMPILE)ld $(MAKE) -C $(STRACE_PATH)
 
 .PHONY: strace-clean
