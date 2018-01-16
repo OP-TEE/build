@@ -186,7 +186,8 @@ strace:
 ifneq ("$(wildcard $(STRACE_PATH))","")
 		cd $(STRACE_PATH) && \
 		./bootstrap && \
-		./configure --host=aarch64-linux-gnu CC=$(CROSS_COMPILE_NS_USER)gcc && \
+		./configure --host=aarch64-linux-gnu CC=$(CROSS_COMPILE_NS_USER)gcc \
+			--enable-mpers=no && \
 		CC=$(CROSS_COMPILE_NS_USER)gcc $(MAKE)
 endif
 
