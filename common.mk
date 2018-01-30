@@ -170,7 +170,7 @@ busybox-clean-common:
 .PHONY: busybox-cleaner-common
 busybox-cleaner-common:
 	rm -rf $(GEN_ROOTFS_PATH)/build
-	rm -rf $(GEN_ROOTFS_PATH)/filelist-final.txt
+	rm -f $(GEN_ROOTFS_PATH)/filelist-final.txt
 
 ################################################################################
 # Linux
