@@ -33,9 +33,9 @@ BOOT_IMG		?= $(OUT_PATH)/boot-fat.uefi.img
 ################################################################################
 # Targets
 ################################################################################
-all: arm-tf boot-img edk2 grub linux optee-os optee-client xtest optee-examples
-clean: arm-tf-clean boot-img-clean busybox-clean edk2-clean grub-clean \
-	optee-os-clean optee-client-clean optee-examples-clean
+all: arm-tf boot-img edk2 grub linux optee-os
+clean: arm-tf-clean boot-img-clean buildroot-clean edk2-clean grub-clean \
+	optee-os-clean
 
 
 include toolchain.mk
@@ -68,18 +68,6 @@ arm-tf: optee-os edk2
 
 arm-tf-clean:
 	$(ARM_TF_EXPORTS) $(MAKE) -C $(ARM_TF_PATH) $(ARM_TF_FLAGS) clean
-
-################################################################################
-# Busybox
-################################################################################
-BUSYBOX_COMMON_TARGET = fvp
-BUSYBOX_CLEAN_COMMON_TARGET = fvp clean
-
-busybox: busybox-common
-
-busybox-clean: busybox-clean-common
-
-busybox-cleaner: busybox-cleaner-common
 
 ################################################################################
 # EDK2 / Tianocore
@@ -131,33 +119,6 @@ optee-os: optee-os-common
 OPTEE_OS_CLEAN_COMMON_FLAGS += PLATFORM=vexpress-fvp
 optee-os-clean: optee-os-clean-common
 
-optee-client: optee-client-common
-
-optee-client-clean: optee-client-clean-common
-
-################################################################################
-# xtest / optee_test
-################################################################################
-xtest: xtest-common
-
-xtest-clean: xtest-clean-common
-
-xtest-patch: xtest-patch-common
-
-################################################################################
-# Sample applications / optee_examples
-################################################################################
-optee-examples: optee-examples-common
-
-optee-examples-clean: optee-examples-clean-common
-
-################################################################################
-# Root FS
-################################################################################
-filelist-tee: filelist-tee-common
-
-update_rootfs: update_rootfs-common
-
 ################################################################################
 # grub
 ################################################################################
@@ -201,14 +162,14 @@ grub-clean:
 # Boot Image
 ################################################################################
 .PHONY: boot-img
-boot-img: linux grub update_rootfs
+boot-img: linux grub buildroot
 	rm -f $(BOOT_IMG)
 	mformat -i $(BOOT_IMG) -n 64 -h 255 -T 131072 -v "BOOT IMG" -C ::
 	mcopy -i $(BOOT_IMG) $(LINUX_PATH)/arch/arm64/boot/Image ::
 	mcopy -i $(BOOT_IMG) $(LINUX_PATH)/arch/arm64/boot/dts/arm/foundation-v8.dtb ::
 	mmd -i $(BOOT_IMG) ::/EFI
 	mmd -i $(BOOT_IMG) ::/EFI/BOOT
-	mcopy -i $(BOOT_IMG) $(GEN_ROOTFS_PATH)/filesystem.cpio.gz ::/initrd.img
+	mcopy -i $(BOOT_IMG) $(ROOT)/out-br/images/rootfs.cpio.gz ::/initrd.img
 	mcopy -i $(BOOT_IMG) $(GRUB_BIN) ::/EFI/BOOT/bootaa64.efi
 	mcopy -i $(BOOT_IMG) $(GRUB_CONFIG_PATH)/grub.cfg ::/EFI/BOOT/grub.cfg
 
