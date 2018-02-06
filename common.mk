@@ -309,20 +309,29 @@ endif
 optee-os-clean-common: xtest-clean optee-examples-clean
 	$(MAKE) -C $(OPTEE_OS_PATH) $(OPTEE_OS_CLEAN_COMMON_FLAGS) clean
 
-OPTEE_CLIENT_COMMON_FLAGS ?= CROSS_COMPILE=$(CROSS_COMPILE_NS_USER) \
-	CFG_TEE_BENCHMARK=$(CFG_TEE_BENCHMARK) \
+OPTEE_CLIENT_COMMON_FLAGS ?= CFG_TEE_BENCHMARK=$(CFG_TEE_BENCHMARK)
 
 .PHONY: optee-client-common
 optee-client-common:
-	$(MAKE) -C $(OPTEE_CLIENT_PATH) $(OPTEE_CLIENT_COMMON_FLAGS)
+	@if [ ! -e $(OPTEE_CLIENT_PATH)/out ]; then \
+		cd $(OPTEE_CLIENT_PATH)/ && autoreconf --install && \
+		mkdir -p out; \
+	fi
+	@cd $(OPTEE_CLIENT_PATH)/out && \
+		../configure --host=$(MULTIARCH) CC=$(CROSS_COMPILE_NS_USER)gcc \
+			--prefix=$(OPTEE_CLIENT_EXPORT) \
+			$(OPTEE_CLIENT_COMMON_FLAGS) && \
+		make && \
+		make install
 
 # OPTEE_CLIENT_CLEAN_COMMON_FLAGS can be defined in specific makefiles
 # (hikey.mk,...) if necessary
 
 .PHONY: optee-client-clean-common
 optee-client-clean-common:
-	$(MAKE) -C $(OPTEE_CLIENT_PATH) $(OPTEE_CLIENT_CLEAN_COMMON_FLAGS) \
-		clean
+	@test ! -e $(OPTEE_CLIENT_PATH)/out || \
+		$(MAKE) -C $(OPTEE_CLIENT_PATH)/out \
+			distclean
 
 ################################################################################
 # xtest / optee_test
