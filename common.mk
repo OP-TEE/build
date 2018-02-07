@@ -173,6 +173,60 @@ busybox-cleaner-common:
 	rm -rf $(GEN_ROOTFS_PATH)/filelist-final.txt
 
 ################################################################################
+# Build root
+################################################################################
+BUILDROOT_ARCH=aarch$(COMPILE_NS_USER)
+BUILDROOT_GETTY_PORT ?= \
+	$(if $(CFG_NW_CONSOLE_UART),ttyAMA$(CFG_NW_CONSOLE_UART),ttyAMA0)
+.PHONY: buildroot
+buildroot: optee-os
+	@mkdir -p ../out-br
+	@rm -f ../out-br/build/optee_*/.stamp_*
+	@rm -f ../out-br/extra.conf
+	@touch ../out-br/extra.conf
+	@echo "BR2_TARGET_GENERIC_GETTY_PORT=\"$(BUILDROOT_GETTY_PORT)\"" >> \
+		../out-br/extra.conf
+	@echo "BR2_PACKAGE_OPTEE_TEST_CROSS_COMPILE=\"$(CROSS_COMPILE_S_USER)\"" >> \
+		../out-br/extra.conf
+	@echo "BR2_PACKAGE_OPTEE_EXAMPLES_CROSS_COMPILE=\"$(CROSS_COMPILE_S_USER)\"" >> \
+		../out-br/extra.conf
+	@echo "BR2_PACKAGE_OPTEE_TEST_SDK=\"$(OPTEE_OS_TA_DEV_KIT_DIR)\"" >> \
+		../out-br/extra.conf
+	@echo "BR2_PACKAGE_OPTEE_EXAMPLES_SDK=\"$(OPTEE_OS_TA_DEV_KIT_DIR)\"" >> \
+		../out-br/extra.conf
+	@echo "BR2_PACKAGE_OPTEE_CLIENT_SITE=\"$(OPTEE_CLIENT_PATH)\"" >> \
+		../out-br/extra.conf
+	@echo "BR2_PACKAGE_OPTEE_TEST_SITE=\"$(OPTEE_TEST_PATH)\"" >> \
+		../out-br/extra.conf
+	@echo "BR2_PACKAGE_OPTEE_EXAMPLES_SITE=\"$(OPTEE_EXAMPLES_PATH)\"" >> \
+		../out-br/extra.conf
+	@echo "BR2_PACKAGE_OPTEE_BENCHMARK_SITE=\"$(BENCHMARK_APP_PATH)\"" >> \
+		../out-br/extra.conf
+	@echo "BR2_PACKAGE_OPTEE_TEST=y" >> ../out-br/extra.conf
+	@echo "BR2_PACKAGE_OPTEE_EXAMPLES=y" >> ../out-br/extra.conf
+	@echo "BR2_PACKAGE_STRACE=y" >> ../out-br/extra.conf
+ifeq ($(CFG_TEE_BENCHMARK),y)
+	@echo "BR2_PACKAGE_OPTEE_BENCHMARK=y" >> ../out-br/extra.conf
+endif
+	@(cd .. && python build/br-ext/scripts/make_def_config.py \
+		--br buildroot --out out-br --br-ext build/br-ext \
+		--top-dir "$(ROOT)" \
+		--br-defconfig build/br-ext/configs/optee_$(BUILDROOT_ARCH) \
+		--br-defconfig build/br-ext/configs/optee_generic \
+		--br-defconfig build/br-ext/configs/toolchain-$(BUILDROOT_ARCH)\
+		--br-defconfig out-br/extra.conf \
+		--make-cmd $(MAKE))
+	@$(MAKE) -C ../out-br all
+
+.PHONY: buildroot-clean
+buildroot-clean:
+	@test ! -d $(ROOT)/out-br || $(MAKE) -C $(ROOT)/out-br clean
+
+.PHONY: buildroot-cleaner
+buildroot-cleaner:
+	@rm -rf $(ROOT)/out-br
+
+################################################################################
 # Linux
 ################################################################################
 ifeq ($(CFG_TEE_BENCHMARK),y)
