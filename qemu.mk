@@ -24,14 +24,9 @@ DEBUG = 1
 ################################################################################
 # Targets
 ################################################################################
-ifeq ($(CFG_TEE_BENCHMARK),y)
-all: benchmark-app
-clean: benchmark-app-clean
-endif
-all: bios-qemu qemu soc-term optee-examples
-clean: bios-qemu-clean busybox-clean linux-clean optee-os-clean \
-	optee-client-clean qemu-clean soc-term-clean check-clean \
-	optee-examples-clean
+all: bios-qemu qemu soc-term linux
+clean: bios-qemu-clean linux-clean optee-os-clean \
+	qemu-clean soc-term-clean check-clean buildroot-clean
 
 include toolchain.mk
 
@@ -45,14 +40,13 @@ define bios-qemu-common
 		PLATFORM_FLAVOR=virt
 endef
 
-bios-qemu: update_rootfs optee-os
+bios-qemu: buildroot optee-os linux
 	mkdir -p $(BINARIES_PATH)
 	ln -sf $(OPTEE_OS_HEADER_V2_BIN) $(BINARIES_PATH)
 	ln -sf $(OPTEE_OS_PAGER_V2_BIN) $(BINARIES_PATH)
 	ln -sf $(OPTEE_OS_PAGEABLE_V2_BIN) $(BINARIES_PATH)
 	ln -sf $(LINUX_PATH)/arch/arm/boot/zImage $(BINARIES_PATH)
-	ln -sf $(GEN_ROOTFS_PATH)/filesystem.cpio.gz \
-		$(BINARIES_PATH)/rootfs.cpio.gz
+	ln -sf $(ROOT)/out-br/images/rootfs.cpio.gz $(BINARIES_PATH)
 	$(call bios-qemu-common)
 
 bios-qemu-clean:
@@ -65,18 +59,6 @@ qemu:
 
 qemu-clean:
 	$(MAKE) -C $(QEMU_PATH) distclean
-
-################################################################################
-# Busybox
-################################################################################
-BUSYBOX_COMMON_TARGET = vexpress
-BUSYBOX_CLEAN_COMMON_TARGET = vexpress clean
-
-busybox: busybox-common
-
-busybox-clean: busybox-clean-common
-
-busybox-cleaner: busybox-cleaner-common
 
 ################################################################################
 # Linux kernel
@@ -123,36 +105,6 @@ soc-term:
 
 soc-term-clean:
 	$(MAKE) -C $(SOC_TERM_PATH) clean
-
-################################################################################
-# xtest / optee_test
-################################################################################
-xtest: xtest-common
-
-xtest-clean: xtest-clean-common
-
-xtest-patch: xtest-patch-common
-
-################################################################################
-# Sample applications / optee_examples
-################################################################################
-optee-examples: optee-examples-common
-
-optee-examples-clean: optee-examples-clean-common
-
-################################################################################
-# benchmark
-################################################################################
-benchmark-app: benchmark-app-common
-
-benchmark-app-clean: benchmark-app-clean-common
-
-################################################################################
-# Root FS
-################################################################################
-filelist-tee: filelist-tee-common
-
-update_rootfs: update_rootfs-common
 
 ################################################################################
 # Run targets
