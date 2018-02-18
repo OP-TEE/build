@@ -112,7 +112,12 @@ endef
 
 edk2: edk2-common
 
-edk2-clean: edk2-clean-common
+edk2-clean:
+	$(call edk2-env) && \
+	export PACKAGES_PATH=$(EDK2_PATH):$(ROOT)/edk2-platforms && \
+	source $(EDK2_PATH)/edksetup.sh && \
+	$(MAKE) -j1 -C $(EDK2_PATH)/BaseTools clean && \
+	$(call edk2-call) clean
 
 
 
