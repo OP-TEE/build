@@ -191,9 +191,11 @@ endif
 
 strace-clean:
 ifneq ("$(wildcard $(STRACE_PATH))","")
-		CC=$(CROSS_COMPILE_NS_USER)gcc \
-			$(MAKE) -C $(STRACE_PATH) clean && \
-		rm -f $(STRACE_PATH)/Makefile $(STRACE_PATH)/configure
+		if [ -e $(STRACE_PATH)/Makefile ] ; then \
+			CC=$(CROSS_COMPILE_NS_USER)gcc \
+				$(MAKE) -C $(STRACE_PATH) clean && \
+			rm -f $(STRACE_PATH)/Makefile $(STRACE_PATH)/configure; \
+		fi
 endif
 
 ################################################################################
