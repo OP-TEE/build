@@ -66,6 +66,6 @@ script:
                 slug=$TRAVIS_REPO_SLUG
                 branch=$TRAVIS_BRANCH
         fi
-  - cd $HOME/$REPO_PROJ/build && git remote add github https://github.com/$slug && git remote update
-  - cd $HOME/$REPO_PROJ/build && git checkout github/$branch
+  - cd $HOME/$REPO_PROJ/build && git remote add github_remote https://github.com/$slug && git remote update
+  - cd $HOME/$REPO_PROJ/build && git checkout github_remote/$branch
   - cd $HOME/$REPO_PROJ/build && make -f toolchain.mk toolchains -j3 && make all -j`nproc`
