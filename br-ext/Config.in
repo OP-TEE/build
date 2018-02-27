@@ -1,0 +1,4 @@
+source "$BR2_EXTERNAL_OPTEE_PATH/package/optee_client/Config.in"
+source "$BR2_EXTERNAL_OPTEE_PATH/package/optee_test/Config.in"
+source "$BR2_EXTERNAL_OPTEE_PATH/package/optee_examples/Config.in"
+source "$BR2_EXTERNAL_OPTEE_PATH/package/optee_benchmark/Config.in"
