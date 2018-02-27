@@ -1,0 +1,26 @@
+config BR2_PACKAGE_OPTEE_EXAMPLES
+	bool "optee_examples"
+	help
+	  http://github.org/OP-TEE/optee_examples
+
+if BR2_PACKAGE_OPTEE_EXAMPLES
+
+config BR2_PACKAGE_OPTEE_EXAMPLES_SITE
+	string "OP-TEE examples path"
+	default ""
+	help
+	  The path to the source directory of OP-TEE examples
+
+config BR2_PACKAGE_OPTEE_EXAMPLES_SDK
+	string "OPTEE SDK path"
+	default ""
+	help
+	  some help
+
+config BR2_PACKAGE_OPTEE_EXAMPLES_CROSS_COMPILE
+	string "OPTEE cross compiler"
+	default ""
+	help
+	  some help
+
+endif

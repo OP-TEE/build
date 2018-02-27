@@ -1,0 +1,13 @@
+config BR2_PACKAGE_OPTEE_BENCHMARK
+	bool "optee_benchmark"
+	select BR2_PACKAGE_LIBYAML
+	help
+	  http://github.org/OP-TEE/optee_benchmark
+
+if BR2_PACKAGE_OPTEE_BENCHMARK
+config BR2_PACKAGE_OPTEE_BENCHMARK_SITE
+	string "OP-TEE benchmark path"
+	default ""
+	help
+	  The path to the source directory of OP-TEE benchmark
+endif

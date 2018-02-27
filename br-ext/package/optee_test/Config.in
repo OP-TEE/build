@@ -1,0 +1,27 @@
+config BR2_PACKAGE_OPTEE_TEST
+	bool "optee_test"
+	select BR2_PACKAGE_OPTEE_CLIENT
+	help
+	  http://github.org/OP-TEE/optee_test
+
+if BR2_PACKAGE_OPTEE_TEST
+
+config BR2_PACKAGE_OPTEE_TEST_SITE
+	string "OP-TEE test path"
+	default ""
+	help
+	  The path to the source directory of OP-TEE test
+
+config BR2_PACKAGE_OPTEE_TEST_SDK
+	string "OPTEE SDK path"
+	default ""
+	help
+	  some help
+
+config BR2_PACKAGE_OPTEE_TEST_CROSS_COMPILE
+	string "OPTEE cross compiler"
+	default ""
+	help
+	  some help
+
+endif
