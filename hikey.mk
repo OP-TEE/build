@@ -367,6 +367,7 @@ atf-fb-clean:
 lloader: arm-tf atf-fb
 	cd $(LLOADER_PATH) && \
 		ln -sf $(ARM_TF_PATH)/build/hikey/$(ARM_TF_BUILD)/bl1.bin && \
+		ln -sf $(ARM_TF_PATH)/build/hikey/$(ARM_TF_BUILD)/bl2.bin && \
 		ln -sf $(ATF_FB_PATH)/build/hikey/$(ATF_FB_BUILD)/bl1.bin fastboot.bin && \
 		$(MAKE) hikey PTABLE_LST=linux-$(CFG_FLASH_SIZE)g CROSS_COMPILE="$(CCACHE)$(AARCH32_CROSS_COMPILE)"
 
@@ -415,11 +416,11 @@ recovery:
 	@echo
 	$(call flash_help)
 	@echo
-	python $(ROOT)/burn-boot/hisi-idt.py --img1=$(LLOADER_PATH)/l-loader.bin
+	python $(ROOT)/burn-boot/hisi-idt.py --img1=$(LLOADER_PATH)/recovery.bin
+	fastboot flash loader $(LLOADER_PATH)/l-loader.bin
 	@echo
 	@echo "3. Wait until you see the (UART) message"
-	@echo "    \"Enter downloading mode. Please run fastboot command on Host.\""
-	@echo "    \"usb: online (highspeed)\""
+	@echo "    \"Enter fastboot mode...\""
 	@$(MAKE) --no-print flash FROM_RECOVERY=1
 
 .PHONY: flash

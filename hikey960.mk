@@ -339,6 +339,7 @@ boot-img-clean:
 lloader: arm-tf edk2
 	cd $(LLOADER_PATH) && \
 		ln -sf $(ARM_TF_PATH)/build/hikey960/$(ARM_TF_BUILD)/bl1.bin && \
+		ln -sf $(ARM_TF_PATH)/build/hikey960/$(ARM_TF_BUILD)/bl2.bin && \
 		ln -sf $(EDK2_BIN) && \
 		$(MAKE) hikey960 PTABLE_LST=linux-32g
 
@@ -358,7 +359,7 @@ endef
 recov_cfg:
 	@echo "./sec_usb_xloader.img 0x00020000" > $(IMAGE_TOOLS_CONFIG)
 	@echo "./sec_uce_boot.img 0x6A908000" >> $(IMAGE_TOOLS_CONFIG)
-	@echo "./l-loader.bin 0x1AC00000" >> $(IMAGE_TOOLS_CONFIG)
+	@echo "./recovery.bin 0x1AC00000" >> $(IMAGE_TOOLS_CONFIG)
 
 .PHONY: recovery
 recovery: recov_cfg
@@ -382,7 +383,7 @@ recovery: recov_cfg
 	@read -r -p "Enter the device node. Press enter for /dev/ttyUSB1: " DEV && \
 		DEV=$${DEV:-/dev/ttyUSB1} && \
 		cd $(IMAGE_TOOLS_PATH) && \
-		ln -sf $(LLOADER_PATH)/l-loader.bin && \
+		ln -sf $(LLOADER_PATH)/recovery.bin && \
 		sudo ./hikey_idt -c $(IMAGE_TOOLS_CONFIG) -p $$DEV && \
 		rm -f $(IMAGE_TOOLS_CONFIG)
 	@echo
@@ -409,11 +410,13 @@ endif
 	@echo "Wait until you see the (UART) message"
 	@echo "    \"Android Fastboot mode - version x.x.\""
 	@echo "     Press RETURN or SPACE key to quit.\""
+	@echo "It can take a while for the fastboot device to come up,"
+	@echo "so please wait ~10 seconds."
 	@read -r -p "Then press enter to continue flashing" dummy
 	@echo
 	fastboot flash ptable $(LLOADER_PATH)/prm_ptable.img
 	fastboot flash xloader $(IMAGE_TOOLS_PATH)/sec_xloader.img
 	fastboot flash fastboot $(LLOADER_PATH)/l-loader.bin
 	fastboot flash fip $(ARM_TF_PATH)/build/hikey960/$(ARM_TF_BUILD)/fip.bin
-	fastboot flash nvme $(IMAGE_TOOLS_PATH)/nvme.img
+	fastboot flash nvme $(IMAGE_TOOLS_PATH)/hisi-nvme.img
 	fastboot flash boot $(BOOT_IMG)
