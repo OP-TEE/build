@@ -52,14 +52,14 @@ expect {
 		info "!!! Timeout\n"
 		exit 1
 	}
-	"Please press Enter to activate this console. "
+	"ogin:"
 }
-send -- "\r"
-expect "root@Vexpress:/ "
+send -- "root\r\r"
+expect "# "
 info " done, guest is booted.\n"
 # Toolchain libraries might be here or there
 send -- "export LD_LIBRARY_PATH=/lib:/lib/arm-linux-gnueabihf\r"
-expect "root@Vexpress:/ "
+expect "# "
 info "Running: $cmd...\n"
 send -- "$cmd\r"
 set casenum "none"
