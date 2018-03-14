@@ -109,10 +109,19 @@ endif
 ################################################################################
 # set the compiler when COMPILE_xxx are defined
 ################################################################################
+
+
+ifeq ($(COMPILE_LEGACY),)
 CROSS_COMPILE_NS_USER   ?= "$(CCACHE)$(AARCH$(COMPILE_NS_USER)_CROSS_COMPILE)"
 CROSS_COMPILE_NS_KERNEL ?= "$(CCACHE)$(AARCH$(COMPILE_NS_KERNEL)_CROSS_COMPILE)"
 CROSS_COMPILE_S_USER    ?= "$(CCACHE)$(AARCH$(COMPILE_S_USER)_CROSS_COMPILE)"
 CROSS_COMPILE_S_KERNEL  ?= "$(CCACHE)$(AARCH$(COMPILE_S_KERNEL)_CROSS_COMPILE)"
+else
+CROSS_COMPILE_NS_USER   ?= "$(CCACHE)$(LEGACY_AARCH$(COMPILE_NS_USER)_CROSS_COMPILE)"
+CROSS_COMPILE_NS_KERNEL ?= "$(CCACHE)$(LEGACY_AARCH$(COMPILE_NS_KERNEL)_CROSS_COMPILE)"
+CROSS_COMPILE_S_USER    ?= "$(CCACHE)$(LEGACY_AARCH$(COMPILE_S_USER)_CROSS_COMPILE)"
+CROSS_COMPILE_S_KERNEL  ?= "$(CCACHE)$(LEGACY_AARCH$(COMPILE_S_KERNEL)_CROSS_COMPILE)"
+endif
 
 ifeq ($(COMPILE_S_USER),32)
 OPTEE_OS_TA_DEV_KIT_DIR	?= $(OPTEE_OS_PATH)/out/arm/export-ta_arm32
@@ -176,6 +185,11 @@ busybox-cleaner-common:
 # Build root
 ################################################################################
 BUILDROOT_ARCH=aarch$(COMPILE_NS_USER)
+ifeq ($(COMPILE_LEGACY),)
+BUILDROOT_TOOLCHAIN=toolchain-aarch$(COMPILE_NS_USER)
+else
+BUILDROOT_TOOLCHAIN=toolchain-aarch$(COMPILE_NS_USER)-legacy
+endif
 BUILDROOT_GETTY_PORT ?= \
 	$(if $(CFG_NW_CONSOLE_UART),ttyAMA$(CFG_NW_CONSOLE_UART),ttyAMA0)
 .PHONY: buildroot
@@ -213,7 +227,7 @@ endif
 		--top-dir "$(ROOT)" \
 		--br-defconfig build/br-ext/configs/optee_$(BUILDROOT_ARCH) \
 		--br-defconfig build/br-ext/configs/optee_generic \
-		--br-defconfig build/br-ext/configs/toolchain-$(BUILDROOT_ARCH)\
+		--br-defconfig build/br-ext/configs/$(BUILDROOT_TOOLCHAIN) \
 		--br-defconfig out-br/extra.conf \
 		--make-cmd $(MAKE))
 	@$(MAKE) -C ../out-br all
