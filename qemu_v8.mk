@@ -28,14 +28,9 @@ DEBUG = 1
 ################################################################################
 # Targets
 ################################################################################
-ifeq ($(CFG_TEE_BENCHMARK),y)
-all: benchmark-app
-clean: benchmark-app-clean
-endif
-all: arm-tf edk2 qemu soc-term linux update_rootfs optee-examples
-clean: arm-tf-clean busybox-clean edk2-clean linux-clean \
-	optee-os-clean optee-client-clean qemu-clean \
-	soc-term-clean check-clean strace-clean optee-examples-clean
+all: arm-tf qemu soc-term linux buildroot
+clean: arm-tf-clean edk2-clean linux-clean optee-os-clean qemu-clean \
+	soc-term-clean check-clean buildroot-clean
 
 include toolchain.mk
 
@@ -80,19 +75,6 @@ qemu:
 
 qemu-clean:
 	$(MAKE) -C $(QEMU_PATH) distclean
-
-################################################################################
-# Busybox
-################################################################################
-BUSYBOX_COMMON_TARGET = fvp
-BUSYBOX_CLEAN_COMMON_TARGET = fvp clean
-BUSYBOX_COMMON_CCDIR = $(AARCH64_PATH)
-
-busybox: busybox-common
-
-busybox-clean: busybox-clean-common
-
-busybox-cleaner: busybox-cleaner-common
 
 ################################################################################
 # EDK2 / Tianocore
@@ -161,59 +143,6 @@ soc-term:
 soc-term-clean:
 	$(MAKE) -C $(SOC_TERM_PATH) clean
 
-################################################################################
-# xtest / optee_test
-################################################################################
-xtest: xtest-common
-
-xtest-clean: xtest-clean-common
-
-xtest-patch: xtest-patch-common
-
-################################################################################
-# Sample applications / optee_examples
-################################################################################
-optee-examples: optee-examples-common
-
-optee-examples-clean: optee-examples-clean-common
-
-################################################################################
-# strace
-################################################################################
-strace:
-ifneq ("$(wildcard $(STRACE_PATH))","")
-		cd $(STRACE_PATH) && \
-		./bootstrap && \
-		./configure --host=aarch64-linux-gnu CC=$(CROSS_COMPILE_NS_USER)gcc \
-			--enable-mpers=no && \
-		CC=$(CROSS_COMPILE_NS_USER)gcc $(MAKE)
-endif
-
-strace-clean:
-ifneq ("$(wildcard $(STRACE_PATH))","")
-		if [ -e $(STRACE_PATH)/Makefile ] ; then \
-			CC=$(CROSS_COMPILE_NS_USER)gcc \
-				$(MAKE) -C $(STRACE_PATH) clean && \
-			rm -f $(STRACE_PATH)/Makefile $(STRACE_PATH)/configure; \
-		fi
-endif
-
-################################################################################
-# benchmark
-################################################################################
-benchmark-app: benchmark-app-common
-
-benchmark-app-clean: benchmark-app-clean-common
-
-################################################################################
-# Root FS
-################################################################################
-filelist-tee: strace filelist-tee-common
-ifneq ("$(wildcard $(STRACE_PATH)/strace)","")
-	@echo "file /bin/strace $(STRACE_PATH)/strace 755 0 0" >> $(GEN_ROOTFS_FILELIST)
-endif
-
-update_rootfs: update_rootfs-common
 
 ################################################################################
 # Run targets
@@ -236,7 +165,7 @@ run-only:
 		-serial tcp:localhost:54320 -serial tcp:localhost:54321 \
 		-machine virt,secure=on -cpu cortex-a57 -m 1057 -bios $(ARM_TF_PATH)/build/qemu/release/bl1.bin \
 		-s -S -semihosting-config enable,target=native -d unimp \
-		-initrd $(GEN_ROOTFS_PATH)/filesystem.cpio.gz \
+		-initrd $(ROOT)/out-br/images/rootfs.cpio.gz \
 		-kernel $(LINUX_PATH)/arch/arm64/boot/Image -no-acpi \
 		-append 'console=ttyAMA0,38400 keep_bootcon root=/dev/vda2' \
 		$(QEMU_EXTRA_ARGS)
