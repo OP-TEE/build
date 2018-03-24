@@ -74,7 +74,7 @@ Below is a table showing the platforms supported by build.git. OP-TEE as such
 supports many more platforms, but since quite a few of the other platforms are
 maintained by people outside Linaro or are using a special setup, we encourage
 you to talk to the maintainer of that platform directly if you have build
-related questions etc. Please see the [MAINTAINERS.md] file for contact
+related questions etc. Please see the [MAINTAINERS] file for contact
 information.
 
 <!-- Please keep this list sorted in alphabetic order -->
@@ -259,7 +259,7 @@ Please have a look at out [FAQ] file for a list of questions commonly asked.
 [hikey.md]: ./docs/hikey.md
 [manifest/README.md]: https://github.com/OP-TEE/manifest/blob/master/README.md
 [mtk8173.md]: ./docs/mtk8173.md
-[MAINTAINERS.md]: https://github.com/OP-TEE/optee_os/blob/master/MAINTAINERS.md
+[MAINTAINERS]: https://github.com/OP-TEE/optee_os/blob/master/MAINTAINERS
 [OP-TEE/README.md]: https://github.com/OP-TEE/optee_os/blob/master/README.md
 [qemu.md]: ./docs/qemu.md
 [repo]: https://source.android.com/source/downloading.html
