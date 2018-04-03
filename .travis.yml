@@ -38,10 +38,8 @@ env:
   - $REPO_PROJ=hikey
   - $REPO_PROJ=hikey960
   - $REPO_PROJ=juno
-  - $REPO_PROJ=mt8173-evb
   - $REPO_PROJ=qemu_v8
   - $REPO_PROJ=rpi3
-  #- $REPO_PROJ=dra7xx # Cannot build this since it requires TI_SECURE_DEV_PKG
 
 before_script:
   - mkdir -p $HOME/bin
