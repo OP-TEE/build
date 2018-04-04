@@ -38,7 +38,7 @@ ARM_TF_EXPORTS ?= \
 	CROSS_COMPILE="$(CCACHE)$(AARCH64_CROSS_COMPILE)"
 
 ARM_TF_FLAGS ?= \
-	SCP_BL2=$(ROOT)/vexpress-firmware/SOFTWARE/bl30.bin \
+	SCP_BL2=$(ROOT)/vexpress-firmware/SOFTWARE/scp_bl2.bin \
 	BL32=$(OPTEE_OS_HEADER_V2_BIN) \
 	BL32_EXTRA1=$(OPTEE_OS_PAGER_V2_BIN) \
 	BL32_EXTRA2=$(OPTEE_OS_PAGEABLE_V2_BIN) \
@@ -155,7 +155,7 @@ FTP-UPLOAD = ftp-upload -v --host $(JUNO_IP) --dir SOFTWARE
 flash:
 	@test -n "$(JUNO_IP)" || \
 		(echo "JUNO_IP not set" ; exit 1)
-	$(FTP-UPLOAD) $(ROOT)/vexpress-firmware/SOFTWARE/bl0.bin
+	$(FTP-UPLOAD) $(ROOT)/vexpress-firmware/SOFTWARE/scp_bl1.bin
 	$(FTP-UPLOAD) $(ARM_TF_PATH)/build/juno/release/bl1.bin
 	$(FTP-UPLOAD) $(ARM_TF_PATH)/build/juno/release/fip.bin
 	$(FTP-UPLOAD) $(ROOT)/linux/arch/arm64/boot/Image
