@@ -415,7 +415,7 @@ endif
 	@read -r -p "Then press enter to continue flashing" dummy
 	@echo
 	fastboot flash ptable $(LLOADER_PATH)/prm_ptable.img
-	fastboot flash xloader $(IMAGE_TOOLS_PATH)/sec_xloader.img
+	fastboot flash xloader $(IMAGE_TOOLS_PATH)/hisi-sec_xloader.img
 	fastboot flash fastboot $(LLOADER_PATH)/l-loader.bin
 	fastboot flash fip $(ARM_TF_PATH)/build/hikey960/$(ARM_TF_BUILD)/fip.bin
 	fastboot flash nvme $(IMAGE_TOOLS_PATH)/hisi-nvme.img
