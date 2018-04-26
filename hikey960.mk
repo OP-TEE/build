@@ -10,6 +10,8 @@ COMPILE_S_KERNEL  ?= 64
 
 # Normal and secure world console UART: 6 (v2 or newer board) or 5 (v1 board)
 CFG_CONSOLE_UART ?= 6
+# Needed by buildroot
+CFG_NW_CONSOLE_UART ?= $(CFG_CONSOLE_UART)
 
 ################################################################################
 # Includes
@@ -52,12 +54,11 @@ STRACE_PATH			?=$(ROOT)/strace
 all: arm-tf boot-img lloader
 
 .PHONY: clean
-clean: arm-tf-clean busybox-clean edk2-clean linux-clean optee-os-clean \
-		optee-client-clean xtest-clean optee-examples-clean strace-clean \
-		update_rootfs-clean boot-img-clean lloader-clean grub-clean
+clean: arm-tf-clean buildroot-clean edk2-clean linux-clean optee-os-clean \
+		boot-img-clean lloader-clean grub-clean
 
 .PHONY: cleaner
-cleaner: clean prepare-cleaner busybox-cleaner linux-cleaner strace-cleaner grub-cleaner
+cleaner: clean prepare-cleaner buildroot-cleaner linux-cleaner grub-cleaner
 
 include toolchain.mk
 
@@ -96,21 +97,6 @@ arm-tf: optee-os edk2
 .PHONY: arm-tf-clean
 arm-tf-clean:
 	$(ARM_TF_EXPORTS) $(MAKE) -C $(ARM_TF_PATH) $(ARM_TF_FLAGS) clean
-
-################################################################################
-# Busybox
-################################################################################
-BUSYBOX_COMMON_TARGET = hikey960 nocpio
-BUSYBOX_CLEAN_COMMON_TARGET = hikey960 clean
-
-.PHONY: busybox
-busybox: busybox-common
-
-.PHONY: busybox-clean
-busybox-clean: busybox-clean-common
-
-.PHONY: busybox-cleaner
-busybox-cleaner: busybox-clean-common busybox-cleaner-common
 
 ################################################################################
 # EDK2 / Tianocore
@@ -201,68 +187,6 @@ optee-os: optee-os-common
 .PHONY: optee-os-clean
 optee-os-clean: optee-os-clean-common
 
-.PHONY: optee-client
-optee-client: optee-client-common
-
-.PHONY: optee-client-clean
-optee-client-clean: optee-client-clean-common
-
-################################################################################
-# xtest / optee_test
-################################################################################
-.PHONY: xtest
-xtest: xtest-common
-
-# FIXME:
-# "make clean" in xtest: fails if optee_os has been cleaned previously
-.PHONY: xtest-clean
-xtest-clean: xtest-clean-common
-	rm -rf $(OPTEE_TEST_OUT_PATH)
-
-.PHONY: xtest-patch
-xtest-patch: xtest-patch-common
-
-################################################################################
-# Sample applications / optee_examples
-################################################################################
-.PHONY: optee-examples
-optee-examples: optee-examples-common
-
-.PHONY: optee-examples-clean
-optee-examples-clean: optee-examples-clean-common
-
-################################################################################
-# strace
-################################################################################
-.PHONY: strace
-strace:
-	cd $(STRACE_PATH); \
-	./bootstrap; \
-	set -e; \
-	./configure --host=$(MULTIARCH) --enable-mpers=no CC="$(CCACHE)$(AARCH$(COMPILE_NS_USER)_CROSS_COMPILE)gcc" LD=$(AARCH$(COMPILE_NS_USER)_CROSS_COMPILE)ld; \
-	CC="$(CCACHE)$(AARCH$(COMPILE_NS_USER)_CROSS_COMPILE)gcc" LD=$(AARCH$(COMPILE_NS_USER)_CROSS_COMPILE)ld $(MAKE) -C $(STRACE_PATH)
-
-.PHONY: strace-clean
-strace-clean:
-	if [ -e $(STRACE_PATH)/Makefile ]; then $(MAKE) -C $(STRACE_PATH) clean; fi
-
-.PHONY: strace-cleaner
-strace-cleaner: strace-clean
-	rm -f $(STRACE_PATH)/Makefile $(STRACE_PATH)/configure
-
-################################################################################
-# Root FS
-################################################################################
-.PHONY: filelist-tee
-filelist-tee: strace filelist-tee-common
-	env TOP=$(ROOT) $(expand-env-var) <$(PATCHES_PATH)/rootfs/initramfs-add-files.txt >> $(GEN_ROOTFS_FILELIST)
-
-.PHONY: update_rootfs
-update_rootfs: update_rootfs-common
-
-.PHONY: update_rootfs-clean
-update_rootfs-clean: update_rootfs-clean-common
-
 ################################################################################
 # grub
 ################################################################################
@@ -316,7 +240,7 @@ GRUBCFG = $(PATCHES_PATH)/grub/grub_uart5.cfg
 endif
 
 .PHONY: boot-img
-boot-img: linux update_rootfs edk2 grub
+boot-img: linux buildroot edk2 grub
 	rm -f $(BOOT_IMG)
 	mformat -i $(BOOT_IMG) -n 64 -h 255 -T 131072 -v "BOOT IMG" -C ::
 	mcopy -i $(BOOT_IMG) $(LINUX_PATH)/arch/arm64/boot/Image ::
@@ -325,7 +249,7 @@ boot-img: linux update_rootfs edk2 grub
 	mmd -i $(BOOT_IMG) ::/EFI/BOOT
 	mcopy -i $(BOOT_IMG) $(OUT_PATH)/grubaa64.efi ::/EFI/BOOT/
 	mcopy -i $(BOOT_IMG) $(GRUBCFG) ::/EFI/BOOT/grub.cfg
-	mcopy -i $(BOOT_IMG) $(GEN_ROOTFS_PATH)/filesystem.cpio.gz ::/initrd.img
+	mcopy -i $(BOOT_IMG) $(ROOT)/out-br/images/rootfs.cpio.gz ::/initrd.img
 	mcopy -i $(BOOT_IMG) $(EDK2_PATH)/Build/HiKey960/$(EDK2_BUILD)_$(EDK2_TOOLCHAIN)/$(EDK2_ARCH)/AndroidFastbootApp.efi ::/EFI/BOOT/fastboot.efi
 
 .PHONY: boot-img-clean
