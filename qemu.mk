@@ -181,7 +181,7 @@ ifneq ($(filter check,$(MAKECMDGOALS)),)
 CHECK_DEPS := all
 endif
 
-check-args := --bios $(ROOT)/out/bios-qemu/bios.bin
+check-args := --bios $(BINARIES_PATH)/bl1.bin
 ifneq ($(TIMEOUT),)
 check-args += --timeout $(TIMEOUT)
 endif
