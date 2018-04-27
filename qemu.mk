@@ -63,6 +63,7 @@ ARM_TF_FLAGS ?= \
 
 arm-tf: optee-os bios-qemu
 	$(ARM_TF_EXPORTS) $(MAKE) -C $(ARM_TF_PATH) $(ARM_TF_FLAGS) all fip
+	mkdir -p $(BINARIES_PATH)
 	ln -sf $(ARM_TF_OUT)/bl1.bin $(BINARIES_PATH)
 	ln -sf $(ARM_TF_OUT)/bl2.bin $(BINARIES_PATH)
 	ln -sf $(OPTEE_OS_HEADER_V2_BIN) $(BINARIES_PATH)/bl32.bin
@@ -85,6 +86,7 @@ endef
 
 bios-qemu:
 	$(call bios-qemu-common)
+	mkdir -p $(BINARIES_PATH)
 	ln -sf $(ROOT)/out/bios-qemu/bios.bin $(BINARIES_PATH)
 
 bios-qemu-clean:
