@@ -14,10 +14,9 @@ include common.mk
 # Paths to git projects and various binaries
 ################################################################################
 ARM_TF_PATH			?= $(ROOT)/arm-trusted-firmware
+BINARIES_PATH			?= $(ROOT)/out/bin
 BIOS_QEMU_PATH			?= $(ROOT)/bios_qemu_tz_arm
 QEMU_PATH			?= $(ROOT)/qemu
-BINARIES_PATH			?= $(ROOT)/out/bin
-
 SOC_TERM_PATH			?= $(ROOT)/soc_term
 
 DEBUG = 1
@@ -25,9 +24,9 @@ DEBUG = 1
 ################################################################################
 # Targets
 ################################################################################
-all: arm-tf bios-qemu qemu soc-term linux
-clean: arm-tf-clean bios-qemu-clean linux-clean optee-os-clean \
-	qemu-clean soc-term-clean check-clean buildroot-clean
+all: arm-tf bios-qemu buildroot linux optee-os qemu soc-term
+clean: arm-tf-clean bios-qemu-clean buildroot-clean linux-clean optee-os-clean \
+	qemu-clean soc-term-clean check-clean
 
 include toolchain.mk
 
@@ -84,7 +83,7 @@ define bios-qemu-common
 		PLATFORM_FLAVOR=virt
 endef
 
-bios-qemu: buildroot optee-os linux
+bios-qemu:
 	$(call bios-qemu-common)
 	ln -sf $(ROOT)/out/bios-qemu/bios.bin $(BINARIES_PATH)
 
