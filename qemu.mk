@@ -155,6 +155,8 @@ run: all
 	ln -sf $(ROOT)/out-br/images/rootfs.cpio.gz $(BINARIES_PATH)/
 	$(MAKE) run-only
 
+QEMU_SMP ?= 1
+
 .PHONY: run-only
 run-only:
 	$(call check-terminal)
@@ -165,6 +167,7 @@ run-only:
 	(cd $(BINARIES_PATH) && $(QEMU_PATH)/arm-softmmu/qemu-system-arm \
 		-nographic \
 		-serial tcp:localhost:54320 -serial tcp:localhost:54321 \
+		-smp $(QEMU_SMP) \
 		-s -S -machine virt -machine secure=on -cpu cortex-a15 \
 		-d unimp  -semihosting-config enable,target=native \
 		-m 1057 \
@@ -181,7 +184,6 @@ ifneq ($(TIMEOUT),)
 check-args += --timeout $(TIMEOUT)
 endif
 
-QEMU_SMP ?= 1
 check: $(CHECK_DEPS)
 	cd $(BINARIES_PATH) && \
 		export QEMU=$(ROOT)/qemu/arm-softmmu/qemu-system-arm && \
