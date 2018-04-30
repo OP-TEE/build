@@ -1,0 +1,45 @@
+config BR2_PACKAGE_OPTEE_OS
+	bool "optee_os"
+	select BR2_PACKAGE_OPENSSL
+	help
+	  http://github.org/OP-TEE/optee_os
+
+if BR2_PACKAGE_OPTEE_OS
+
+config BR2_PACKAGE_OPTEE_OS_PLATFORM
+	string "PLATFORM"
+	help
+	  Value for the PLATFORM directive provided to OP-TEE OS.
+
+config BR2_PACKAGE_OPTEE_OS_PLATFORM_FLAVOR
+	string "PLATFORM_FLAVOR"
+	help
+	  Value for the optional PLATFORM_FLAVOR directive provided to
+	  OP-TEE OS.
+
+
+config BR2_PACKAGE_OPTEE_OS_BUILD
+	bool "Build optee_os core and devkit from scratch"
+	default false
+	help
+	  If enabled, the OP-TEE OS core and trusted libraries.
+
+config BR2_PACKAGE_OPTEE_OS_SERVICES
+	bool "services from optee_os"
+	default false
+	help
+	  Build and embed the generic services trusted applications from
+	  optee_os.
+
+config BR2_PACKAGE_OPTEE_OS_SDK
+	string "OPTEE SDK path"
+	help
+	  If set, use the TA devkit path provided in configuration directive.
+
+config BR2_PACKAGE_OPTEE_OS_ADDITIONAL_VARIABLES
+	string "addition configuration directives
+	help
+	  Any additional configuration directives provided to OP-TEE OS, e.g
+	  "CFG_TEE_CODE_DEBUG=y CFG_TEE_CORE_LOG_LEVEL=3"
+endif
+
