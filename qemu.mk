@@ -187,6 +187,7 @@ check-args += --timeout $(TIMEOUT)
 endif
 
 check: $(CHECK_DEPS)
+	ln -sf $(ROOT)/out-br/images/rootfs.cpio.gz $(BINARIES_PATH)/
 	cd $(BINARIES_PATH) && \
 		export QEMU=$(ROOT)/qemu/arm-softmmu/qemu-system-arm && \
 		export QEMU_SMP=$(QEMU_SMP) && \
