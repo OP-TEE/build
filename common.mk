@@ -222,6 +222,11 @@ buildroot: optee-os
 ifeq ($(CFG_TEE_BENCHMARK),y)
 	@echo "BR2_PACKAGE_OPTEE_BENCHMARK=y" >> ../out-br/extra.conf
 endif
+	@echo "BR2_PACKAGE_OPTEE_OS=y" >> ../out-br/extra.conf
+	@echo "BR2_PACKAGE_OPTEE_OS_BUILD=n" >> ../out-br/extra.conf
+	@echo "BR2_PACKAGE_OPTEE_OS_SERVICES=y" >> ../out-br/extra.conf
+	@echo "BR2_PACKAGE_OPTEE_OS_SDK=\"$(OPTEE_OS_TA_DEV_KIT_DIR)\"" >> \
+		../out-br/extra.conf
 	@(cd .. && python build/br-ext/scripts/make_def_config.py \
 		--br buildroot --out out-br --br-ext build/br-ext \
 		--top-dir "$(ROOT)" \
