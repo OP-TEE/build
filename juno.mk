@@ -23,11 +23,8 @@ U-BOOT_BIN		?= $(U-BOOT_PATH)/u-boot.bin
 ################################################################################
 # Targets
 ################################################################################
-all: arm-tf u-boot linux optee-os optee-client xtest optee-examples \
-	update_rootfs
-clean: arm-tf-clean busybox-clean u-boot-clean optee-os-clean \
-	optee-client-clean optee-examples-clean
-
+all: arm-tf u-boot linux optee-os buildroot
+clean: arm-tf-clean buildroot-clean u-boot-clean optee-os-clean
 
 include toolchain.mk
 
@@ -53,18 +50,6 @@ arm-tf: optee-os u-boot
 
 arm-tf-clean:
 	$(ARM_TF_EXPORTS) $(MAKE) -C $(ARM_TF_PATH) $(ARM_TF_FLAGS) clean
-
-################################################################################
-# Busybox
-################################################################################
-BUSYBOX_COMMON_TARGET = fvp
-BUSYBOX_CLEAN_COMMON_TARGET = fvp clean
-
-busybox: busybox-common
-
-busybox-clean: busybox-clean-common
-
-busybox-cleaner: busybox-cleaner-common
 
 ################################################################################
 # Das U-Boot
@@ -118,41 +103,15 @@ optee-os: optee-os-common
 OPTEE_OS_CLEAN_COMMON_FLAGS += PLATFORM=vexpress-juno
 optee-os-clean: optee-os-clean-common
 
-optee-client: optee-client-common
 
-optee-client-clean: optee-client-clean-common
-################################################################################
-# xtest / optee_test
-################################################################################
-xtest: xtest-common
-
-xtest-clean: xtest-clean-common
-
-xtest-patch: xtest-patch-common
-
-################################################################################
-# Sample applications / optee_examples
-################################################################################
-optee-examples: optee-examples-common
-
-optee-examples-clean: optee-examples-clean-common
-
-################################################################################
-# Root FS
-################################################################################
-filelist-tee: filelist-tee-common
-
-.PHONY: update_rootfs
-update_rootfs: u-boot
-update_rootfs: update_rootfs-common
+$(ROOT)/out-br/images/ramdisk.img: $(ROOT)/out-br/images/rootfs.cpio.gz
 	$(U-BOOT_PATH)/tools/mkimage -A arm64 -O linux -T ramdisk -C gzip \
-		-d $(GEN_ROOTFS_PATH)/filesystem.cpio.gz \
-		$(GEN_ROOTFS_PATH)/ramdisk.img
+		-d $< $@
 
 FTP-UPLOAD = ftp-upload -v --host $(JUNO_IP) --dir SOFTWARE
 
 .PHONY: flash
-flash:
+flash: $(ROOT)/out-br/images/ramdisk.img
 	@test -n "$(JUNO_IP)" || \
 		(echo "JUNO_IP not set" ; exit 1)
 	$(FTP-UPLOAD) $(ROOT)/vexpress-firmware/SOFTWARE/scp_bl1.bin
@@ -162,4 +121,4 @@ flash:
 	$(FTP-UPLOAD) $(ROOT)/linux/arch/arm64/boot/dts/arm/juno.dtb
 	$(FTP-UPLOAD) $(ROOT)/linux/arch/arm64/boot/dts/arm/juno-r1.dtb
 	$(FTP-UPLOAD) $(ROOT)/linux/arch/arm64/boot/dts/arm/juno-r2.dtb
-	$(FTP-UPLOAD) $(ROOT)/gen_rootfs/ramdisk.img
+	$(FTP-UPLOAD) $(ROOT)/out-br/images/ramdisk.img
