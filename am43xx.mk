@@ -8,6 +8,9 @@ override COMPILE_NS_KERNEL := 32
 override COMPILE_S_USER    := 32
 override COMPILE_S_KERNEL  := 32
 
+# Need to set this before including common.mk
+BUILDROOT_GETTY_PORT ?= ttyS0
+
 ###############################################################################
 # Includes
 ###############################################################################
@@ -28,7 +31,6 @@ FIT_MAKEFILE    ?= $(BUILD_PATH)/ti/Makefile
 OPTEE_PLATFORM  ?= ti-am43xx
 U-BOOT_CONFIG   ?= am43xx_hs_evm_defconfig
 CONFIG_TYPE     ?= ti_sdk_am4x_debug
-BUSYBOX_TARGET  ?= am43xx
 
 ###############################################################################
 # Include common to TI builds
