@@ -20,6 +20,7 @@ OPTEE_EXAMPLES_PATH		?= $(ROOT)/optee_examples
 BENCHMARK_APP_PATH		?= $(ROOT)/optee_benchmark
 BENCHMARK_APP_OUT		?= $(BENCHMARK_APP_PATH)/out
 LIBYAML_LIB_OUT			?= $(BENCHMARK_APP_OUT)/libyaml/out/lib
+BUILDROOT_TARGET_ROOT		?= $(ROOT)/out-br/target
 
 # default high verbosity. slow uarts shall specify lower if prefered
 CFG_TEE_CORE_LOG_LEVEL		?= 3

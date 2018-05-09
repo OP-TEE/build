@@ -3,10 +3,8 @@
 ###############################################################################
 .PHONY: all clean cleaner prepare
 
-all: u-boot linux optee-os optee-client xtest build-fit \
-	update_rootfs optee-examples
-clean: linux-clean busybox-clean u-boot-clean optee-os-clean \
-	optee-client-clean build-fit-clean optee-examples-clean
+all: u-boot linux optee-os build-fit buildroot
+clean: linux-clean u-boot-clean optee-os-clean build-fit-clean buildroot-clean
 cleaner: clean prepare-cleaner busybox-cleaner linux-cleaner
 
 include toolchain.mk
@@ -67,34 +65,6 @@ optee-client: optee-client-common
 optee-client-clean: optee-client-clean-common
 
 ###############################################################################
-# xtest / optee_test
-###############################################################################
-.PHONY: xtest xtest-clean xtest-patch
-
-xtest: xtest-common
-xtest-clean: xtest-clean-common
-xtest-patch: xtest-patch-common
-
-################################################################################
-# Sample applications / optee_examples
-################################################################################
-optee-examples: optee-examples-common
-
-optee-examples-clean: optee-examples-clean-common
-
-###############################################################################
-# Busybox
-###############################################################################
-.PHONY: busybox busybox-clean busybox-cleaner
-
-BUSYBOX_COMMON_TARGET = $(BUSYBOX_TARGET)
-BUSYBOX_CLEAN_COMMON_TARGET = $(BUSYBOX_COMMON_TARGET) clean
-
-busybox: busybox-common
-busybox-clean: busybox-clean-common
-busybox-cleaner: busybox-cleaner-common
-
-###############################################################################
 # Build FIT
 ###############################################################################
 .PHONY: build-fit build-fit-clean
@@ -117,12 +87,15 @@ build-fit-clean:
 ###############################################################################
 # Root FS
 ###############################################################################
-.PHONY: filelist-tee update_rootfs
+.PHONY: update_rootfs
+# Make sure this is built before the buildroot target which will create the
+# root file system based on what's in $(BUILDROOT_TARGET_ROOT)
+buildroot: update_rootfs
 
-filelist-tee: filelist-tee-common u-boot build-fit
-	@echo "dir /boot 755 0 0" >> $(GEN_ROOTFS_FILELIST)
-	@echo "file /boot/MLO $(UBOOT_SPL) 644 0 0" >> $(GEN_ROOTFS_FILELIST)
-	@echo "file /boot/u-boot.img $(UBOOT_IMG) 644 0 0" >> $(GEN_ROOTFS_FILELIST)
-	@echo "file /boot/fitImage $(STAGING_AREA)/fitImage 644 0 0" >> $(GEN_ROOTFS_FILELIST)
-
-update_rootfs: update_rootfs-common
+update_rootfs: u-boot build-fit
+	@mkdir -p --mode=755 $(BUILDROOT_TARGET_ROOT)/boot
+	@install -v -p --mode=644 $(UBOOT_SPL) $(BUILDROOT_TARGET_ROOT)/boot/MLO
+	@install -v -p --mode=644 $(UBOOT_IMG) \
+		$(BUILDROOT_TARGET_ROOT)/boot/u-boot.img
+	@install -v -p --mode=644 $(STAGING_AREA)/fitImage \
+		$(BUILDROOT_TARGET_ROOT)/boot/fitImage
