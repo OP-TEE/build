@@ -77,7 +77,7 @@ define edk2-env
 endef
 
 define edk2-call
-	GCC49_AARCH64_PREFIX=$(LEGACY_AARCH64_CROSS_COMPILE) \
+	GCC49_AARCH64_PREFIX=$(AARCH64_CROSS_COMPILE) \
 	build -n `getconf _NPROCESSORS_ONLN` -a "AARCH64" \
 		-t "GCC49" -p Platform/ARM/VExpressPkg/ArmVExpress-FVP-AArch64.dsc -b RELEASE
 endef
