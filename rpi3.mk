@@ -83,7 +83,7 @@ arm-tf-clean:
 # Das U-Boot
 ################################################################################
 
-U-BOOT_EXPORTS ?= CROSS_COMPILE=$(LEGACY_AARCH64_CROSS_COMPILE) ARCH=arm64
+U-BOOT_EXPORTS ?= CROSS_COMPILE=$(AARCH64_CROSS_COMPILE) ARCH=arm64
 
 .PHONY: u-boot
 u-boot: $(RPI3_HEAD_BIN)
