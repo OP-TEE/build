@@ -152,6 +152,8 @@ soc-term-clean:
 run: all
 	$(MAKE) run-only
 
+QEMU_SMP ?= 1
+
 .PHONY: run-only
 run-only:
 	$(call check-terminal)
@@ -163,6 +165,7 @@ run-only:
 	$(QEMU_PATH)/aarch64-softmmu/qemu-system-aarch64 \
 		-nographic \
 		-serial tcp:localhost:54320 -serial tcp:localhost:54321 \
+		-smp $(QEMU_SMP) \
 		-machine virt,secure=on -cpu cortex-a57 -m 1057 -bios $(ARM_TF_PATH)/build/qemu/release/bl1.bin \
 		-s -S -semihosting-config enable,target=native -d unimp \
 		-initrd $(ROOT)/out-br/images/rootfs.cpio.gz \
