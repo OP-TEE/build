@@ -84,6 +84,7 @@ information.
 | [ARM Foundation FVP](http://www.arm.com/fvp) |`PLATFORM=vexpress-fvp`| Yes |
 | [HiKey Board (HiSilicon Kirin 620)](https://www.96boards.org/products/hikey)|`PLATFORM=hikey`| Yes |
 | [MediaTek MT8173 EVB Board](http://www.mediatek.com/en/products/mobile-communications/tablet/mt8173)|`PLATFORM=mediatek-mt8173`| No |
+| [Poplar](https://www.96boards.org/product/poplar/)|`PLATFORM=poplar`| Yes |
 | [QEMU](http://wiki.qemu.org/Main_Page) |`PLATFORM=vexpress-qemu_virt`| Yes |
 | [QEMUv8](http://wiki.qemu.org/Main_Page) |`PLATFORM=vexpress-qemu_armv8a`| Yes |
 | [Raspberry Pi 3](https://www.raspberrypi.org/products/raspberry-pi-3-model-b) |`PLATFORM=rpi3`| Yes |
@@ -101,6 +102,7 @@ Here is a list of manifests for the devices currently supported.
 | FVP | `fvp.xml` | `fvp_stable.xml` | [fvp.md] |
 | HiKey | `hikey.xml` | `hikey_stable.xml` | [hikey.md] |
 | HiKey Debian | `hikey_debian.xml` | `hikey_debian_stable.xml`| [hikey.md] |
+| Poplar Debian | `poplar.xml` | | [] |
 | MediaTek MT8173 EVB Board | `mt8173-evb.xml` | `mt8173-evb_stable.xml` | [mtk8173.md] |
 | ARM Juno board| `juno.xml` | `juno_stable.xml` | [juno.md] |
 | Raspberry Pi 3 | `rpi3.xml` | `rpi3_stable.xml` | [rpi3.md] |
