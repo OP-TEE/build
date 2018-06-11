@@ -195,12 +195,12 @@ lrwxrwxrwx  1 jbech  jbech         90 Sep 13 11:19 bcm2710-rpi-3-b.dtb -> /home/
 
 ### 5.3.2 The root FS
 We are now going to put the root fs on the location we prepared in the previous
-section (5.2). The path to the `filesystem.cpio.gz` will differ on your machine,
+section (5.2). The path to the `rootfs.cpio.gz` will differ on your machine,
 so update accordingly.
 
 ```bash
 $ cd /srv/nfs/rpi
-$ sudo gunzip -cd /home/jbech/devel/optee_projects/rpi3/build/../gen_rootfs/filesystem.cpio.gz | sudo cpio -idmv
+$ sudo gunzip -cd /home/jbech/devel/optee_projects/rpi3/out-br/images/rootfs.cpio.gz | sudo cpio -idmv
 $ sudo rm -rf /srv/nfs/rpi/boot/*
 ```
 
