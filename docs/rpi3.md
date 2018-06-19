@@ -44,9 +44,7 @@ help out making proper upstream patches sooner or later.
 
 | Project | Base fork | What to do |
 |---------|-----------|------------|
-| linux | https://github.com/Electron752/linux.git commit: b48d47a32b2f27f55904e7248dbe5f8ff434db0a | Three things here. 1. The base is a fork itself and should be upstreamed. 2. Apply patch [arm64: dt: RPI3: Add optee node] 3. We have cherry picked the patches from [LSK OP-TEE 4.4] |
-| arm-trusted-firmware | https://github.com/96boards-hikey/arm-trusted-firmware commit: bdec62eeb8f3153a4647770e08aafd56a0bcd42b | This should instead be based on the official OP-TEE fork or even better the official ARM repository. The patch itself should also be upstreamed. |
-| U-boot | https://github.com:linaro-swg/u-boot.git | This is just a mirror of the official U-boot git. The patches should be upstreamed. |
+| linux | https://github.com/raspberrypi/linux.git commit: e0d2b2b6df54f175dc73eb294976e756fa68d57d | Three things here. 1. The base is a fork itself and should be upstreamed. 2. Apply patch [arm64: dt: RPI3: Add optee node] |
 
 # 3. Build instructions
 - First thing to pay attention to the [OP-TEE prerequisites]. If you forget
@@ -97,16 +95,14 @@ Having that said, in the section below about NFS boot, we've been successfully
 using a Debian based Linaro root-fs.
 
 # 5. NFS Boot
-Booting via NFS and TFTP is quite useful for several reasons, but the obvious
+Booting via NFS is quite useful for several reasons, but the obvious
 reason when working with Raspberry Pi is that you don't have to move the
 SD-card back and forth between the host machine and the RPi itself. Below we
-will describe how to setup both the TFTP part and the NFS part so we have both
-ways covered. We will get kernel, optee.bin and the device tree blob from the
-tftpd server and we will get the root fs from the NFS server. Note that this
-guide doesn't focus on any desktop security, so eventually you would need to
-harden your setup. Another thing is that this seems like a lot of steps, and it
-is, but most of them is something you do once and never more and it will save
-tons of time in the long run.
+will describe how to setup NFS server, so the rootfs can be mounted via NFS.
+Note that this guide doesn't focus on any desktop security, 
+so eventually you would need to harden your setup. Another thing is that 
+this seems like a lot of steps, and it is, but most of them is something you
+do once and never more and it will save tons of time in the long run.
 
 Note also, that this particular guide is written for the ARMv8-A setup using
 OP-TEE. But, it should work on plain RPi also if you change U-boot and
@@ -118,37 +114,7 @@ HOST_IP=192.168.1.100   <--- This is your desktop computer
 RPI_IP=192.168.1.200    <--- This is the Raspberry Pi
 ```
 
-## 5.1 Configure TFTPD
-There are several different servers to use, but in the description we're going
-to use `atftpd`, so start by apt-get that package.
-```bash
-$ sudo apt-get install atftpd
-```
-
-Next edit the configuration file for atftpd
-```bash
-$ sudo vim /etc/default/atftpd
-```
-
-And change the file so it looks exactly like this, nothing less, nothing more!
-```
-USE_INETD=false
-OPTIONS="--tftpd-timeout 300 --retry-timeout 5 --mcast-port 1758 --mcast-addr 239.239.239.0-255 --mcast-ttl 1 --maxthread 100 --verbose=5 /tftpboot"
-```
-
-Create the tftpboot folder and change the permissions
-```bash
-$ sudo mkdir /tftpboot
-$ sudo chmod -R 777 /tftpboot
-$ sudo chown -R nobody /tftpboot
-```
-
-And finally restart the daemon
-```bash
-$ sudo /etc/init.d/atftpd restart
-```
-
-## 5.2 Configure NFS
+## 5.1 Configure NFS
 Start by installing the NFS server
 ```bash
 $ sudo apt-get install nfs-kernel-server
@@ -178,22 +144,8 @@ After this, restart the nfs kernel server
 $ service nfs-kernel-server restart
 ```
 
-## 5.3 Prepare files to be shared.
-We need to prepare and put the files on the tftpd and the NFS-server. There are
-several ways to do it, copy files, symlink etc.
+## 5.2 Prepare files to be shared.
 
-### 5.3.1 Image, optee.bin and *.dtb
-We're just going to create symlinks. By doing so you don't have to think about
-copy files, just rebuild and you have the latest version available for the next
-boot. On my computer I've symlinked like this (in my `/tftpboot` folder):
-```
-$ ll
-lrwxrwxrwx  1 jbech  jbech         65 jul 14 09:03 Image -> /home/jbech/devel/optee_projects/rpi3/linux/arch/arm64/boot/Image
-lrwxrwxrwx  1 jbech  jbech         85 jul 14 09:03 optee.bin -> /home/jbech/devel/optee_projects/rpi3/arm-trusted-firmware/build/rpi3/debug/optee.bin
-lrwxrwxrwx  1 jbech  jbech         90 Sep 13 11:19 bcm2710-rpi-3-b.dtb -> /home/jbech/devel/optee_projects/rpi3/linux/arch/arm64/boot/dts/broadcom/bcm2710-rpi-3-b.dtb
-```
-
-### 5.3.2 The root FS
 We are now going to put the root fs on the location we prepared in the previous
 section (5.2). The path to the `rootfs.cpio.gz` will differ on your machine,
 so update accordingly.
@@ -213,7 +165,7 @@ and copying uboot.env to SD card.
 
 #### 5.4.1 Edit uboot.env.txt
 All you need to do is to edit network configuration in `build/rpi3/firmware/uboot.env.txt`.
-You have to change value of `serverip` to the IP address of your NFS/TFTP server,
+You have to change value of `serverip` to the IP address of your NFS server,
 `gatewayip` to your router IP address and `nfspath` to the exported path, where root FS
 is stored (`/srv/nfs/rpi`). Then you need to generate new `uboot.env`:
 ```bash
@@ -234,7 +186,7 @@ $ picocom -b 115200 /dev/ttyUSB0
 ```
 
 Power up the Raspberry Pi and almost immediately hit any key and you should see
-the `U-Boot>` prompt. First edit your NFS/TFTP server IP address:
+the `U-Boot>` prompt. First edit your NFS server IP address:
 ```
 U-Boot> setenv serverip '192.168.1.100'
 ```
@@ -470,17 +422,6 @@ will notice is that if you're running all on a single core, then Linux kernel
 will be a bit upset when continue running after triggering a breakpoint in
 secure world (rcu starving messages etc). If you have suggestion and or
 improvements, as usual, feel free to contribute.
-
-## 6.7 Physical memory map
-
-|Physical address|Component|
-|----------------|------|
-| 0x0            | Stubs + U-boot, U-boot self-relocates to high memory |
-| 0x80000        | Linux image        |
-| 0x01700000     | Linux DTS          |
-| 0x08000000     | Non-secure SHM     |
-| 0x08400000     | BL31               |
-| 0x08420000     | BL32 (OP-TEE core) |
 
 [buildroot]: https://buildroot.org
 [Bus Blaster]: http://dangerousprototypes.com/docs/Bus_Blaster
