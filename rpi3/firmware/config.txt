@@ -1,14 +1,3 @@
 enable_uart=1
-arm_control=0x200
-kernel_old=1
-
-kernel=u-boot-rpi.bin
-#enable_jtag_gpio=1
-
-disable_commandline_tags=1
-
-# set display mode to 1920x1080
-##hdmi_group=2
-##hdmi_mode=82
-
-
+kernel_address=0x02000000
+device_tree_address=0x01000000
