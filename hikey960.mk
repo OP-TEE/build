@@ -282,8 +282,8 @@ endef
 
 .PHONY: recov_cfg
 recov_cfg:
-	@echo "./sec_usb_xloader.img 0x00020000" > $(IMAGE_TOOLS_CONFIG)
-	@echo "./sec_uce_boot.img 0x6A908000" >> $(IMAGE_TOOLS_CONFIG)
+	@echo "./hisi-sec_usb_xloader.img 0x00020000" > $(IMAGE_TOOLS_CONFIG)
+	@echo "./hisi-sec_uce_boot.img 0x6A908000" >> $(IMAGE_TOOLS_CONFIG)
 	@echo "./recovery.bin 0x1AC00000" >> $(IMAGE_TOOLS_CONFIG)
 
 .PHONY: recovery
