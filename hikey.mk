@@ -202,7 +202,8 @@ grub-flags := CC="$(CCACHE)gcc" \
 	TARGET_OBJCOPY="$(AARCH64_CROSS_COMPILE)objcopy" \
 	TARGET_NM="$(AARCH64_CROSS_COMPILE)nm" \
 	TARGET_RANLIB="$(AARCH64_CROSS_COMPILE)ranlib" \
-	TARGET_STRIP="$(AARCH64_CROSS_COMPILE)strip"
+	TARGET_STRIP="$(AARCH64_CROSS_COMPILE)strip" \
+	--disable-werror
 
 GRUB_MODULES += boot chain configfile efinet ext2 fat gettext \
                 help linux loadenv lsefi normal part_gpt \
