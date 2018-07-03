@@ -1,0 +1,25 @@
+config BR2_PACKAGE_OPTEE_OS_SERVICES
+	bool "optee_os as package to build service TAs installed in fs"
+	help
+	  Build and install services TAs from the optee_os package
+
+if BR2_PACKAGE_OPTEE_OS_SERVICES
+
+config BR2_PACKAGE_OPTEE_OS_SERVICES_SITE
+	string "OP-TEE OS path"
+	default ""
+	help
+	  The path to the source directory of OP-TEE test
+
+config BR2_PACKAGE_OPTEE_OS_SERVICES_SDK
+	string "OP-TEE SDK path"
+	help
+	  TA devkit to use for building service TAs from optee_os.
+
+config BR2_PACKAGE_OPTEE_OS_SERVICES_CROSS_COMPILE
+	string "OP-TEE cross compiler"
+	default ""
+	help
+	  some help
+
+endif # BR2_PACKAGE_OPTEE_OS_SERVICES

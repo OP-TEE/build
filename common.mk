@@ -209,6 +209,10 @@ buildroot: optee-os
 		../out-br/extra.conf
 	@echo "BR2_PACKAGE_OPTEE_EXAMPLES_SDK=\"$(OPTEE_OS_TA_DEV_KIT_DIR)\"" >> \
 		../out-br/extra.conf
+	@echo "BR2_PACKAGE_OPTEE_OS_SERVICES_SDK=\"$(OPTEE_OS_TA_DEV_KIT_DIR)\"" >> \
+		../out-br/extra.conf
+	@echo "BR2_PACKAGE_OPTEE_OS_SERVICES_CROSS_COMPILE=\"$(CROSS_COMPILE_S_USER)\"" >> \
+		../out-br/extra.conf
 	@echo "BR2_PACKAGE_OPTEE_CLIENT_SITE=\"$(OPTEE_CLIENT_PATH)\"" >> \
 		../out-br/extra.conf
 	@echo "BR2_PACKAGE_OPTEE_TEST_SITE=\"$(OPTEE_TEST_PATH)\"" >> \
@@ -216,6 +220,8 @@ buildroot: optee-os
 	@echo "BR2_PACKAGE_OPTEE_EXAMPLES_SITE=\"$(OPTEE_EXAMPLES_PATH)\"" >> \
 		../out-br/extra.conf
 	@echo "BR2_PACKAGE_OPTEE_BENCHMARK_SITE=\"$(BENCHMARK_APP_PATH)\"" >> \
+		../out-br/extra.conf
+	@echo "BR2_PACKAGE_OPTEE_OS_SERVICES_SITE=\"$(OPTEE_OS_PATH)\"" >> \
 		../out-br/extra.conf
 	@echo "BR2_PACKAGE_OPTEE_TEST=y" >> ../out-br/extra.conf
 	@echo "BR2_PACKAGE_OPTEE_EXAMPLES=y" >> ../out-br/extra.conf
