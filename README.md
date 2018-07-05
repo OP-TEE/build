@@ -145,7 +145,7 @@ example, if you intend to use Raspberry Pi3, then `${TARGET}.xml` should be
 an existing tree (see Tips and Tricks below).
 
 ```bash
-$ mkdir -p $HOME/devel/optee
+$ mkdir -p $HOME/devel/optee # (Any directory should work.)
 $ cd $HOME/devel/optee
 $ repo init -u https://github.com/OP-TEE/manifest.git -m ${TARGET}.xml [-b ${BRANCH}]
 $ repo sync
