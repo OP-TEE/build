@@ -15,7 +15,7 @@ include common.mk
 ################################################################################
 ARM_TF_PATH			?= $(ROOT)/arm-trusted-firmware
 BINARIES_PATH			?= $(ROOT)/out/bin
-BIOS_QEMU_PATH			?= $(ROOT)/bios_qemu_tz_arm
+U-BOOT_PATH			?= $(ROOT)/u-boot
 QEMU_PATH			?= $(ROOT)/qemu
 SOC_TERM_PATH			?= $(ROOT)/soc_term
 
@@ -24,8 +24,8 @@ DEBUG = 1
 ################################################################################
 # Targets
 ################################################################################
-all: arm-tf bios-qemu buildroot linux optee-os qemu soc-term
-clean: arm-tf-clean bios-qemu-clean buildroot-clean linux-clean optee-os-clean \
+all: arm-tf u-boot buildroot linux optee-os qemu soc-term
+clean: arm-tf-clean u-boot-clean buildroot-clean linux-clean optee-os-clean \
 	qemu-clean soc-term-clean check-clean
 
 include toolchain.mk
@@ -49,7 +49,7 @@ ARM_TF_FLAGS ?= \
 	BL32=$(OPTEE_OS_HEADER_V2_BIN) \
 	BL32_EXTRA1=$(OPTEE_OS_PAGER_V2_BIN) \
 	BL32_EXTRA2=$(OPTEE_OS_PAGEABLE_V2_BIN) \
-	BL33=$(ROOT)/out/bios-qemu/bios.bin \
+	BL33=$(ROOT)/u-boot/u-boot.bin \
 	ARM_ARCH_MAJOR=7 \
 	ARCH=aarch32 \
 	PLAT=qemu \
@@ -61,7 +61,7 @@ ARM_TF_FLAGS ?= \
 	BL32_RAM_LOCATION=tdram \
 	AARCH32_SP=optee
 
-arm-tf: optee-os bios-qemu
+arm-tf: optee-os u-boot
 	$(ARM_TF_EXPORTS) $(MAKE) -C $(ARM_TF_PATH) $(ARM_TF_FLAGS) all fip
 	mkdir -p $(BINARIES_PATH)
 	ln -sf $(ARM_TF_OUT)/bl1.bin $(BINARIES_PATH)
@@ -69,7 +69,7 @@ arm-tf: optee-os bios-qemu
 	ln -sf $(OPTEE_OS_HEADER_V2_BIN) $(BINARIES_PATH)/bl32.bin
 	ln -sf $(OPTEE_OS_PAGER_V2_BIN) $(BINARIES_PATH)/bl32_extra1.bin
 	ln -sf $(OPTEE_OS_PAGEABLE_V2_BIN) $(BINARIES_PATH)/bl32_extra2.bin
-	ln -sf $(ROOT)/out/bios-qemu/bios.bin $(BINARIES_PATH)/bl33.bin
+	ln -sf $(ROOT)/u-boot/u-boot.bin $(BINARIES_PATH)/bl33.bin
 
 arm-tf-clean:
 	$(ARM_TF_EXPORTS) $(MAKE) -C $(ARM_TF_PATH) $(ARM_TF_FLAGS) clean
@@ -77,21 +77,6 @@ arm-tf-clean:
 ################################################################################
 # QEMU
 ################################################################################
-define bios-qemu-common
-	+$(MAKE) -C $(BIOS_QEMU_PATH) \
-		CROSS_COMPILE=$(CROSS_COMPILE_NS_USER) \
-		O=$(ROOT)/out/bios-qemu \
-		PLATFORM_FLAVOR=virt
-endef
-
-bios-qemu:
-	$(call bios-qemu-common)
-	mkdir -p $(BINARIES_PATH)
-	ln -sf $(ROOT)/out/bios-qemu/bios.bin $(BINARIES_PATH)
-
-bios-qemu-clean:
-	$(call bios-qemu-common) clean
-
 qemu:
 	cd $(QEMU_PATH); ./configure --target-list=arm-softmmu\
 			$(QEMU_CONFIGURE_PARAMS_COMMON)
@@ -99,6 +84,29 @@ qemu:
 
 qemu-clean:
 	$(MAKE) -C $(QEMU_PATH) distclean
+
+################################################################################
+# U-boot
+################################################################################
+U-BOOT_EXPORTS ?= CROSS_COMPILE="$(CCACHE)$(AARCH32_CROSS_COMPILE)"
+
+U-BOOT_DEFCONFIG_FILES := \
+	$(U-BOOT_PATH)/configs/qemu_arm_defconfig \
+	$(ROOT)/build/kconfigs/u-boot_qemu_virt_v7.conf
+
+.PHONY: u-boot
+u-boot:
+	cd $(U-BOOT_PATH) && \
+		scripts/kconfig/merge_config.sh $(U-BOOT_DEFCONFIG_FILES)
+	$(U-BOOT_EXPORTS) $(MAKE) -C $(U-BOOT_PATH) all
+
+.PHONY: u-boot-clean
+u-boot-clean:
+	$(U-BOOT_EXPORTS) $(MAKE) -C $(U-BOOT_PATH) clean
+
+.PHONY: u-boot-cscope
+u-boot-cscope:
+	$(U-BOOT_EXPORTS) $(MAKE) -C $(U-BOOT_PATH) cscope
 
 ################################################################################
 # Linux kernel
