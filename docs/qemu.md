@@ -43,7 +43,7 @@ rebuild QEMU.
 To mount host folder in QEMU, simply run:
 
 ```bash
-$ mount_shared <mount_point>
+$ mount -t 9p -o trans=virtio host <mount_point>
 ```
 # 5. SLiRP user networking
 To enable SLiRP user networking just set `QEMU_USERNET_ENABLE ?= y` in `common.mk`.
