@@ -46,7 +46,7 @@ OPTEE_BIN_EXTRA1	?= $(OPTEE_PATH)/out/arm/core/tee-pager_v2.bin
 OPTEE_BIN_EXTRA2	?= $(OPTEE_PATH)/out/arm/core/tee-pageable_v2.bin
 
 ROOTFS_BIN		?= linaro-stretch-developer-*.tar.gz
-ROOTFS_URL		?= http://snapshots.linaro.org/debian/images/stretch/developer-arm64/latest/$(ROOTFS_BIN)
+ROOTFS_URL		?= https://releases.linaro.org/debian/images/developer-arm64/latest/$(ROOTFS_BIN)
 
 PKG_OPTEE_VERSION	?= $(shell cd $(OPTEE_OS_PATH) && git describe)-0
 PKG_PATH		?= $(OUT_PATH)/debpkg/optee_$(PKG_OPTEE_VERSION)
