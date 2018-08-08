@@ -201,6 +201,8 @@ buildroot: optee-os
 	@touch ../out-br/extra.conf
 	@echo "BR2_TARGET_GENERIC_GETTY_PORT=\"$(BUILDROOT_GETTY_PORT)\"" >> \
 		../out-br/extra.conf
+	@echo "BR2_ROOTFS_OVERLAY=\"$(ROOT)/build/br-ext/board/qemu/overlay\"" >> \
+		../out-br/extra.conf
 	@echo "BR2_PACKAGE_OPTEE_TEST_CROSS_COMPILE=\"$(CROSS_COMPILE_S_USER)\"" >> \
 		../out-br/extra.conf
 	@echo "BR2_PACKAGE_OPTEE_EXAMPLES_CROSS_COMPILE=\"$(CROSS_COMPILE_S_USER)\"" >> \
