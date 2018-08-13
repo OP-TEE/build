@@ -175,6 +175,11 @@ LINUX_DEFCONFIG_COMMON_FILES := \
 linux-defconfig: $(LINUX_PATH)/.config
 
 LINUX_COMMON_FLAGS += ARCH=arm64
+# Avoid compile errors with GCC 8.x. These flags may be removed when
+# https://github.com/96boards-poplar/linux/pull/3 is merged.
+LINUX_COMMON_FLAGS += CFLAGS_drv_hifb_proc.o=-Wno-stringop-truncation \
+		      CFLAGS_drv_pvr_intf.o=-Wno-sizeof-pointer-memaccess \
+		      CFLAGS_drv_display.o=-Wno-array-bounds
 
 linux: linux-common
 
