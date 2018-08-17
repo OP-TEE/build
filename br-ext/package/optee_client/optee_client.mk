@@ -17,4 +17,13 @@ define OPTEE_CLIENT_INSTALL_INIT_SYSV
 	$(OPTEE_CLIENT_INSTALL_SUPPLICANT_SCRIPT)
 endef
 
+define OPTEE_CLIENT_USERS
+	tee -1 tee -1 * - /bin/sh - TEE user
+endef
+
+define OPTEE_CLIENT_PERMISSIONS
+	/data d 755 root root - - - - -
+	/data/tee d 770 tee tee - - - - -
+endef
+
 $(eval $(cmake-package))

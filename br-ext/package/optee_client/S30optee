@@ -7,8 +7,14 @@
 case "$1" in
     start)
 	if [ -e /usr/sbin/tee-supplicant -a -e /dev/teepriv0 ]; then
+		# tee-supplicant and the client applications need not run as
+		# root provided that the TEE devices and the data store have
+		# proper permissions
+		printf "Setting permissions on /dev/tee*... "
+		chown root:tee /dev/tee* && chmod 0660 /dev/tee*
+		[ $? = 0 ] && echo "OK" || echo "FAIL"
 		printf "Starting tee-supplicant... "
-		/usr/sbin/tee-supplicant -d
+		su tee -c '/usr/sbin/tee-supplicant -d'
 		[ $? = 0 ] && echo "OK" || echo "FAIL"
 	else
 		echo "tee-supplicant or TEE device not found"
