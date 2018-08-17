@@ -7,9 +7,9 @@
 case "$1" in
     start)
 	if [ -e /usr/sbin/tee-supplicant -a -e /dev/teepriv0 ]; then
-		echo "Starting tee-supplicant..."
-		/usr/sbin/tee-supplicant &
-		exit 0
+		printf "Starting tee-supplicant... "
+		/usr/sbin/tee-supplicant -d
+		[ $? = 0 ] && echo "OK" || echo "FAIL"
 	else
 		echo "tee-supplicant or TEE device not found"
 		exit 1
