@@ -37,9 +37,6 @@ CCACHE ?= $(shell which ccache) # Don't remove this comment (space is needed)
 QEMU_VIRTFS_ENABLE		?= n
 QEMU_VIRTFS_HOST_DIR	?= $(ROOT)
 
-# Enable SLiRP user networking
-QEMU_USERNET_ENABLE		?= n
-
 ################################################################################
 # Mandatory for autotools (for specifying --host)
 ################################################################################
@@ -309,10 +306,8 @@ QEMU_EXTRA_ARGS +=\
 	-device virtio-9p-device,fsdev=fsdev0,mount_tag=host
 endif
 
-ifeq ($(QEMU_USERNET_ENABLE),y)
-QEMU_EXTRA_ARGS +=\
-	-netdev user,id=vmnic -device virtio-net-device,netdev=vmnic
-endif
+# Enable QEMU SLiRP user networking
+QEMU_EXTRA_ARGS += -netdev user,id=vmnic -device virtio-net-device,netdev=vmnic
 
 define run-help
 	@echo
@@ -511,10 +506,8 @@ filelist-tee-common: optee-client xtest optee-examples
 		echo "file /lib/libyaml-0.so.2.0.5 $(LIBYAML_LIB_OUT)/libyaml-0.so.2.0.5 755 0 0" \
 									>> $(fl); \
 	fi
-	@if [ "$(QEMU_USERNET_ENABLE)" = "y" ]; then \
-		echo "slink /etc/rc.d/S02_udhcp_networking /etc/init.d/udhcpc 755 0 0" \
-		>> $(fl); \
-	fi
+	@echo "slink /etc/rc.d/S02_udhcp_networking /etc/init.d/udhcpc 755 0 0" \
+									>> $(fl);
 	@echo "# Secure storage dir" 					>> $(fl)
 	@echo "dir /data 755 0 0" 					>> $(fl)
 	@echo "dir /data/tee 755 0 0" 					>> $(fl)
