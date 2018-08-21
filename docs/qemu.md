@@ -45,12 +45,14 @@ To mount host folder in QEMU, simply run:
 ```bash
 $ mount -t 9p -o trans=virtio host <mount_point>
 ```
-# 5. SLiRP user networking
-To enable SLiRP user networking just set `QEMU_USERNET_ENABLE ?= y` in `common.mk`.
-After booting QEMU VM, eth0 will automatically receive IP address via DHCP
+# 5. Networking
+After booting the QEMU VM, `eth0` will automatically receive an IP address from
+QEMU via DHCP thanks to the SLiRP user networking feature. QEMU will act as a
+gateway to the host network [SLiRP].
 
-*Important* Take into account that ICMP doesn't work in SLiRP mode,
-so `ping` utility won't work.
+Please note that ICMP won't work in the guest unless additional configuration is
+made, so the `ping` utility won't work.
 
 [bios]: https://github.com/linaro-swg/bios_qemu_tz_arm
 [README.md]: ../README.md
+[SLiRP]: https://wiki.qemu.org/Documentation/Networking#User_Networking_.28SLIRP.29
