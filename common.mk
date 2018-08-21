@@ -183,10 +183,16 @@ busybox-cleaner-common:
 # Build root
 ################################################################################
 BUILDROOT_ARCH=aarch$(COMPILE_NS_USER)
+ifeq ($(GDBSERVER),y)
+BUILDROOT_TOOLCHAIN=toolchain-br # Use toolchain supplied by buildroot
+DEFCONFIG_GDBSERVER=--br-defconfig build/br-ext/configs/gdbserver.conf
+else
+# Local toolchains (downloaded by "make toolchains")
 ifeq ($(COMPILE_LEGACY),)
 BUILDROOT_TOOLCHAIN=toolchain-aarch$(COMPILE_NS_USER)
 else
 BUILDROOT_TOOLCHAIN=toolchain-aarch$(COMPILE_NS_USER)-legacy
+endif
 endif
 BUILDROOT_GETTY_PORT ?= \
 	$(if $(CFG_NW_CONSOLE_UART),ttyAMA$(CFG_NW_CONSOLE_UART),ttyAMA0)
@@ -230,6 +236,7 @@ endif
 		--br-defconfig build/br-ext/configs/optee_$(BUILDROOT_ARCH) \
 		--br-defconfig build/br-ext/configs/optee_generic \
 		--br-defconfig build/br-ext/configs/$(BUILDROOT_TOOLCHAIN) \
+		$(DEFCONFIG_GDBSERVER) \
 		--br-defconfig out-br/extra.conf \
 		--make-cmd $(MAKE))
 	@$(MAKE) -C ../out-br all
@@ -306,8 +313,12 @@ QEMU_EXTRA_ARGS +=\
 	-device virtio-9p-device,fsdev=fsdev0,mount_tag=host
 endif
 
+ifeq ($(GDBSERVER),y)
+HOSTFWD := ,hostfwd=tcp::12345-:12345
+endif
 # Enable QEMU SLiRP user networking
-QEMU_EXTRA_ARGS += -netdev user,id=vmnic -device virtio-net-device,netdev=vmnic
+QEMU_EXTRA_ARGS +=\
+	-netdev user,id=vmnic$(HOSTFWD) -device virtio-net-device,netdev=vmnic
 
 define run-help
 	@echo
