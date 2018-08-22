@@ -11,7 +11,8 @@ case "$1" in
 		# root provided that the TEE devices and the data store have
 		# proper permissions
 		printf "Setting permissions on /dev/tee*... "
-		chown root:tee /dev/tee* && chmod 0660 /dev/tee*
+		chown root:tee /dev/teepriv0 && chmod 0660 /dev/teepriv0 && \
+			chown root:teeclnt /dev/tee0 && chmod 0660 /dev/tee0
 		[ $? = 0 ] && echo "OK" || echo "FAIL"
 		printf "Starting tee-supplicant... "
 		su tee -c '/usr/sbin/tee-supplicant -d'
