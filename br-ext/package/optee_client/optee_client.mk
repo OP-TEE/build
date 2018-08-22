@@ -17,8 +17,13 @@ define OPTEE_CLIENT_INSTALL_INIT_SYSV
 	$(OPTEE_CLIENT_INSTALL_SUPPLICANT_SCRIPT)
 endef
 
+# User tee is used to run tee-supplicant because access to /dev/teepriv0 is
+# restricted to group tee.
+# Any user in group teeclnt (such as test) may run client applications.
 define OPTEE_CLIENT_USERS
 	tee -1 tee -1 * - /bin/sh - TEE user
+	- -1 teeclnt -1 - - - - TEE users group
+	test -1 test -1 - - /bin/sh teeclnt Test user, may run TEE client applications
 endef
 
 define OPTEE_CLIENT_PERMISSIONS
