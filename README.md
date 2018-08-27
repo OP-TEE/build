@@ -1,8 +1,5 @@
 # OP-TEE build.git
 
-<!-- Entire row is copy/pasted from Travis build status URL generation -->
-[![Build Status](https://travis-ci.org/OP-TEE/build.svg?branch=master)](https://travis-ci.org/OP-TEE/build)
-
 ## Contents
 1. [Introduction](#1-introduction)
 2. [Why repo?](#2-why-repo)
