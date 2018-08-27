@@ -308,8 +308,8 @@ Please have a look at out [FAQ] file for a list of questions commonly asked.
 [git submodules]: https://git-scm.com/book/en/v2/Git-Tools-Submodules
 [juno.md]: ./docs/juno.md
 [hikey.md]: ./docs/hikey.md
+[hikey960.md]: ./docs/hikey960.md
 [manifest/README.md]: https://github.com/OP-TEE/manifest/blob/master/README.md
-[mtk8173.md]: ./docs/mtk8173.md
 [MAINTAINERS]: https://github.com/OP-TEE/optee_os/blob/master/MAINTAINERS
 [OP-TEE/README.md]: https://github.com/OP-TEE/optee_os/blob/master/README.md
 [qemu.md]: ./docs/qemu.md
