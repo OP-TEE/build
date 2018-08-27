@@ -93,20 +93,74 @@ information.
 | [Texas Instruments AM43xx](http://www.ti.com/product/AM4379)|`PLATFORM=ti-am43xx`| Yes |
 
 # 6. Manifests
-Here is a list of manifests for the devices currently supported.
+## 6.1 Current version
+Here is a list of manifests for the devices currently supported in `build.git`.
+With these you will get a setup containing the all necessary software
+components to run OP-TEE on the chosen device. Beware that this will run latest
+available on OP-TEE gits meaning that if you re-sync then you will most likely
+get new commits. If you need a stable/tagged version with non-moving gits, then
+please refer to the next section instead.
 
-| Target | Latest (non-stable) | Stable | Device doc |
-|--------|---------------------|--------| ---------- |
-| QEMU | `default.xml` | `default_stable.xml`| [qemu.md] |
-| QEMUv8 | `qemu_v8.xml` | `qemu_v8_stable.xml` | |
-| FVP | `fvp.xml` | `fvp_stable.xml` | [fvp.md] |
-| HiKey | `hikey.xml` | `hikey_stable.xml` | [hikey.md] |
-| Poplar Debian | `poplar.xml` | | [] |
-| ARM Juno board| `juno.xml` | `juno_stable.xml` | [juno.md] |
-| Raspberry Pi 3 | `rpi3.xml` | `rpi3_stable.xml` | [rpi3.md] |
-| DRA7xx | `dra7xx.xml` | `dra7xx_stable.xml` | [ti.md] |
-| AM57xx | `am57xx.xml` | `am57xx_stable.xml` | [ti.md] |
-| AM43xx | `am43xx.xml` | `am43xx_stable.xml` | [ti.md] |
+| Target         | Manifest xml   | Device documentation |
+|----------------|----------------|----------------------|
+| QEMU           | `default.xml`  | [qemu.md]            |
+| QEMUv8         | `qemu_v8.xml`  |                      |
+| FVP            | `fvp.xml`      | [fvp.md]             |
+| HiKey          | `hikey.xml`    | [hikey.md]           |
+| HiKey 960      | `hikey960.xml` | [hikey960.md]        |
+| Poplar Debian  | `poplar.xml`   |                      |
+| ARM Juno board | `juno.xml`     | [juno.md]            |
+| Raspberry Pi 3 | `rpi3.xml`     | [rpi3.md]            |
+| DRA7xx         | `dra7xx.xml`   | [ti.md]              |
+| AM57xx         | `am57xx.xml`   | [ti.md]              |
+| AM43xx         | `am43xx.xml`   | [ti.md]              |
+
+## 6.2 Stable releases
+Starting from OP-TEE `v3.1` you can check out stable releases by using the same
+manifests as for current version above, but with the difference that **you also
+need to specify a branch** where the name corresponds to the release version.
+I.e., when we are doing releases we are creating a branch with a name
+corresponding to the release version. So, let's for example say that you want
+to checkout a stable OP-TEE `v3.2` for Raspberry Pi 3, then you do like this
+instead of what is mentioned further down in section `7.3` (note the `-b 3.2.0`):
+```bash
+...
+$ repo init -u https://github.com/OP-TEE/manifest.git -m rpi3.xml -b 3.2.0
+...
+```
+
+## 6.2.1 Stable releases prior to OP-TEE v3.1 (v1.0.0 to v3.0.0)
+Before OP-TEE `v3.1` we used to have separate xml-manifest files for the
+stable builds. If you for some reason need an older stable release, then you
+can use the `xyz_stable.xml` file corresponding to your device. The way to
+init `repo` is almost the same as described above, the major difference is the
+name of manifest being referenced (`-m xyz_stable.xml`) and that we are
+referring to a tag instead of a branch (`-b refs/tags/MAJOR.MINOR.PATCH`). So
+as an example, if you need to setup the `2.1.0` stable release for HiKey, then
+you would do like this instead of what is mentioned further down in section
+`7.3`
+```bash
+...
+repo init -u https://github.com/OP-TEE/manifest.git -m hikey_stable.xml -b refs/tags/2.1.0
+...
+```
+
+Here is a list of targets and the names of the stable manifests files which
+were supported by older releases:
+
+| Target         | Stable manifest xml       |
+|----------------|---------------------------|
+| QEMU           | `default_stable.xml`      |
+| QEMUv8         | `qemu_v8_stable.xml`      |
+| FVP            | `fvp_stable.xml`          |
+| HiKey          | `hikey_stable.xml`        |
+| HiKey Debian   | `hikey_debian_stable.xml` |
+| HiKey 960      | `hikey960_stable.xml`     |
+| ARM Juno board | `juno_stable.xml`         |
+| Raspberry Pi 3 | `rpi3_stable.xml`         |
+| DRA7xx         | `dra7xx_stable.xml`       |
+| AM57xx         | `am57xx_stable.xml`       |
+| AM43xx         | `am43xx_stable.xml`       |
 
 # 7. Get and build the solution
 Below we will describe the general way of getting the source, building the
