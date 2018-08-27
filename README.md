@@ -101,7 +101,6 @@ Here is a list of manifests for the devices currently supported.
 | QEMUv8 | `qemu_v8.xml` | `qemu_v8_stable.xml` | |
 | FVP | `fvp.xml` | `fvp_stable.xml` | [fvp.md] |
 | HiKey | `hikey.xml` | `hikey_stable.xml` | [hikey.md] |
-| HiKey Debian | `hikey_debian.xml` | `hikey_debian_stable.xml`| [hikey.md] |
 | Poplar Debian | `poplar.xml` | | [] |
 | MediaTek MT8173 EVB Board | `mt8173-evb.xml` | `mt8173-evb_stable.xml` | [mtk8173.md] |
 | ARM Juno board| `juno.xml` | `juno_stable.xml` | [juno.md] |
