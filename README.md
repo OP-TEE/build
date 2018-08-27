@@ -102,7 +102,6 @@ Here is a list of manifests for the devices currently supported.
 | FVP | `fvp.xml` | `fvp_stable.xml` | [fvp.md] |
 | HiKey | `hikey.xml` | `hikey_stable.xml` | [hikey.md] |
 | Poplar Debian | `poplar.xml` | | [] |
-| MediaTek MT8173 EVB Board | `mt8173-evb.xml` | `mt8173-evb_stable.xml` | [mtk8173.md] |
 | ARM Juno board| `juno.xml` | `juno_stable.xml` | [juno.md] |
 | Raspberry Pi 3 | `rpi3.xml` | `rpi3_stable.xml` | [rpi3.md] |
 | DRA7xx | `dra7xx.xml` | `dra7xx_stable.xml` | [ti.md] |
