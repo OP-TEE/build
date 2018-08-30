@@ -14,6 +14,11 @@ case "$1" in
 		chown root:tee /dev/teepriv0 && chmod 0660 /dev/teepriv0 && \
 			chown root:teeclnt /dev/tee0 && chmod 0660 /dev/tee0
 		[ $? = 0 ] && echo "OK" || echo "FAIL"
+		if [ -e /dev/ion ]; then
+			printf "Setting permissions on /dev/ion... "
+			chown root:ion /dev/ion && chmod 0660 /dev/ion
+			[ $? = 0 ] && echo "OK" || echo "FAIL"
+		fi
 		printf "Starting tee-supplicant... "
 		su tee -c '/usr/sbin/tee-supplicant -d'
 		[ $? = 0 ] && echo "OK" || echo "FAIL"
