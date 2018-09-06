@@ -22,7 +22,7 @@ define dltc
 	@if [ ! -d "$(1)" ]; then \
 		mkdir -p $(1); \
 		echo "Downloading $(3) ..."; \
-		curl -s -L $(2) -o $(TOOLCHAIN_ROOT)/$(3).tar.xz; \
+		curl -s -L -k $(2) -o $(TOOLCHAIN_ROOT)/$(3).tar.xz; \
 		tar xf $(TOOLCHAIN_ROOT)/$(3).tar.xz -C $(1) --strip-components=1; \
 	fi
 endef
