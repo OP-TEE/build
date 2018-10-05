@@ -167,7 +167,7 @@ run: all
 	ln -sf $(ROOT)/out-br/images/rootfs.cpio.gz $(BINARIES_PATH)/
 	$(MAKE) run-only
 
-QEMU_SMP ?= 1
+QEMU_SMP ?= 2
 
 .PHONY: run-only
 run-only:
