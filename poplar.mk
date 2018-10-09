@@ -23,14 +23,12 @@ ARM_TF_BUILD		?= release
 endif
 
 OUT_PATH		?= $(ROOT)/out
-
+ROOTFS_BIN		?= $(ROOT)/out-br/images/rootfs.tar
 ARM_TF_PATH		?= $(ROOT)/arm-trusted-firmware
 LLOADER_PATH		?= $(ROOT)/l-loader
 UBOOT_PATH		?= $(ROOT)/u-boot
-OPTEE_PATH		?= $(ROOT)/optee_os
-OPTEE_CLIENT_PATH	?= $(ROOT)/optee_client
 OPTEE_CLIENT_EXPORT	?= $(OPTEE_CLIENT_PATH)/out/export
-OPTEE_TEST_PATH		?= $(ROOT)/optee_test
+OPTEE_PATH		?= $(ROOT)/optee_os
 LINUX_PATH		?= $(ROOT)/linux
 TOOLS_PATH		?= $(ROOT)/poplar-tools
 
@@ -45,22 +43,15 @@ OPTEE_BIN		?= $(OPTEE_PATH)/out/arm/core/tee-header_v2.bin
 OPTEE_BIN_EXTRA1	?= $(OPTEE_PATH)/out/arm/core/tee-pager_v2.bin
 OPTEE_BIN_EXTRA2	?= $(OPTEE_PATH)/out/arm/core/tee-pageable_v2.bin
 
-ROOTFS_BIN		?= linaro-stretch-developer-*.tar.gz
-ROOTFS_URL		?= https://releases.linaro.org/debian/images/developer-arm64/latest/$(ROOTFS_BIN)
-
-PKG_OPTEE_VERSION	?= $(shell cd $(OPTEE_OS_PATH) && git describe)-0
-PKG_PATH		?= $(OUT_PATH)/debpkg/optee_$(PKG_OPTEE_VERSION)
-PKG_USR_BIN		?= $(PKG_PATH)/usr/bin
-PKG_CONTROL		?= $(PKG_PATH)/DEBIAN/control
-
 ################################################################################
 # Targets
 ################################################################################
 .PHONY: all
-all: u-boot arm-tf l-loader linux rootfs prepare-images deb-package | toolchains
+all: u-boot arm-tf buildroot l-loader linux prepare-images | toolchains
 
 .PHONY: clean
-clean: u-boot-clean arm-tf-clean l-loader-clean linux-clean optee-os-clean
+clean: u-boot-clean arm-tf-clean l-loader-clean linux-clean optee-os-clean \
+	buildroot-clean
 
 ################################################################################
 # Toolchain
@@ -90,24 +81,6 @@ u-boot: u-boot-config
 .PHONY: u-boot-clean
 u-boot-clean:
 	cd $(UBOOT_PATH) && git clean -xdf
-
-################################################################################
-# OP-TEE client
-################################################################################
-.PHONY: optee-client
-optee-client: optee-client-common
-
-.PHONY: optee-client-clean
-optee-client-clean: optee-client-common-clean
-
-################################################################################
-# OP-TEE xtest
-################################################################################
-.PHONY: xtest
-xtest: xtest-common
-
-.PHONY: xtest-clean
-xtest-clean: xtest-clean-common
 
 ################################################################################
 # ARM Trusted Firmware
@@ -154,17 +127,6 @@ l-loader-clean:
 	cd $(LLOADER_PATH) && git clean -xdf
 
 ################################################################################
-# rootfs
-################################################################################
-.PHONY: rootfs
-rootfs:
-	@wget -nc -P $(OUT_PATH) $(ROOTFS_URL)
-
-.PHONY: rootfs-clean
-rootfs-clean:
-	rm -f $(ROOTFS_BIN)
-
-################################################################################
 # Linux
 ################################################################################
 LINUX_DEFCONFIG_COMMON_ARCH := arm64
@@ -193,45 +155,23 @@ LINUX_CLEANER_COMMON_FLAGS += ARCH=arm64
 
 linux-cleaner: linux-cleaner-common
 
-################################################################################
-# Build package
-################################################################################
-.PHONY: deb-package
-deb-package: xtest optee-client
-	mkdir -p $(PKG_PATH)/usr/lib/aarch64-linux-gnu
-	mkdir -p $(PKG_USR_BIN)
-	mkdir -p $(PKG_PATH)/lib/optee_armtz
-	mkdir -p $(PKG_PATH)/DEBIAN
-	cp -f $(OPTEE_CLIENT_EXPORT)/bin/tee-supplicant $(PKG_USR_BIN)
-	cp -f $(OPTEE_TEST_PATH)/out/xtest/xtest $(PKG_USR_BIN)
-	cp -f $(OPTEE_CLIENT_EXPORT)/lib/libtee* $(PKG_PATH)/usr/lib/aarch64-linux-gnu
-	find $(OPTEE_TEST_PATH)/out/ta -name "*.ta" -exec cp {} $(PKG_PATH)/lib/optee_armtz \;
-	echo "Package: op-tee" > $(PKG_CONTROL)
-	echo "Version: $(PKG_OPTEE_VERSION)" >> $(PKG_CONTROL)
-	echo "Section: base" >> $(PKG_CONTROL)
-	echo "Priority: optional" >> $(PKG_CONTROL)
-	echo "Architecture: arm64" >> $(PKG_CONTROL)
-	echo "Depends:" >> $(PKG_CONTROL)
-	echo "Maintainer: OP-TEE <op-tee@linaro.org>" >> $(PKG_CONTROL)
-	echo "Description: OP-TEE client binaries, test program and Trusted Applications" >> $(PKG_CONTROL)
-	echo " Package contains tee-supplicant, libtee.so, xtest and a set of" >> $(PKG_CONTROL)
-	echo " Trusted Applications." >> $(PKG_CONTROL)
-	echo " NOTE! This package should only be used for testing and development." >> $(PKG_CONTROL)
-	echo ""
-	dpkg-deb --build $(PKG_PATH)
-
-################################################################################
-# Prepare images
-################################################################################
 .PHONY: prepare-images
-prepare-images: linux l-loader rootfs
+prepare-images: linux l-loader buildroot
 	@cp $(TOOLS_PATH)/poplar_recovery_builder.sh $(OUT_PATH)
 	@cp $(LLOADER_BIN) $(OUT_PATH)
 	@cp $(LINUX_PATH)/arch/arm64/boot/Image $(OUT_PATH)
 	@cp $(LINUX_DTB) $(OUT_PATH)
-	@cd $(OUT_PATH) && \
-		PATH=$(UBOOT_PATH)/tools:$$PATH \
-	bash ./poplar_recovery_builder.sh all "$(ROOTFS_BIN)"
+	@cd $(OUT_PATH) && PATH=$(UBOOT_PATH)/tools:$$PATH \
+	       bash ./poplar_recovery_builder.sh all "$(ROOTFS_BIN)"
+
+################################################################################
+# Buildroot/RootFS
+################################################################################
+.PHONY: update_rootfs
+update_rootfs: arm-tf u-boot
+
+.PHONY: buildroot
+buildroot: update_rootfs
 
 ################################################################################
 # Flash images
@@ -280,12 +220,4 @@ flash-help:
 	@echo "8. After successful flashing reboot your board (U-boot shell):"
 	@echo ""
 	@echo "   => reset"
-	@echo ""
-	@echo "9. Upload deb package using SCP (run on your host PC):"
-	@echo ""
-	@echo "   $$ scp optee_${PKG_OPTEE_VERSION}.deb linaro@192.168.0.2:/tmp"
-	@echo ""
-	@echo "10. Install package (run on Poplar board in bash shell):"
-	@echo ""
-	@echo "   $$ cd /tmp && dpkg --force-all -i optee*.deb"
 	@echo ""
