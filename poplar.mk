@@ -105,7 +105,7 @@ arm-tf-clean:
 ################################################################################
 # OP-TEE
 ################################################################################
-OPTEE_OS_COMMON_FLAGS += PLATFORM=poplar CFG_ARM64_core=y CFG_DRAM_SIZE_GB=2
+OPTEE_OS_COMMON_FLAGS += PLATFORM=poplar CFG_ARM64_core=y CFG_DRAM_SIZE_GB=1
 OPTEE_OS_CLEAN_COMMON_FLAGS += PLATFORM=poplar
 
 .PHONY: optee-os
@@ -132,7 +132,6 @@ l-loader-clean:
 LINUX_DEFCONFIG_COMMON_ARCH := arm64
 LINUX_DEFCONFIG_COMMON_FILES := \
 		$(LINUX_PATH)/arch/arm64/configs/poplar_defconfig \
-		$(CURDIR)/kconfigs/hikey.conf
 
 linux-defconfig: $(LINUX_PATH)/.config
 
@@ -157,6 +156,7 @@ linux-cleaner: linux-cleaner-common
 
 .PHONY: prepare-images
 prepare-images: linux l-loader buildroot
+	@mkdir -p $(OUT_PATH)
 	@cp $(TOOLS_PATH)/poplar_recovery_builder.sh $(OUT_PATH)
 	@cp $(LLOADER_BIN) $(OUT_PATH)
 	@cp $(LINUX_PATH)/arch/arm64/boot/Image $(OUT_PATH)
