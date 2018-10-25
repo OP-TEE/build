@@ -8,6 +8,8 @@ override COMPILE_NS_KERNEL := 32
 override COMPILE_S_USER    := 32
 override COMPILE_S_KERNEL  := 32
 
+BR2_ROOTFS_OVERLAY = $(ROOT)/build/br-ext/board/qemu/overlay
+
 include common.mk
 
 ################################################################################
