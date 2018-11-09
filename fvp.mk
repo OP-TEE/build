@@ -59,7 +59,7 @@ ARM_TF_FLAGS ?= \
 	BL33=$(EDK2_BIN) \
 	DEBUG=0 \
 	ARM_TSP_RAM_LOCATION=tdram \
-	FVP_USE_GIC_DRIVER=FVP_GICV3_LEGACY \
+	FVP_USE_GIC_DRIVER=FVP_GICV3 \
 	PLAT=fvp \
 	SPD=opteed
 
@@ -113,7 +113,7 @@ linux-cleaner: linux-cleaner-common
 ################################################################################
 # OP-TEE
 ################################################################################
-OPTEE_OS_COMMON_FLAGS += PLATFORM=vexpress-fvp
+OPTEE_OS_COMMON_FLAGS += PLATFORM=vexpress-fvp CFG_ARM_GICV3=y
 optee-os: optee-os-common
 
 OPTEE_OS_CLEAN_COMMON_FLAGS += PLATFORM=vexpress-fvp
