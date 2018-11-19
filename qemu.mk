@@ -183,6 +183,7 @@ run-only:
 		-d unimp  -semihosting-config enable,target=native \
 		-m 1057 \
 		-bios bl1.bin \
+		-virtfs local,id=sh0,path=$(HOME),security_model=passthrough,readonly,mount_tag=sh0 \
 		$(QEMU_EXTRA_ARGS) )
 
 

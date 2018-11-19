@@ -173,6 +173,7 @@ run-only:
 		-initrd $(ROOT)/out-br/images/rootfs.cpio.gz \
 		-kernel $(LINUX_PATH)/arch/arm64/boot/Image -no-acpi \
 		-append 'console=ttyAMA0,38400 keep_bootcon root=/dev/vda2' \
+		-virtfs local,id=sh0,path=$(HOME),security_model=passthrough,readonly,mount_tag=sh0 \
 		$(QEMU_EXTRA_ARGS)
 
 ifneq ($(filter check,$(MAKECMDGOALS)),)
