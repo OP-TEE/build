@@ -55,12 +55,11 @@ ARM_TF_FLAGS ?= \
 	ARM_ARCH_MAJOR=7 \
 	ARCH=aarch32 \
 	PLAT=qemu \
-	DEBUG=$(ARM_TF_DEBUG) \
-	ENABLE_ASSERTIONS=$(ARM_TF_DEBUG) \
-	LOG_LEVEL=$(ARM_TF_LOGLVL) \
 	ARM_TSP_RAM_LOCATION=tdram \
 	BL32_RAM_LOCATION=tdram \
-	AARCH32_SP=optee
+	AARCH32_SP=optee \
+	DEBUG=$(ARM_TF_DEBUG) \
+	LOG_LEVEL=$(ARM_TF_LOGLVL) \
 
 arm-tf: optee-os u-boot
 	$(ARM_TF_EXPORTS) $(MAKE) -C $(ARM_TF_PATH) $(ARM_TF_FLAGS) all fip
@@ -144,10 +143,6 @@ optee-os: optee-os-common
 OPTEE_OS_CLEAN_COMMON_FLAGS += PLATFORM=vexpress-qemu_virt
 optee-os-clean: optee-os-clean-common
 
-optee-client: optee-client-common
-
-optee-client-clean: optee-client-clean-common
-
 ################################################################################
 # Soc-term
 ################################################################################
@@ -163,28 +158,27 @@ soc-term-clean:
 .PHONY: run
 # This target enforces updating root fs etc
 run: all
-	ln -sf $(ROOT)/out-br/images/rootfs.cpio.gz $(BINARIES_PATH)/
 	$(MAKE) run-only
 
 QEMU_SMP ?= 2
 
 .PHONY: run-only
 run-only:
+	ln -sf $(ROOT)/out-br/images/rootfs.cpio.gz $(BINARIES_PATH)/
 	$(call check-terminal)
 	$(call run-help)
 	$(call launch-terminal,54320,"Normal World")
 	$(call launch-terminal,54321,"Secure World")
 	$(call wait-for-ports,54320,54321)
-	(cd $(BINARIES_PATH) && $(QEMU_PATH)/arm-softmmu/qemu-system-arm \
+	cd $(BINARIES_PATH) && $(QEMU_PATH)/arm-softmmu/qemu-system-arm \
 		-nographic \
 		-serial tcp:localhost:54320 -serial tcp:localhost:54321 \
 		-smp $(QEMU_SMP) \
-		-s -S -machine virt -machine secure=on -cpu cortex-a15 \
-		-d unimp  -semihosting-config enable,target=native \
+		-s -S -machine virt,secure=on -cpu cortex-a15 \
+		-d unimp -semihosting-config enable,target=native \
 		-m 1057 \
 		-bios bl1.bin \
-		$(QEMU_EXTRA_ARGS) )
-
+		$(QEMU_EXTRA_ARGS)
 
 ifneq ($(filter check,$(MAKECMDGOALS)),)
 CHECK_DEPS := all
