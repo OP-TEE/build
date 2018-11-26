@@ -16,23 +16,20 @@ include common.mk
 # Paths to git projects and various binaries
 ################################################################################
 ARM_TF_PATH		?= $(ROOT)/arm-trusted-firmware
-
+BINARIES_PATH		?= $(ROOT)/out/bin
 EDK2_PATH		?= $(ROOT)/edk2
 EDK2_BIN		?= $(EDK2_PATH)/Build/ArmVirtQemuKernel-AARCH64/DEBUG_GCC49/FV/QEMU_EFI.fd
-
 QEMU_PATH		?= $(ROOT)/qemu
-
 SOC_TERM_PATH		?= $(ROOT)/soc_term
-STRACE_PATH		?= $(ROOT)/strace
 
 DEBUG = 1
 
 ################################################################################
 # Targets
 ################################################################################
-all: arm-tf qemu soc-term linux buildroot
-clean: arm-tf-clean edk2-clean linux-clean optee-os-clean qemu-clean \
-	soc-term-clean check-clean buildroot-clean
+all: arm-tf buildroot edk2 linux optee-os qemu soc-term
+clean: arm-tf-clean buildroot-clean edk2-clean linux-clean optee-os-clean \
+	qemu-clean soc-term-clean check-clean
 
 include toolchain.mk
 
@@ -42,27 +39,37 @@ include toolchain.mk
 ARM_TF_EXPORTS ?= \
 	CROSS_COMPILE="$(CCACHE)$(AARCH64_CROSS_COMPILE)"
 
+ARM_TF_DEBUG ?= $(DEBUG)
+ifeq ($(ARM_TF_DEBUG),0)
+ARM_TF_LOGLVL ?= 30
+ARM_TF_OUT = $(ARM_TF_PATH)/build/qemu/release
+else
+ARM_TF_LOGLVL ?= 50
+ARM_TF_OUT = $(ARM_TF_PATH)/build/qemu/debug
+endif
+
 ARM_TF_FLAGS ?= \
 	BL32=$(OPTEE_OS_HEADER_V2_BIN) \
 	BL32_EXTRA1=$(OPTEE_OS_PAGER_V2_BIN) \
 	BL32_EXTRA2=$(OPTEE_OS_PAGEABLE_V2_BIN) \
 	BL33=$(EDK2_BIN) \
-	ARM_TSP_RAM_LOCATION=tdram \
 	PLAT=qemu \
-	DEBUG=0 \
-	LOG_LEVEL=50 \
+	ARM_TSP_RAM_LOCATION=tdram \
 	BL32_RAM_LOCATION=tdram \
-	SPD=opteed
+	SPD=opteed \
+	DEBUG=$(ARM_TF_DEBUG) \
+	LOG_LEVEL=$(ARM_TF_LOGLVL)
 
 arm-tf: optee-os edk2
 	$(ARM_TF_EXPORTS) $(MAKE) -C $(ARM_TF_PATH) $(ARM_TF_FLAGS) all fip
-	ln -sf $(OPTEE_OS_HEADER_V2_BIN) \
-		$(ARM_TF_PATH)/build/qemu/release/bl32.bin
-	ln -sf $(OPTEE_OS_PAGER_V2_BIN) \
-		$(ARM_TF_PATH)/build/qemu/release/bl32_extra1.bin
-	ln -sf $(OPTEE_OS_PAGEABLE_V2_BIN) \
-		$(ARM_TF_PATH)/build/qemu/release/bl32_extra2.bin
-	ln -sf $(EDK2_BIN) $(ARM_TF_PATH)/build/qemu/release/bl33.bin
+	mkdir -p $(BINARIES_PATH)
+	ln -sf $(ARM_TF_OUT)/bl1.bin $(BINARIES_PATH)
+	ln -sf $(ARM_TF_OUT)/bl2.bin $(BINARIES_PATH)
+	ln -sf $(ARM_TF_OUT)/bl31.bin $(BINARIES_PATH)
+	ln -sf $(OPTEE_OS_HEADER_V2_BIN) $(BINARIES_PATH)/bl32.bin
+	ln -sf $(OPTEE_OS_PAGER_V2_BIN) $(BINARIES_PATH)/bl32_extra1.bin
+	ln -sf $(OPTEE_OS_PAGEABLE_V2_BIN) $(BINARIES_PATH)/bl32_extra2.bin
+	ln -sf $(EDK2_BIN) $(BINARIES_PATH)/bl33.bin
 
 arm-tf-clean:
 	$(ARM_TF_EXPORTS) $(MAKE) -C $(ARM_TF_PATH) $(ARM_TF_FLAGS) clean
@@ -96,8 +103,6 @@ edk2: edk2-common
 
 edk2-clean: edk2-clean-common
 
-
-
 ################################################################################
 # Linux kernel
 ################################################################################
@@ -111,6 +116,8 @@ linux-defconfig: $(LINUX_PATH)/.config
 LINUX_COMMON_FLAGS += ARCH=arm64
 
 linux: linux-common
+	mkdir -p $(BINARIES_PATH)
+	ln -sf $(LINUX_PATH)/arch/arm64/boot/Image $(BINARIES_PATH)
 
 linux-defconfig-clean: linux-defconfig-clean-common
 
@@ -132,10 +139,6 @@ optee-os: optee-os-common
 OPTEE_OS_CLEAN_COMMON_FLAGS += PLATFORM=vexpress-qemu_armv8a
 optee-os-clean: optee-os-clean-common
 
-optee-client: optee-client-common
-
-optee-client-clean: optee-client-clean-common
-
 ################################################################################
 # Soc-term
 ################################################################################
@@ -144,7 +147,6 @@ soc-term:
 
 soc-term-clean:
 	$(MAKE) -C $(SOC_TERM_PATH) clean
-
 
 ################################################################################
 # Run targets
@@ -158,20 +160,22 @@ QEMU_SMP ?= 2
 
 .PHONY: run-only
 run-only:
+	ln -sf $(ROOT)/out-br/images/rootfs.cpio.gz $(BINARIES_PATH)/
 	$(call check-terminal)
 	$(call run-help)
 	$(call launch-terminal,54320,"Normal World")
 	$(call launch-terminal,54321,"Secure World")
 	$(call wait-for-ports,54320,54321)
-	cd $(ARM_TF_PATH)/build/qemu/release && \
-	$(QEMU_PATH)/aarch64-softmmu/qemu-system-aarch64 \
+	cd $(BINARIES_PATH) && $(QEMU_PATH)/aarch64-softmmu/qemu-system-aarch64 \
 		-nographic \
 		-serial tcp:localhost:54320 -serial tcp:localhost:54321 \
 		-smp $(QEMU_SMP) \
-		-machine virt,secure=on -cpu cortex-a57 -m 1057 -bios $(ARM_TF_PATH)/build/qemu/release/bl1.bin \
-		-s -S -semihosting-config enable,target=native -d unimp \
-		-initrd $(ROOT)/out-br/images/rootfs.cpio.gz \
-		-kernel $(LINUX_PATH)/arch/arm64/boot/Image -no-acpi \
+		-s -S -machine virt,secure=on -cpu cortex-a57 \
+		-d unimp -semihosting-config enable,target=native \
+		-m 1057 \
+		-bios bl1.bin \
+		-initrd rootfs.cpio.gz \
+		-kernel Image -no-acpi \
 		-append 'console=ttyAMA0,38400 keep_bootcon root=/dev/vda2' \
 		$(QEMU_EXTRA_ARGS)
 
