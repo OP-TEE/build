@@ -287,7 +287,7 @@ ignore step 2, then you will still get the latest from official git trees, since
 repo will also check for updates that aren't at the local reference.
 
 ### 7.10.2 Use ccache
-ccache isfaqa tool that caches build object-files etc locally on the disc and can
+ccache is a tool that caches build object-files etc locally on the disc and can
 speed up build time significantly in subsequent builds. On Debian-based systems
 (Ubuntu, Mint etc) you simply install it by running:
 ```
