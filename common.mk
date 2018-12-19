@@ -207,6 +207,10 @@ buildroot: optee-os
 ifneq (,$(BR2_ROOTFS_OVERLAY))
 	@echo "BR2_ROOTFS_OVERLAY=\"$(BR2_ROOTFS_OVERLAY)\"" >> ../out-br/extra.conf
 endif
+ifneq (,$(BR2_ROOTFS_POST_BUILD_SCRIPT))
+	@echo "BR2_ROOTFS_POST_BUILD_SCRIPT=\"$(BR2_ROOTFS_POST_BUILD_SCRIPT)\"" >> \
+		../out-br/extra.conf
+endif
 	@echo "BR2_PACKAGE_OPTEE_TEST_CROSS_COMPILE=\"$(CROSS_COMPILE_S_USER)\"" >> \
 		../out-br/extra.conf
 	@echo "BR2_PACKAGE_OPTEE_EXAMPLES_CROSS_COMPILE=\"$(CROSS_COMPILE_S_USER)\"" >> \
