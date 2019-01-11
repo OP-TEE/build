@@ -24,11 +24,11 @@ def get_args():
     return parser.parse_args()
 
 def concatenate_files(top_dir, dst, srcs):
-	with open(dst, 'w') as outfile:
-	    for fname in srcs:
-		with open(fname) as infile:
-		    for line in infile:
-			outfile.write(line.replace('%TOP_DIR%', top_dir))
+    with open(dst, 'w') as outfile:
+        for fname in srcs:
+            with open(fname) as infile:
+                for line in infile:
+                    outfile.write(line.replace('%TOP_DIR%', top_dir))
 
 def main():
     args = get_args()
