@@ -47,7 +47,7 @@ def main():
         br_ext_optee = args.br_ext_optee
     else:
         br_ext_optee = '../' + args.br_ext_optee
-        
+
     os.execlp(args.make_cmd, args.make_cmd, '-C', args.br, 'O=' + out,
               'BR2_EXTERNAL=' + br_ext_optee,
               'BR2_DEFCONFIG=' + out + '/defconfig', 'defconfig')
