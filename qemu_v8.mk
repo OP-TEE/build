@@ -22,7 +22,7 @@ EDK2_BIN		?= $(EDK2_PATH)/Build/ArmVirtQemuKernel-AARCH64/DEBUG_GCC49/FV/QEMU_EF
 QEMU_PATH		?= $(ROOT)/qemu
 SOC_TERM_PATH		?= $(ROOT)/soc_term
 
-DEBUG = 1
+DEBUG ?= 1
 
 ################################################################################
 # Targets
@@ -133,7 +133,7 @@ linux-cleaner: linux-cleaner-common
 # OP-TEE
 ################################################################################
 OPTEE_OS_COMMON_FLAGS += PLATFORM=vexpress-qemu_armv8a CFG_ARM64_core=y \
-			 DEBUG=0 CFG_PM_DEBUG=0
+			 DEBUG=$(DEBUG) CFG_PM_DEBUG=0
 optee-os: optee-os-common
 
 OPTEE_OS_CLEAN_COMMON_FLAGS += PLATFORM=vexpress-qemu_armv8a
