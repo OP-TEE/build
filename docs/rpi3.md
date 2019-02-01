@@ -110,8 +110,9 @@ filesystem accordingly.
 
 In the description below we will use the following terminology:
 ```
-HOST_IP=192.168.1.100   <--- This is your desktop computer
-RPI_IP=192.168.1.200    <--- This is the Raspberry Pi
+192.168.1.100   <--- This is your desktop computer
+192.168.1.200   <--- This is the Raspberry Pi
+/srv/nfs/rpi    <--- Location for the NFS share
 ```
 
 ## 5.1 Configure NFS
@@ -152,7 +153,7 @@ so update accordingly.
 
 ```bash
 $ cd /srv/nfs/rpi
-$ sudo gunzip -cd /home/jbech/devel/optee_projects/rpi3/out-br/images/rootfs.cpio.gz | sudo cpio -idmv
+$ sudo gunzip -cd <rpi3-project>/out-br/images/rootfs.cpio.gz | sudo cpio -idmv
 $ sudo rm -rf /srv/nfs/rpi/boot/*
 ```
 
@@ -164,19 +165,18 @@ and save new values to uboot.env. By using the second way you can avoid rebuildi
 and copying uboot.env to SD card.
 
 #### 5.4.1 Edit uboot.env.txt
-All you need to do is to edit network configuration in `build/rpi3/firmware/uboot.env.txt`.
-You have to change value of `serverip` to the IP address of your NFS server,
-`gatewayip` to your router IP address and `nfspath` to the exported path, where root FS
-is stored (`/srv/nfs/rpi`). Then you need to generate new `uboot.env`:
+All you need to do is to edit network configuration in
+`<rpi3-project>/build/rpi3/firmware/uboot.env.txt`. You have to change value of
+`nfsserverip` to the IP address of your NFS server, `gatewayip` to your router
+IP address and `nfspath` to the exported path, where root FS is stored
+(`/srv/nfs/rpi`). Then you need to generate new `uboot.env`:
 ```bash
-$ cd /home/jbech/devel/optee_projects/rpi3/boot/
-# clean previous uboot.env
+$ cd <rpi3-project>/rpi3/build
 $ make u-boot-env-clean
-# generate new
-$ make u-boot-bin
+$ make u-boot-env
 ```
-Then you need to copy your newly generated `uboot.env`(it's stored in `../out/uboot.env`)
-to the BOOT partition of your SD card.
+Then you need to copy your newly generated `uboot.env`(it's stored in
+`<rpi3-project>/out/uboot.env`) to the BOOT partition of your SD card.
 
 #### 5.4.2 Edit u-boot.env via UART
 Start by inserting the UART cable and open up `/dev/ttyUSB0`
@@ -188,7 +188,7 @@ $ picocom -b 115200 /dev/ttyUSB0
 Power up the Raspberry Pi and almost immediately hit any key and you should see
 the `U-Boot>` prompt. First edit your NFS server IP address:
 ```
-U-Boot> setenv serverip '192.168.1.100'
+U-Boot> setenv nfsserverip '192.168.1.100'
 ```
 Perform the same steps for `gateway`(your router IP address) and
 `nfspath` (the exported path, where root FS is stored, for example `/srv/nfs/rpi`)
@@ -197,9 +197,6 @@ If you want those environment variables to persist between boots, then type.
 ```
 U-Boot> saveenv
 ```
-
-And don't worry about the `FAT: Misaligned buffer address ...` message, it will
-still work.
 
 ## 5.5 Network boot the RPi
 With all preparations done correctly above, you should now be able to boot up
