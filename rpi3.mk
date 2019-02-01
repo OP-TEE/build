@@ -69,7 +69,7 @@ ARM_TF_FLAGS ?= \
 	RPI3_PRELOADED_DTB_BASE=0x00010000 \
 	SPD=opteed
 
-arm-tf: optee-os $(RPI3_UBOOT_ENV)
+arm-tf: optee-os u-boot-env
 	$(ARM_TF_EXPORTS) $(MAKE) -C $(ARM_TF_PATH) $(ARM_TF_FLAGS) all fip
 
 arm-tf-clean:
@@ -78,11 +78,11 @@ arm-tf-clean:
 ################################################################################
 # Das U-Boot
 ################################################################################
-
 U-BOOT_EXPORTS ?= CROSS_COMPILE=$(AARCH64_CROSS_COMPILE) ARCH=arm64
 U-BOOT_DEFCONFIG_COMMON_FILES := \
 		$(U-BOOT_PATH)/configs/rpi_3_defconfig \
 		$(CURDIR)/kconfigs/u-boot_rpi3.conf
+
 .PHONY: u-boot
 u-boot: u-boot-defconfig
 	$(U-BOOT_EXPORTS) $(MAKE) -C $(U-BOOT_PATH) all
@@ -91,9 +91,10 @@ u-boot: u-boot-defconfig
 u-boot-clean: u-boot-defconfig-clean
 	$(U-BOOT_EXPORTS) $(MAKE) -C $(U-BOOT_PATH) clean
 
-$(RPI3_UBOOT_ENV): $(RPI3_UBOOT_ENV_TXT) u-boot
+u-boot-env: $(RPI3_UBOOT_ENV_TXT) u-boot
 	mkdir -p $(ROOT)/out
-	$(U-BOOT_PATH)/tools/mkenvimage -s 0x4000 -o $(ROOT)/out/uboot.env $(RPI3_UBOOT_ENV_TXT)
+	$(U-BOOT_PATH)/tools/mkenvimage -s 0x4000 -o $(RPI3_UBOOT_ENV) \
+		$(RPI3_UBOOT_ENV_TXT)
 
 u-boot-env-clean:
 	rm -f $(RPI3_UBOOT_ENV)
@@ -106,6 +107,7 @@ u-boot-defconfig: $(U-BOOT_DEFCONFIG_COMMON_FILES)
 .PHONY: u-boot-defconfig-clean
 u-boot-defconfig-clean:
 	rm -f $(U-BOOT_PATH)/.config
+
 ################################################################################
 # Busybox
 ################################################################################
