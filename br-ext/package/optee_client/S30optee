@@ -19,6 +19,10 @@ case "$1" in
 			chown root:ion /dev/ion && chmod 0660 /dev/ion
 			[ $? = 0 ] && echo "OK" || echo "FAIL"
 		fi
+		printf "Create and set permissions on /data... "
+		mkdir -p /data/tee && chown -R tee:tee /data/tee && \
+			chmod 0770 /data/tee
+		[ $? = 0 ] && echo "OK" || echo "FAIL"
 		printf "Starting tee-supplicant... "
 		su tee -c '/usr/sbin/tee-supplicant -d'
 		[ $? = 0 ] && echo "OK" || echo "FAIL"
