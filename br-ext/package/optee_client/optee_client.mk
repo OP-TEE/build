@@ -28,9 +28,4 @@ define OPTEE_CLIENT_USERS
 	test -1 test -1 - - /bin/sh teeclnt,ion Test user, may run TEE client applications
 endef
 
-define OPTEE_CLIENT_PERMISSIONS
-	/data d 755 root root - - - - -
-	/data/tee d 770 tee tee - - - - -
-endef
-
 $(eval $(cmake-package))
