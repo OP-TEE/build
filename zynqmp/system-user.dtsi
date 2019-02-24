@@ -1,0 +1,9 @@
+/include/ "system-conf.dtsi"
+/ {
+	firmware {
+		optee {
+			compatible = "linaro,optee-tz";
+			method = "smc";
+		};
+	};
+};
