@@ -169,7 +169,7 @@ linux-gen_init_cpio: linux-defconfig
 		LOCALVERSION= \
 		gen_init_cpio
 
-LINUX_COMMON_FLAGS += ARCH=arm64 Image modules hisilicon/hi6220-hikey.dtb
+LINUX_COMMON_FLAGS += ARCH=arm64 Image hisilicon/hi6220-hikey.dtb
 
 .PHONY: linux
 linux: linux-common
