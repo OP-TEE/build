@@ -211,6 +211,12 @@ ifneq (,$(BR2_ROOTFS_POST_BUILD_SCRIPT))
 	@echo "BR2_ROOTFS_POST_BUILD_SCRIPT=\"$(BR2_ROOTFS_POST_BUILD_SCRIPT)\"" >> \
 		../out-br/extra.conf
 endif
+	@# The OPTEE_OS package builds nothing, it just installs files into the
+	@# root FS when applicable (for example: shared libraries)
+	@echo "BR2_PACKAGE_OPTEE_OS_SITE=\"$(CURDIR)/br-ext/package/optee_os\"" >> \
+		../out-br/extra.conf
+	@echo "BR2_PACKAGE_OPTEE_OS_SDK=\"$(OPTEE_OS_TA_DEV_KIT_DIR)\"" >> \
+		../out-br/extra.conf
 	@echo "BR2_PACKAGE_OPTEE_TEST_CROSS_COMPILE=\"$(CROSS_COMPILE_S_USER)\"" >> \
 		../out-br/extra.conf
 	@echo "BR2_PACKAGE_OPTEE_EXAMPLES_CROSS_COMPILE=\"$(CROSS_COMPILE_S_USER)\"" >> \
@@ -227,6 +233,7 @@ endif
 		../out-br/extra.conf
 	@echo "BR2_PACKAGE_OPTEE_BENCHMARK_SITE=\"$(BENCHMARK_APP_PATH)\"" >> \
 		../out-br/extra.conf
+	@echo "BR2_PACKAGE_OPTEE_OS=y" >> ../out-br/extra.conf
 	@echo "BR2_PACKAGE_OPTEE_TEST=y" >> ../out-br/extra.conf
 	@echo "BR2_PACKAGE_OPTEE_EXAMPLES=y" >> ../out-br/extra.conf
 	@echo "BR2_PACKAGE_STRACE=y" >> ../out-br/extra.conf
