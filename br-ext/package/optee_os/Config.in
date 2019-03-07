@@ -1,0 +1,25 @@
+config BR2_PACKAGE_OPTEE_OS
+	bool "optee_os"
+	help
+	  OP-TEE OS, http://github.org/OP-TEE/optee_os.
+	  NOTE: this package currently only takes care of installing files into
+	  the root FS, that have been compiled already. For example, shared
+	  libraries used by TAs when CFG_ULIBS_SHARED=y.
+	  The build of optee_os itself is assumed to have been done previously.
+
+if BR2_PACKAGE_OPTEE_OS
+
+config BR2_PACKAGE_OPTEE_OS_SITE
+	string "OP-TEE OS installation package path"
+	default ""
+	help
+	  The path to this installation package.
+
+config BR2_PACKAGE_OPTEE_OS_SDK
+	string "OPTEE SDK path"
+	default ""
+	help
+	  The path to export-ta_arm32 or export-ta_arm64 in the optee_os output
+	  directory.
+
+endif
