@@ -1,0 +1,14 @@
+CONFIG_mtd-utils=y
+CONFIG_canutils=y
+CONFIG_openssh-sftp-server=y
+CONFIG_pciutils=y
+CONFIG_run-postinsts=y
+CONFIG_packagegroup-core-boot=y
+CONFIG_packagegroup-core-ssh-dropbear=y
+CONFIG_tcf-agent=y
+CONFIG_bridge-utils=y
+CONFIG_hellopm=y
+CONFIG_udev-extraconf=y
+CONFIG_ultra96-ap-setup=y
+CONFIG_packagegroup-base-extended=y
+CONFIG_ROOTFS_ROOT_PASSWD="root"
