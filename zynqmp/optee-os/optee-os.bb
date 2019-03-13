@@ -25,6 +25,10 @@ SRC_URI = "${REPO};branch=${BRANCH}"
 OPTEE_BASE_NAME ?= "${PN}-${PKGE}-${PKGV}-${PKGR}-${DATETIME}"
 OPTEE_BASE_NAME[vardepsexclude] = "DATETIME"
 
+COMPATIBLE_MACHINE = "zynqmp"
+PLATFORM_zynqmp = "zynqmp"
+FLAVOR_zynqmp = "${@d.getVar('MACHINE').split('-')[0]}"
+
 # requires CROSS_COMPILE set by hand as there is no configure script
 export CROSS_COMPILE="${TARGET_PREFIX}"
 
@@ -44,7 +48,7 @@ EXTRA_OEMAKE_append = " comp-cflagscore=--sysroot=${STAGING_DIR_HOST}"
 EXTRA_OEMAKE_append = " CROSS_COMPILE=${CROSS_COMPILE}"
 EXTRA_OEMAKE_append = " CROSS_COMPILE_core=${CROSS_COMPILE}"
 EXTRA_OEMAKE_append = " CROSS_COMPILE_ta_arm64=${CROSS_COMPILE}"
-EXTRA_OEMAKE_append = " PLATFORM=zynqmp"
+EXTRA_OEMAKE_append = " PLATFORM=${PLATFORM}-${FLAVOR}"
 EXTRA_OEMAKE_append = " CFG_ARM64_core=y"
 EXTRA_OEMAKE_append = " CFG_ARM32_core=n"
 EXTRA_OEMAKE_append = " CFG_USER_TA_TARGETS=ta_arm64"
