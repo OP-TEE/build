@@ -7,25 +7,4 @@ OPTEE_TEST_DEPENDENCIES = optee_client openssl host-python-pycrypto
 OPTEE_TEST_SDK = $(BR2_PACKAGE_OPTEE_TEST_SDK)
 OPTEE_TEST_CONF_OPTS = -DOPTEE_TEST_SDK=$(OPTEE_TEST_SDK)
 
-define OPTEE_TEST_BUILD_TAS
-	@for f in $(@D)/ta/*/Makefile; \
-	do \
-	  echo Building $$f && \
-	  $(MAKE) CROSS_COMPILE="$(shell echo $(BR2_PACKAGE_OPTEE_TEST_CROSS_COMPILE))" \
-	  O=out TA_DEV_KIT_DIR=$(OPTEE_TEST_SDK) \
-	  $(TARGET_CONFIGURE_OPTS) -C $${f%/*} all; \
-	done
-endef
-
-define OPTEE_TEST_INSTALL_TAS
-	@$(foreach f,$(wildcard $(@D)/ta/*/out/*.ta), \
-		mkdir -p $(TARGET_DIR)/lib/optee_armtz && \
-		$(INSTALL) -v -p  --mode=444 \
-			--target-directory=$(TARGET_DIR)/lib/optee_armtz $f \
-			&&) true
-endef
-
-OPTEE_TEST_POST_BUILD_HOOKS += OPTEE_TEST_BUILD_TAS
-OPTEE_TEST_POST_INSTALL_TARGET_HOOKS += OPTEE_TEST_INSTALL_TAS
-
 $(eval $(cmake-package))
