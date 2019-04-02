@@ -37,7 +37,8 @@ OPTEE_BIN_EXTRA1	?= $(OPTEE_PATH)/out/arm/core/tee-pager_v2.bin
 OPTEE_BIN_EXTRA2	?= $(OPTEE_PATH)/out/arm/core/tee-pageable_v2.bin
 
 LINUX_IMAGE		?= $(LINUX_PATH)/arch/arm64/boot/Image
-LINUX_DTB		?= $(LINUX_PATH)/arch/arm64/boot/dts/broadcom/bcm2710-rpi-3-b.dtb
+LINUX_DTB_RPI3_B	?= $(LINUX_PATH)/arch/arm64/boot/dts/broadcom/bcm2710-rpi-3-b.dtb
+LINUX_DTB_RPI3_BPLUS	?= $(LINUX_PATH)/arch/arm64/boot/dts/broadcom/bcm2710-rpi-3-b-plus.dtb
 MODULE_OUTPUT		?= $(ROOT)/module_output
 
 ################################################################################
@@ -163,7 +164,8 @@ buildroot: update_rootfs
 update_rootfs: arm-tf linux u-boot
 	@mkdir -p --mode=755 $(BUILDROOT_TARGET_ROOT)/boot
 	@mkdir -p --mode=755 $(BUILDROOT_TARGET_ROOT)/usr/bin
-	@install -v -p --mode=755 $(LINUX_DTB) $(BUILDROOT_TARGET_ROOT)/boot/bcm2710-rpi-3-b.dtb
+	@install -v -p --mode=755 $(LINUX_DTB_RPI3_B) $(BUILDROOT_TARGET_ROOT)/boot/bcm2710-rpi-3-b.dtb
+	@install -v -p --mode=755 $(LINUX_DTB_RPI3_BPLUS) $(BUILDROOT_TARGET_ROOT)/boot/bcm2710-rpi-3-b-plus.dtb
 	@install -v -p --mode=755 $(RPI3_BOOT_CONFIG) $(BUILDROOT_TARGET_ROOT)/boot/config.txt
 	@install -v -p --mode=755 $(LINUX_IMAGE) $(BUILDROOT_TARGET_ROOT)/boot/kernel8.img
 	@install -v -p --mode=755 $(ARM_TF_BOOT) $(BUILDROOT_TARGET_ROOT)/boot/armstub8.bin
