@@ -343,8 +343,6 @@ define run-help
 	@echo
 endef
 
-# Note: Using the LAUNCH_TERMINAL environment variable, it is not currently possible to set 
-# different titles for the terminals because there is no any common way among all the terminals
 ifneq (, $(LAUNCH_TERMINAL))
 define launch-terminal
 	@nc -z  127.0.0.1 $(1) || \
@@ -354,11 +352,9 @@ else
 gnome-terminal := $(shell command -v gnome-terminal 2>/dev/null)
 xterm := $(shell command -v xterm 2>/dev/null)
 ifdef gnome-terminal
-# Note: the title option (-t) is ignored with gnome-terminal versions
-# >= 3.14 and < 3.20
 define launch-terminal
 	@nc -z  127.0.0.1 $(1) || \
-	$(gnome-terminal) -t "$(2)" -x $(SOC_TERM_PATH)/soc_term $(1) &
+	$(gnome-terminal) -x $(SOC_TERM_PATH)/soc_term $(1) &
 endef
 else
 ifdef xterm
