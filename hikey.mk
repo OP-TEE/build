@@ -8,7 +8,7 @@ override COMPILE_NS_KERNEL := 64
 COMPILE_S_USER    ?= 32
 COMPILE_S_KERNEL  ?= 64
 
-# Normal/secure world console UARTs: 3 or 0 [default 3]
+# Normal/secure world console UARTs: 3, 2, or 0 [default 3]
 CFG_NW_CONSOLE_UART ?= 3
 CFG_SW_CONSOLE_UART ?= 3
 
@@ -96,6 +96,10 @@ ifeq ($(ARM_TF_CONSOLE_UART),0)
 	ARM_TF_FLAGS += CONSOLE_BASE=PL011_UART0_BASE \
 			CRASH_CONSOLE_BASE=PL011_UART0_BASE
 endif
+ifeq ($(ARM_TF_CONSOLE_UART),2)
+	ARM_TF_FLAGS += CONSOLE_BASE=PL011_UART2_BASE \
+			CRASH_CONSOLE_BASE=PL011_UART2_BASE
+endif
 
 .PHONY: arm-tf
 arm-tf: optee-os edk2
@@ -115,6 +119,9 @@ EDK2_TOOLCHAIN ?= GCC49
 EDK2_CONSOLE_UART ?= $(CFG_NW_CONSOLE_UART)
 ifeq ($(EDK2_CONSOLE_UART),0)
 	EDK2_BUILDFLAGS += -DSERIAL_BASE=0xF8015000
+endif
+ifeq ($(EDK2_CONSOLE_UART),2)
+	EDK2_BUILDFLAGS += -DSERIAL_BASE=0xF7112000
 endif
 
 define edk2-call
@@ -243,6 +250,8 @@ grub-cleaner: grub-clean
 ################################################################################
 ifeq ($(CFG_NW_CONSOLE_UART),3)
 GRUBCFG = $(PATCHES_PATH)/grub/grub_uart3.cfg
+else ifeq ($(CFG_NW_CONSOLE_UART),2)
+GRUBCFG = $(PATCHES_PATH)/grub/grub_uart2.cfg
 else
 GRUBCFG = $(PATCHES_PATH)/grub/grub_uart0.cfg
 endif
