@@ -404,6 +404,7 @@ optee-os-clean-common: xtest-clean-common optee-examples-clean-common
 
 OPTEE_CLIENT_COMMON_FLAGS ?= CROSS_COMPILE=$(CROSS_COMPILE_NS_USER) \
 	CFG_TEE_BENCHMARK=$(CFG_TEE_BENCHMARK) \
+	CFG_TA_TEST_PATH=y
 
 .PHONY: optee-client-common
 optee-client-common:
