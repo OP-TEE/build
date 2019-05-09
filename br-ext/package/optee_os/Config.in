@@ -7,13 +7,13 @@ config BR2_PACKAGE_OPTEE_OS
 	  libraries used by TAs when CFG_ULIBS_SHARED=y.
 	  The build of optee_os itself is assumed to have been done previously.
 
-if BR2_PACKAGE_OPTEE_OS
-
 config BR2_PACKAGE_OPTEE_OS_SITE
 	string "OP-TEE OS installation package path"
 	default ""
 	help
 	  The path to this installation package.
+
+if BR2_PACKAGE_OPTEE_OS
 
 config BR2_PACKAGE_OPTEE_OS_SDK
 	string "OPTEE SDK path"
