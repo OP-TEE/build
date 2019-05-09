@@ -177,8 +177,7 @@ linux-cleaner: linux-cleaner-common
 # OP-TEE
 ################################################################################
 OPTEE_OS_COMMON_FLAGS += PLATFORM=hikey-hikey960 \
-			CFG_CONSOLE_UART=$(CFG_CONSOLE_UART) \
-			CFG_SECURE_DATA_PATH=n
+			CFG_CONSOLE_UART=$(CFG_CONSOLE_UART)
 OPTEE_OS_CLEAN_COMMON_FLAGS += PLATFORM=hikey-hikey960
 
 .PHONY: optee-os
