@@ -383,6 +383,7 @@ endef
 ################################################################################
 OPTEE_OS_COMMON_FLAGS ?= \
 	$(OPTEE_OS_COMMON_EXTRA_FLAGS) \
+	PLATFORM=$(OPTEE_OS_PLATFORM) \
 	CROSS_COMPILE=$(CROSS_COMPILE_S_USER) \
 	CROSS_COMPILE_core=$(CROSS_COMPILE_S_KERNEL) \
 	CROSS_COMPILE_ta_arm64="$(CCACHE)$(AARCH64_CROSS_COMPILE)" \
@@ -395,14 +396,12 @@ OPTEE_OS_COMMON_FLAGS ?= \
 optee-os-common:
 	$(MAKE) -C $(OPTEE_OS_PATH) $(OPTEE_OS_COMMON_FLAGS)
 
-OPTEE_OS_CLEAN_COMMON_FLAGS ?= $(OPTEE_OS_COMMON_EXTRA_FLAGS)
-
 .PHONY: optee-os-clean-common
 ifeq ($(CFG_TEE_BENCHMARK),y)
 optee-os-clean-common: benchmark-app-clean-common
 endif
 optee-os-clean-common: xtest-clean-common optee-examples-clean-common
-	$(MAKE) -C $(OPTEE_OS_PATH) $(OPTEE_OS_CLEAN_COMMON_FLAGS) clean
+	$(MAKE) -C $(OPTEE_OS_PATH) $(OPTEE_OS_COMMON_FLAGS) clean
 
 OPTEE_CLIENT_COMMON_FLAGS ?= CROSS_COMPILE=$(CROSS_COMPILE_NS_USER) \
 	CFG_TEE_BENCHMARK=$(CFG_TEE_BENCHMARK) \

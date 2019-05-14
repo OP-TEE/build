@@ -24,6 +24,8 @@ BR2_PACKAGE_WIRELESS_REGDB = y
 
 BR2_ROOTFS_OVERLAY = $(ROOT)/build/br-ext/board/hikey960/overlay
 
+OPTEE_OS_PLATFORM = hikey-hikey960
+
 ################################################################################
 # Includes
 ################################################################################
@@ -187,9 +189,7 @@ linux-cleaner: linux-cleaner-common
 ################################################################################
 # OP-TEE
 ################################################################################
-OPTEE_OS_COMMON_FLAGS += PLATFORM=hikey-hikey960 \
-			CFG_CONSOLE_UART=$(CFG_CONSOLE_UART)
-OPTEE_OS_CLEAN_COMMON_FLAGS += PLATFORM=hikey-hikey960
+OPTEE_OS_COMMON_FLAGS += CFG_CONSOLE_UART=$(CFG_CONSOLE_UART)
 
 .PHONY: optee-os
 optee-os: optee-os-common

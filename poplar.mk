@@ -8,6 +8,8 @@ override COMPILE_NS_KERNEL := 64
 COMPILE_S_USER    ?= 32
 COMPILE_S_KERNEL  ?= 64
 
+OPTEE_OS_PLATFORM = poplar
+
 ################################################################################
 # Includes
 ################################################################################
@@ -105,8 +107,7 @@ arm-tf-clean:
 ################################################################################
 # OP-TEE
 ################################################################################
-OPTEE_OS_COMMON_FLAGS += PLATFORM=poplar CFG_ARM64_core=y CFG_DRAM_SIZE_GB=1
-OPTEE_OS_CLEAN_COMMON_FLAGS += PLATFORM=poplar
+OPTEE_OS_COMMON_FLAGS += CFG_ARM64_core=y CFG_DRAM_SIZE_GB=1
 
 .PHONY: optee-os
 optee-os: optee-os-common

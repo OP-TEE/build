@@ -55,10 +55,10 @@ linux-cleaner: linux-cleaner-common
 ###############################################################################
 .PHONY: optee-os optee-os-clean optee-client optee-client-clean
 
-OPTEE_OS_COMMON_FLAGS += PLATFORM=$(OPTEE_PLATFORM)
+OPTEE_OS_COMMON_FLAGS += PLATFORM=$(OPTEE_OS_PLATFORM)
 optee-os: optee-os-common
 
-OPTEE_OS_CLEAN_COMMON_FLAGS += PLATFORM=$(OPTEE_PLATFORM)
+OPTEE_OS_CLEAN_COMMON_FLAGS += PLATFORM=$(OPTEE_OS_PLATFORM)
 optee-os-clean: optee-os-clean-common
 
 optee-client: optee-client-common
