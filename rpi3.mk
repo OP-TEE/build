@@ -111,17 +111,6 @@ u-boot-defconfig-clean:
 	rm -f $(U-BOOT_PATH)/.config
 
 ################################################################################
-# Busybox
-################################################################################
-BUSYBOX_COMMON_TARGET = rpi3
-BUSYBOX_CLEAN_COMMON_TARGET = rpi3 clean
-
-busybox: busybox-common
-
-busybox-clean: busybox-clean-common
-
-busybox-cleaner: busybox-cleaner-common
-################################################################################
 # Linux kernel
 ################################################################################
 LINUX_DEFCONFIG_COMMON_ARCH := arm64
