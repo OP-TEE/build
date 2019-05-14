@@ -17,9 +17,7 @@ OPTEE_CLIENT_EXPORT		?= $(OPTEE_CLIENT_PATH)/out/export
 OPTEE_TEST_PATH			?= $(ROOT)/optee_test
 OPTEE_TEST_OUT_PATH		?= $(ROOT)/optee_test/out
 OPTEE_EXAMPLES_PATH		?= $(ROOT)/optee_examples
-BENCHMARK_APP_PATH		?= $(ROOT)/optee_benchmark
-BENCHMARK_APP_OUT		?= $(BENCHMARK_APP_PATH)/out
-LIBYAML_LIB_OUT			?= $(BENCHMARK_APP_OUT)/libyaml/out/lib
+OPTEE_BENCHMARK_PATH		?= $(ROOT)/optee_benchmark
 BUILDROOT_TARGET_ROOT		?= $(ROOT)/out-br/target
 
 # default high verbosity. slow uarts shall specify lower if prefered
@@ -448,8 +446,8 @@ BENCHMARK_APP_COMMON_FLAGS ?= CROSS_COMPILE=$(CROSS_COMPILE_NS_USER) \
 
 .PHONY: benchmark-app-common
 benchmark-app-common: optee-os optee-client
-	$(MAKE) -C $(BENCHMARK_APP_PATH) $(BENCHMARK_APP_COMMON_FLAGS)
+	$(MAKE) -C $(OPTEE_BENCHMARK_PATH) $(BENCHMARK_APP_COMMON_FLAGS)
 
 .PHONY: benchmark-app-clean-common
 benchmark-app-clean-common:
-	$(MAKE) -C $(BENCHMARK_APP_PATH) clean
+	$(MAKE) -C $(OPTEE_BENCHMARK_PATH) clean
