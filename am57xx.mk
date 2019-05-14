@@ -28,7 +28,7 @@ LINUX_IMAGE     ?= $(LINUX_PATH)/arch/arm/boot/zImage
 LINUX_DTBS      ?= $(wildcard $(LINUX_PATH)/arch/arm/boot/dts/am57*.dtb)
 FIT_SOURCE      ?= $(BUILD_PATH)/ti/fitImage-am57xx.its
 FIT_MAKEFILE    ?= $(BUILD_PATH)/ti/Makefile
-OPTEE_PLATFORM  ?= ti-am57xx
+OPTEE_OS_PLATFORM ?= ti-am57xx
 U-BOOT_CONFIG   ?= am57xx_hs_evm_defconfig
 # using the same configs as for DRA7xx
 CONFIG_TYPE     ?= ti_sdk_dra7x_debug

@@ -28,7 +28,7 @@ LINUX_IMAGE     ?= $(LINUX_PATH)/arch/arm/boot/zImage
 LINUX_DTBS      ?= $(wildcard $(LINUX_PATH)/arch/arm/boot/dts/dra7*.dtb)
 FIT_SOURCE      ?= $(BUILD_PATH)/ti/fitImage-dra7xx.its
 FIT_MAKEFILE    ?= $(BUILD_PATH)/ti/Makefile
-OPTEE_PLATFORM  ?= ti-dra7xx
+OPTEE_OS_PLATFORM ?= ti-dra7xx
 U-BOOT_CONFIG   ?= dra7xx_hs_evm_defconfig
 CONFIG_TYPE     ?= ti_sdk_dra7x_debug
 

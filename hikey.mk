@@ -15,6 +15,8 @@ CFG_SW_CONSOLE_UART ?= 3
 # eMMC flash size: 8 or 4 GB [default 8]
 CFG_FLASH_SIZE ?= 8
 
+OPTEE_OS_PLATFORM = hikey
+
 ################################################################################
 # Includes
 ################################################################################
@@ -191,9 +193,7 @@ linux-cleaner: linux-cleaner-common
 ################################################################################
 # OP-TEE
 ################################################################################
-OPTEE_OS_COMMON_FLAGS += PLATFORM=hikey \
-			CFG_CONSOLE_UART=$(CFG_SW_CONSOLE_UART)
-OPTEE_OS_CLEAN_COMMON_FLAGS += PLATFORM=hikey
+OPTEE_OS_COMMON_FLAGS += CFG_CONSOLE_UART=$(CFG_SW_CONSOLE_UART)
 
 .PHONY: optee-os
 optee-os: optee-os-common

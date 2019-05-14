@@ -12,6 +12,8 @@ override COMPILE_S_KERNEL  := 64
 BUILDROOT_GETTY_PORT ?= ttyS0
 BR2_ROOTFS_POST_BUILD_SCRIPT ?= "board/raspberrypi3-64/post-build.sh"
 
+OPTEE_OS_PLATFORM = rpi3
+
 include common.mk
 
 ################################################################################
@@ -147,10 +149,7 @@ linux-cleaner: linux-cleaner-common
 ################################################################################
 # OP-TEE
 ################################################################################
-OPTEE_OS_COMMON_FLAGS += PLATFORM=rpi3
 optee-os: optee-os-common
-
-OPTEE_OS_CLEAN_COMMON_FLAGS += PLATFORM=rpi3
 optee-os-clean: optee-os-clean-common
 
 ################################################################################

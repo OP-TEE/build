@@ -13,6 +13,8 @@ CFG_CONSOLE_UART ?= 6
 # Needed by buildroot
 CFG_NW_CONSOLE_UART ?= $(CFG_CONSOLE_UART)
 
+OPTEE_OS_PLATFORM = hikey-hikey960
+
 ################################################################################
 # Includes
 ################################################################################
@@ -176,9 +178,7 @@ linux-cleaner: linux-cleaner-common
 ################################################################################
 # OP-TEE
 ################################################################################
-OPTEE_OS_COMMON_FLAGS += PLATFORM=hikey-hikey960 \
-			CFG_CONSOLE_UART=$(CFG_CONSOLE_UART)
-OPTEE_OS_CLEAN_COMMON_FLAGS += PLATFORM=hikey-hikey960
+OPTEE_OS_COMMON_FLAGS += CFG_CONSOLE_UART=$(CFG_CONSOLE_UART)
 
 .PHONY: optee-os
 optee-os: optee-os-common

@@ -10,6 +10,8 @@ override COMPILE_S_KERNEL  := 64
 
 DEBUG ?= 0
 
+OPTEE_OS_PLATFORM = vexpress-juno
+
 include common.mk
 
 ################################################################################
@@ -97,10 +99,7 @@ linux-cleaner: linux-cleaner-common
 ################################################################################
 # OP-TEE
 ################################################################################
-OPTEE_OS_COMMON_FLAGS += PLATFORM=vexpress-juno
 optee-os: optee-os-common
-
-OPTEE_OS_CLEAN_COMMON_FLAGS += PLATFORM=vexpress-juno
 optee-os-clean: optee-os-clean-common
 
 
