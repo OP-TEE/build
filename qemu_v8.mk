@@ -15,6 +15,8 @@ TF_A_TRUSTED_BOARD_BOOT ?= n
 
 BR2_ROOTFS_OVERLAY = $(ROOT)/build/br-ext/board/qemu/overlay
 
+OPTEE_OS_PLATFORM = vexpress-qemu_armv8a
+
 include common.mk
 
 DEBUG ?= 1
@@ -161,11 +163,9 @@ linux-cleaner: linux-cleaner-common
 ################################################################################
 # OP-TEE
 ################################################################################
-OPTEE_OS_COMMON_FLAGS += PLATFORM=vexpress-qemu_armv8a CFG_ARM64_core=y \
-			 DEBUG=$(DEBUG)
+OPTEE_OS_COMMON_FLAGS += CFG_ARM64_core=y DEBUG=$(DEBUG)
 optee-os: optee-os-common
 
-OPTEE_OS_CLEAN_COMMON_FLAGS += PLATFORM=vexpress-qemu_armv8a
 optee-os-clean: optee-os-clean-common
 
 ################################################################################

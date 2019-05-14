@@ -10,6 +10,8 @@ override COMPILE_S_KERNEL  := 32
 
 BR2_ROOTFS_OVERLAY = $(ROOT)/build/br-ext/board/qemu/overlay
 
+OPTEE_OS_PLATFORM = vexpress-qemu_virt
+
 include common.mk
 
 ################################################################################
@@ -137,10 +139,7 @@ linux-cleaner: linux-cleaner-common
 ################################################################################
 # OP-TEE
 ################################################################################
-OPTEE_OS_COMMON_FLAGS += PLATFORM=vexpress-qemu_virt
 optee-os: optee-os-common
-
-OPTEE_OS_CLEAN_COMMON_FLAGS += PLATFORM=vexpress-qemu_virt
 optee-os-clean: optee-os-clean-common
 
 ################################################################################

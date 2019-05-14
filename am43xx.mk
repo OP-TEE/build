@@ -28,7 +28,7 @@ LINUX_IMAGE     ?= $(LINUX_PATH)/arch/arm/boot/zImage
 LINUX_DTBS      ?= $(wildcard $(LINUX_PATH)/arch/arm/boot/dts/am43*.dtb)
 FIT_SOURCE      ?= $(BUILD_PATH)/ti/fitImage-am43xx.its
 FIT_MAKEFILE    ?= $(BUILD_PATH)/ti/Makefile
-OPTEE_PLATFORM  ?= ti-am43xx
+OPTEE_OS_PLATFORM ?= ti-am43xx
 U-BOOT_CONFIG   ?= am43xx_hs_evm_defconfig
 CONFIG_TYPE     ?= ti_sdk_am4x_debug
 

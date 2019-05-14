@@ -8,6 +8,8 @@ override COMPILE_NS_KERNEL := 64
 COMPILE_S_USER    ?= 64
 COMPILE_S_KERNEL  ?= 64
 
+OPTEE_OS_PLATFORM = vexpress-fvp
+
 include common.mk
 
 
@@ -123,10 +125,9 @@ linux-cleaner: linux-cleaner-common
 ################################################################################
 # OP-TEE
 ################################################################################
-OPTEE_OS_COMMON_FLAGS += PLATFORM=vexpress-fvp CFG_ARM_GICV3=y
+OPTEE_OS_COMMON_FLAGS += CFG_ARM_GICV3=y
 optee-os: optee-os-common
 
-OPTEE_OS_CLEAN_COMMON_FLAGS += PLATFORM=vexpress-fvp
 optee-os-clean: optee-os-clean-common
 
 ################################################################################
