@@ -168,31 +168,6 @@ cc-option = $(strip $(call _cc-option,$(1),$(2),$(3)))
 all:
 
 ################################################################################
-# Busybox
-################################################################################
-BUSYBOX_COMMON_TARGET		?= TOBEDEFINED
-BUSYBOX_CLEAN_COMMON_TARGET	?= TOBEDEFINED
-
-.PHONY: busybox-common
-busybox-common: linux
-	cd $(GEN_ROOTFS_PATH) &&  \
-		CROSS_COMPILE=$(CROSS_COMPILE_NS_USER) \
-		PATH=${PATH}:$(LINUX_PATH)/usr \
-		$(GEN_ROOTFS_PATH)/generate-cpio-rootfs.sh \
-			$(BUSYBOX_COMMON_TARGET)
-
-.PHONY: busybox-clean-common
-busybox-clean-common:
-	cd $(GEN_ROOTFS_PATH) && \
-	$(GEN_ROOTFS_PATH)/generate-cpio-rootfs.sh  \
-		$(BUSYBOX_CLEAN_COMMON_TARGET)
-
-.PHONY: busybox-cleaner-common
-busybox-cleaner-common:
-	rm -rf $(GEN_ROOTFS_PATH)/build
-	rm -rf $(GEN_ROOTFS_PATH)/filelist-final.txt
-
-################################################################################
 # Build root
 ################################################################################
 BUILDROOT_ARCH=aarch$(COMPILE_NS_USER)

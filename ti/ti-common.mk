@@ -5,7 +5,7 @@
 
 all: u-boot linux optee-os build-fit buildroot
 clean: linux-clean u-boot-clean optee-os-clean build-fit-clean buildroot-clean
-cleaner: clean prepare-cleaner busybox-cleaner linux-cleaner
+cleaner: clean prepare-cleaner linux-cleaner
 
 include toolchain.mk
 
