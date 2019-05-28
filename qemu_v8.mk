@@ -210,7 +210,11 @@ check-args := --timeout $(TIMEOUT)
 endif
 
 check: $(CHECK_DEPS)
-	expect qemu-check.exp -- $(check-args) || \
+	ln -sf $(ROOT)/out-br/images/rootfs.cpio.gz $(BINARIES_PATH)/
+	cd $(BINARIES_PATH) && \
+		export QEMU=$(QEMU_PATH)/aarch64-softmmu/qemu-system-aarch64 && \
+		export QEMU_SMP=$(QEMU_SMP) && \
+		expect $(ROOT)/build/qemu-check.exp -- $(check-args) || \
 		(if [ "$(DUMP_LOGS_ON_ERROR)" ]; then \
 			echo "== $$PWD/serial0.log:"; \
 			cat serial0.log; \
