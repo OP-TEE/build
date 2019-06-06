@@ -1,4 +1,4 @@
-config BR2_PACKAGE_OPTEE_OS
+config BR2_PACKAGE_OPTEE_OS_EXT
 	bool "optee_os"
 	help
 	  OP-TEE OS, http://github.org/OP-TEE/optee_os.
@@ -7,15 +7,15 @@ config BR2_PACKAGE_OPTEE_OS
 	  libraries used by TAs when CFG_ULIBS_SHARED=y.
 	  The build of optee_os itself is assumed to have been done previously.
 
-config BR2_PACKAGE_OPTEE_OS_SITE
+config BR2_PACKAGE_OPTEE_OS_EXT_SITE
 	string "OP-TEE OS installation package path"
 	default ""
 	help
 	  The path to this installation package.
 
-if BR2_PACKAGE_OPTEE_OS
+if BR2_PACKAGE_OPTEE_OS_EXT
 
-config BR2_PACKAGE_OPTEE_OS_SDK
+config BR2_PACKAGE_OPTEE_OS_EXT_SDK
 	string "OPTEE SDK path"
 	default ""
 	help
