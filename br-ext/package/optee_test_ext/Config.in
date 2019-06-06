@@ -4,13 +4,13 @@ config BR2_PACKAGE_OPTEE_TEST_EXT
 	help
 	  http://github.org/OP-TEE/optee_test
 
-if BR2_PACKAGE_OPTEE_TEST_EXT
-
 config BR2_PACKAGE_OPTEE_TEST_EXT_SITE
 	string "OP-TEE test path"
 	default ""
 	help
 	  The path to the source directory of OP-TEE test
+
+if BR2_PACKAGE_OPTEE_TEST_EXT
 
 config BR2_PACKAGE_OPTEE_TEST_EXT_SDK
 	string "OPTEE SDK path"
