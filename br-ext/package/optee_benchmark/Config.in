@@ -1,10 +1,10 @@
-config BR2_PACKAGE_OPTEE_BENCHMARK
+config BR2_PACKAGE_OPTEE_BENCHMARK_EXT
 	bool "optee_benchmark"
 	select BR2_PACKAGE_LIBYAML
 	help
 	  http://github.org/OP-TEE/optee_benchmark
 
-config BR2_PACKAGE_OPTEE_BENCHMARK_SITE
+config BR2_PACKAGE_OPTEE_BENCHMARK_EXT_SITE
 	string "OP-TEE benchmark path"
 	default ""
 	help

@@ -213,32 +213,32 @@ ifneq (,$(BR2_ROOTFS_POST_BUILD_SCRIPT))
 endif
 	@# The OPTEE_OS package builds nothing, it just installs files into the
 	@# root FS when applicable (for example: shared libraries)
-	@echo "BR2_PACKAGE_OPTEE_OS_SITE=\"$(CURDIR)/br-ext/package/optee_os\"" >> \
+	@echo "BR2_PACKAGE_OPTEE_OS_EXT_SITE=\"$(CURDIR)/br-ext/package/optee_os\"" >> \
 		../out-br/extra.conf
-	@echo "BR2_PACKAGE_OPTEE_OS_SDK=\"$(OPTEE_OS_TA_DEV_KIT_DIR)\"" >> \
+	@echo "BR2_PACKAGE_OPTEE_OS_EXT_SDK=\"$(OPTEE_OS_TA_DEV_KIT_DIR)\"" >> \
 		../out-br/extra.conf
-	@echo "BR2_PACKAGE_OPTEE_TEST_CROSS_COMPILE=\"$(CROSS_COMPILE_S_USER)\"" >> \
+	@echo "BR2_PACKAGE_OPTEE_TEST_EXT_CROSS_COMPILE=\"$(CROSS_COMPILE_S_USER)\"" >> \
 		../out-br/extra.conf
-	@echo "BR2_PACKAGE_OPTEE_EXAMPLES_CROSS_COMPILE=\"$(CROSS_COMPILE_S_USER)\"" >> \
+	@echo "BR2_PACKAGE_OPTEE_EXAMPLES_EXT_CROSS_COMPILE=\"$(CROSS_COMPILE_S_USER)\"" >> \
 		../out-br/extra.conf
-	@echo "BR2_PACKAGE_OPTEE_TEST_SDK=\"$(OPTEE_OS_TA_DEV_KIT_DIR)\"" >> \
+	@echo "BR2_PACKAGE_OPTEE_TEST_EXT_SDK=\"$(OPTEE_OS_TA_DEV_KIT_DIR)\"" >> \
 		../out-br/extra.conf
-	@echo "BR2_PACKAGE_OPTEE_EXAMPLES_SDK=\"$(OPTEE_OS_TA_DEV_KIT_DIR)\"" >> \
+	@echo "BR2_PACKAGE_OPTEE_EXAMPLES_EXT_SDK=\"$(OPTEE_OS_TA_DEV_KIT_DIR)\"" >> \
 		../out-br/extra.conf
-	@echo "BR2_PACKAGE_OPTEE_CLIENT_SITE=\"$(OPTEE_CLIENT_PATH)\"" >> \
+	@echo "BR2_PACKAGE_OPTEE_CLIENT_EXT_SITE=\"$(OPTEE_CLIENT_PATH)\"" >> \
 		../out-br/extra.conf
-	@echo "BR2_PACKAGE_OPTEE_TEST_SITE=\"$(OPTEE_TEST_PATH)\"" >> \
+	@echo "BR2_PACKAGE_OPTEE_TEST_EXT_SITE=\"$(OPTEE_TEST_PATH)\"" >> \
 		../out-br/extra.conf
-	@echo "BR2_PACKAGE_OPTEE_EXAMPLES_SITE=\"$(OPTEE_EXAMPLES_PATH)\"" >> \
+	@echo "BR2_PACKAGE_OPTEE_EXAMPLES_EXT_SITE=\"$(OPTEE_EXAMPLES_PATH)\"" >> \
 		../out-br/extra.conf
-	@echo "BR2_PACKAGE_OPTEE_BENCHMARK_SITE=\"$(BENCHMARK_APP_PATH)\"" >> \
+	@echo "BR2_PACKAGE_OPTEE_BENCHMARK_EXT_SITE=\"$(BENCHMARK_APP_PATH)\"" >> \
 		../out-br/extra.conf
-	@echo "BR2_PACKAGE_OPTEE_OS=y" >> ../out-br/extra.conf
-	@echo "BR2_PACKAGE_OPTEE_TEST=y" >> ../out-br/extra.conf
-	@echo "BR2_PACKAGE_OPTEE_EXAMPLES=y" >> ../out-br/extra.conf
+	@echo "BR2_PACKAGE_OPTEE_OS_EXT=y" >> ../out-br/extra.conf
+	@echo "BR2_PACKAGE_OPTEE_TEST_EXT=y" >> ../out-br/extra.conf
+	@echo "BR2_PACKAGE_OPTEE_EXAMPLES_EXT=y" >> ../out-br/extra.conf
 	@echo "BR2_PACKAGE_STRACE=y" >> ../out-br/extra.conf
 ifeq ($(CFG_TEE_BENCHMARK),y)
-	@echo "BR2_PACKAGE_OPTEE_BENCHMARK=y" >> ../out-br/extra.conf
+	@echo "BR2_PACKAGE_OPTEE_BENCHMARK_EXT=y" >> ../out-br/extra.conf
 endif
 	@echo "BR2_PACKAGE_OPENSSL=y" >> ../out-br/extra.conf
 	@echo "BR2_PACKAGE_LIBOPENSSL=y" >> ../out-br/extra.conf
