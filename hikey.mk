@@ -33,13 +33,13 @@ ARM_TF_BUILD			?= release
 ATF_FB_BUILD			?= release
 endif
 
-EDK2_PATH 			?= $(ROOT)/edk2
+EDK2_PATH			?= $(ROOT)/edk2
 ifeq ($(DEBUG),1)
 EDK2_BUILD			?= DEBUG
 else
 EDK2_BUILD			?= RELEASE
 endif
-EDK2_BIN 			?= $(EDK2_PATH)/Build/HiKey/$(EDK2_BUILD)_$(EDK2_TOOLCHAIN)/FV/BL33_AP_UEFI.fd
+EDK2_BIN			?= $(EDK2_PATH)/Build/HiKey/$(EDK2_BUILD)_$(EDK2_TOOLCHAIN)/FV/BL33_AP_UEFI.fd
 OPENPLATPKG_PATH		?= $(ROOT)/OpenPlatformPkg
 
 OUT_PATH			?=$(ROOT)/out
