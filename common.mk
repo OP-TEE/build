@@ -242,6 +242,7 @@ ifeq ($(CFG_TEE_BENCHMARK),y)
 endif
 	@echo "BR2_PACKAGE_OPENSSL=y" >> ../out-br/extra.conf
 	@echo "BR2_PACKAGE_LIBOPENSSL=y" >> ../out-br/extra.conf
+	@echo "BR2_PACKAGE_MMC_UTILS=y" >> ../out-br/extra.conf
 	@(cd .. && python build/br-ext/scripts/make_def_config.py \
 		--br buildroot --out out-br --br-ext build/br-ext \
 		--top-dir "$(ROOT)" \
