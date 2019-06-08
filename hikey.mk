@@ -300,7 +300,7 @@ lloader: arm-tf atf-fb
 		ln -sf $(ARM_TF_PATH)/build/hikey/$(ARM_TF_BUILD)/bl1.bin && \
 		ln -sf $(ARM_TF_PATH)/build/hikey/$(ARM_TF_BUILD)/bl2.bin && \
 		ln -sf $(ATF_FB_PATH)/build/hikey/$(ATF_FB_BUILD)/bl1.bin fastboot.bin && \
-		$(MAKE) hikey PTABLE_LST=linux-$(CFG_FLASH_SIZE)g CROSS_COMPILE="$(CCACHE)$(AARCH32_CROSS_COMPILE)"
+		$(MAKE) hikey PTABLE_LST="linux-8g linux-4g" CROSS_COMPILE="$(CCACHE)$(AARCH32_CROSS_COMPILE)"
 
 .PHONY: lloader-clean
 lloader-clean:
@@ -371,7 +371,7 @@ ifneq ($(FROM_RECOVERY),1)
 endif
 	@read -r -p "Then press enter to continue flashing" dummy
 	@echo
-	fastboot flash ptable $(LLOADER_PATH)/prm_ptable.img
+	fastboot flash ptable $(LLOADER_PATH)/ptable-linux-$(CFG_FLASH_SIZE)g.img
 	fastboot flash fastboot $(ARM_TF_PATH)/build/hikey/$(ARM_TF_BUILD)/fip.bin
 	fastboot flash nvme $(NVME_IMG)
 	fastboot flash boot $(BOOT_IMG)
