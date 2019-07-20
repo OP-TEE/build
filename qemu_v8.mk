@@ -8,6 +8,11 @@ override COMPILE_NS_KERNEL := 64
 override COMPILE_S_USER    := 64
 override COMPILE_S_KERNEL  := 64
 
+################################################################################
+# If you change this, you MUST run `make arm-tf-clean` first before rebuilding
+################################################################################
+ARM_TF_TRUSTED_BOARD_BOOT ?= n
+
 BR2_ROOTFS_OVERLAY = $(ROOT)/build/br-ext/board/qemu/overlay
 
 include common.mk
@@ -60,12 +65,29 @@ ARM_TF_FLAGS ?= \
 	DEBUG=$(ARM_TF_DEBUG) \
 	LOG_LEVEL=$(ARM_TF_LOGLVL)
 
+ifeq ($(ARM_TF_TRUSTED_BOARD_BOOT),y)
+ARM_TF_FLAGS += \
+	MBEDTLS_DIR=$(ROOT)/mbedtls \
+	TRUSTED_BOARD_BOOT=1 \
+	GENERATE_COT=1
+endif
+
 arm-tf: optee-os edk2
 	$(ARM_TF_EXPORTS) $(MAKE) -C $(ARM_TF_PATH) $(ARM_TF_FLAGS) all fip
 	mkdir -p $(BINARIES_PATH)
 	ln -sf $(ARM_TF_OUT)/bl1.bin $(BINARIES_PATH)
 	ln -sf $(ARM_TF_OUT)/bl2.bin $(BINARIES_PATH)
 	ln -sf $(ARM_TF_OUT)/bl31.bin $(BINARIES_PATH)
+ifeq ($(ARM_TF_TRUSTED_BOARD_BOOT),y)
+	ln -sf $(ARM_TF_OUT)/trusted_key.crt $(BINARIES_PATH)
+	ln -sf $(ARM_TF_OUT)/tos_fw_key.crt $(BINARIES_PATH)
+	ln -sf $(ARM_TF_OUT)/tos_fw_content.crt $(BINARIES_PATH)
+	ln -sf $(ARM_TF_OUT)/tb_fw.crt $(BINARIES_PATH)
+	ln -sf $(ARM_TF_OUT)/soc_fw_key.crt $(BINARIES_PATH)
+	ln -sf $(ARM_TF_OUT)/soc_fw_content.crt $(BINARIES_PATH)
+	ln -sf $(ARM_TF_OUT)/nt_fw_key.crt $(BINARIES_PATH)
+	ln -sf $(ARM_TF_OUT)/nt_fw_content.crt $(BINARIES_PATH)
+endif
 	ln -sf $(OPTEE_OS_HEADER_V2_BIN) $(BINARIES_PATH)/bl32.bin
 	ln -sf $(OPTEE_OS_PAGER_V2_BIN) $(BINARIES_PATH)/bl32_extra1.bin
 	ln -sf $(OPTEE_OS_PAGEABLE_V2_BIN) $(BINARIES_PATH)/bl32_extra2.bin
