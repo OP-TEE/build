@@ -15,7 +15,7 @@ include common.mk
 ################################################################################
 # Paths to git projects and various binaries
 ################################################################################
-ARM_TF_PATH			?= $(ROOT)/arm-trusted-firmware
+TF_A_PATH			?= $(ROOT)/arm-trusted-firmware
 BINARIES_PATH			?= $(ROOT)/out/bin
 U-BOOT_PATH			?= $(ROOT)/u-boot
 QEMU_PATH			?= $(ROOT)/qemu
@@ -35,19 +35,19 @@ include toolchain.mk
 ################################################################################
 # ARM Trusted Firmware
 ################################################################################
-ARM_TF_EXPORTS ?= \
+TF_A_EXPORTS ?= \
 	CROSS_COMPILE="$(CCACHE)$(AARCH32_CROSS_COMPILE)"
 
-ARM_TF_DEBUG ?= $(DEBUG)
-ifeq ($(ARM_TF_DEBUG),0)
-ARM_TF_LOGLVL ?= 30
-ARM_TF_OUT = $(ARM_TF_PATH)/build/qemu/release
+TF_A_DEBUG ?= $(DEBUG)
+ifeq ($(TF_A_DEBUG),0)
+TF_A_LOGLVL ?= 30
+TF_A_OUT = $(TF_A_PATH)/build/qemu/release
 else
-ARM_TF_LOGLVL ?= 50
-ARM_TF_OUT = $(ARM_TF_PATH)/build/qemu/debug
+TF_A_LOGLVL ?= 50
+TF_A_OUT = $(TF_A_PATH)/build/qemu/debug
 endif
 
-ARM_TF_FLAGS ?= \
+TF_A_FLAGS ?= \
 	BL32=$(OPTEE_OS_HEADER_V2_BIN) \
 	BL32_EXTRA1=$(OPTEE_OS_PAGER_V2_BIN) \
 	BL32_EXTRA2=$(OPTEE_OS_PAGEABLE_V2_BIN) \
@@ -58,21 +58,21 @@ ARM_TF_FLAGS ?= \
 	ARM_TSP_RAM_LOCATION=tdram \
 	BL32_RAM_LOCATION=tdram \
 	AARCH32_SP=optee \
-	DEBUG=$(ARM_TF_DEBUG) \
-	LOG_LEVEL=$(ARM_TF_LOGLVL) \
+	DEBUG=$(TF_A_DEBUG) \
+	LOG_LEVEL=$(TF_A_LOGLVL) \
 
 arm-tf: optee-os u-boot
-	$(ARM_TF_EXPORTS) $(MAKE) -C $(ARM_TF_PATH) $(ARM_TF_FLAGS) all fip
+	$(TF_A_EXPORTS) $(MAKE) -C $(TF_A_PATH) $(TF_A_FLAGS) all fip
 	mkdir -p $(BINARIES_PATH)
-	ln -sf $(ARM_TF_OUT)/bl1.bin $(BINARIES_PATH)
-	ln -sf $(ARM_TF_OUT)/bl2.bin $(BINARIES_PATH)
+	ln -sf $(TF_A_OUT)/bl1.bin $(BINARIES_PATH)
+	ln -sf $(TF_A_OUT)/bl2.bin $(BINARIES_PATH)
 	ln -sf $(OPTEE_OS_HEADER_V2_BIN) $(BINARIES_PATH)/bl32.bin
 	ln -sf $(OPTEE_OS_PAGER_V2_BIN) $(BINARIES_PATH)/bl32_extra1.bin
 	ln -sf $(OPTEE_OS_PAGEABLE_V2_BIN) $(BINARIES_PATH)/bl32_extra2.bin
 	ln -sf $(ROOT)/u-boot/u-boot.bin $(BINARIES_PATH)/bl33.bin
 
 arm-tf-clean:
-	$(ARM_TF_EXPORTS) $(MAKE) -C $(ARM_TF_PATH) $(ARM_TF_FLAGS) clean
+	$(TF_A_EXPORTS) $(MAKE) -C $(TF_A_PATH) $(TF_A_FLAGS) clean
 
 ################################################################################
 # QEMU

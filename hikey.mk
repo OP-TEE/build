@@ -23,13 +23,13 @@ include common.mk
 ################################################################################
 # Paths to git projects and various binaries
 ################################################################################
-ARM_TF_PATH			?= $(ROOT)/arm-trusted-firmware
+TF_A_PATH			?= $(ROOT)/arm-trusted-firmware
 ATF_FB_PATH			?= $(ROOT)/atf-fastboot
 ifeq ($(DEBUG),1)
-ARM_TF_BUILD			?= debug
+TF_A_BUILD			?= debug
 ATF_FB_BUILD			?= debug
 else
-ARM_TF_BUILD			?= release
+TF_A_BUILD			?= release
 ATF_FB_BUILD			?= release
 endif
 
@@ -78,10 +78,10 @@ prepare-cleaner:
 ################################################################################
 # ARM Trusted Firmware
 ################################################################################
-ARM_TF_EXPORTS ?= \
+TF_A_EXPORTS ?= \
 	CROSS_COMPILE="$(CCACHE)$(AARCH64_CROSS_COMPILE)"
 
-ARM_TF_FLAGS ?= \
+TF_A_FLAGS ?= \
 	BL32=$(OPTEE_OS_HEADER_V2_BIN) \
 	BL32_EXTRA1=$(OPTEE_OS_PAGER_V2_BIN) \
 	BL32_EXTRA2=$(OPTEE_OS_PAGEABLE_V2_BIN) \
@@ -91,23 +91,23 @@ ARM_TF_FLAGS ?= \
 	PLAT=hikey \
 	SPD=opteed
 
-ARM_TF_CONSOLE_UART ?= $(CFG_SW_CONSOLE_UART)
-ifeq ($(ARM_TF_CONSOLE_UART),0)
-	ARM_TF_FLAGS += CONSOLE_BASE=PL011_UART0_BASE \
+TF_A_CONSOLE_UART ?= $(CFG_SW_CONSOLE_UART)
+ifeq ($(TF_A_CONSOLE_UART),0)
+	TF_A_FLAGS += CONSOLE_BASE=PL011_UART0_BASE \
 			CRASH_CONSOLE_BASE=PL011_UART0_BASE
 endif
-ifeq ($(ARM_TF_CONSOLE_UART),2)
-	ARM_TF_FLAGS += CONSOLE_BASE=PL011_UART2_BASE \
+ifeq ($(TF_A_CONSOLE_UART),2)
+	TF_A_FLAGS += CONSOLE_BASE=PL011_UART2_BASE \
 			CRASH_CONSOLE_BASE=PL011_UART2_BASE
 endif
 
 .PHONY: arm-tf
 arm-tf: optee-os edk2
-	$(ARM_TF_EXPORTS) $(MAKE) -C $(ARM_TF_PATH) $(ARM_TF_FLAGS) all fip
+	$(TF_A_EXPORTS) $(MAKE) -C $(TF_A_PATH) $(TF_A_FLAGS) all fip
 
 .PHONY: arm-tf-clean
 arm-tf-clean:
-	$(ARM_TF_EXPORTS) $(MAKE) -C $(ARM_TF_PATH) $(ARM_TF_FLAGS) clean
+	$(TF_A_EXPORTS) $(MAKE) -C $(TF_A_PATH) $(TF_A_FLAGS) clean
 
 ################################################################################
 # EDK2 / Tianocore
@@ -297,8 +297,8 @@ atf-fb-clean:
 .PHONY: lloader
 lloader: arm-tf atf-fb
 	cd $(LLOADER_PATH) && \
-		ln -sf $(ARM_TF_PATH)/build/hikey/$(ARM_TF_BUILD)/bl1.bin && \
-		ln -sf $(ARM_TF_PATH)/build/hikey/$(ARM_TF_BUILD)/bl2.bin && \
+		ln -sf $(TF_A_PATH)/build/hikey/$(TF_A_BUILD)/bl1.bin && \
+		ln -sf $(TF_A_PATH)/build/hikey/$(TF_A_BUILD)/bl2.bin && \
 		ln -sf $(ATF_FB_PATH)/build/hikey/$(ATF_FB_BUILD)/bl1.bin fastboot.bin && \
 		$(MAKE) hikey PTABLE_LST="linux-8g linux-4g" CROSS_COMPILE="$(CCACHE)$(AARCH32_CROSS_COMPILE)"
 
@@ -372,6 +372,6 @@ endif
 	@read -r -p "Then press enter to continue flashing" dummy
 	@echo
 	fastboot flash ptable $(LLOADER_PATH)/ptable-linux-$(CFG_FLASH_SIZE)g.img
-	fastboot flash fastboot $(ARM_TF_PATH)/build/hikey/$(ARM_TF_BUILD)/fip.bin
+	fastboot flash fastboot $(TF_A_PATH)/build/hikey/$(TF_A_BUILD)/fip.bin
 	fastboot flash nvme $(NVME_IMG)
 	fastboot flash boot $(BOOT_IMG)

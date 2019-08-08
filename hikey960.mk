@@ -21,11 +21,11 @@ include common.mk
 ################################################################################
 # Paths to git projects and various binaries
 ################################################################################
-ARM_TF_PATH			?= $(ROOT)/arm-trusted-firmware
+TF_A_PATH			?= $(ROOT)/arm-trusted-firmware
 ifeq ($(DEBUG),1)
-ARM_TF_BUILD			?= debug
+TF_A_BUILD			?= debug
 else
-ARM_TF_BUILD			?= release
+TF_A_BUILD			?= release
 endif
 
 EDK2_PATH 			?= $(ROOT)/edk2
@@ -73,10 +73,10 @@ prepare-cleaner:
 ################################################################################
 # ARM Trusted Firmware
 ################################################################################
-ARM_TF_EXPORTS ?= \
+TF_A_EXPORTS ?= \
 	CROSS_COMPILE="$(CCACHE)$(AARCH64_CROSS_COMPILE)"
 
-ARM_TF_FLAGS ?= \
+TF_A_FLAGS ?= \
 	BL32=$(OPTEE_OS_HEADER_V2_BIN) \
 	BL32_EXTRA1=$(OPTEE_OS_PAGER_V2_BIN) \
 	BL32_EXTRA2=$(OPTEE_OS_PAGEABLE_V2_BIN) \
@@ -87,16 +87,16 @@ ARM_TF_FLAGS ?= \
 	SPD=opteed
 
 ifeq ($(CFG_CONSOLE_UART),5)
-	ARM_TF_FLAGS += CRASH_CONSOLE_BASE=PL011_UART5_BASE
+	TF_A_FLAGS += CRASH_CONSOLE_BASE=PL011_UART5_BASE
 endif
 
 .PHONY: arm-tf
 arm-tf: optee-os edk2
-	$(ARM_TF_EXPORTS) $(MAKE) -C $(ARM_TF_PATH) $(ARM_TF_FLAGS) all fip
+	$(TF_A_EXPORTS) $(MAKE) -C $(TF_A_PATH) $(TF_A_FLAGS) all fip
 
 .PHONY: arm-tf-clean
 arm-tf-clean:
-	$(ARM_TF_EXPORTS) $(MAKE) -C $(ARM_TF_PATH) $(ARM_TF_FLAGS) clean
+	$(TF_A_EXPORTS) $(MAKE) -C $(TF_A_PATH) $(TF_A_FLAGS) clean
 
 ################################################################################
 # EDK2 / Tianocore
@@ -262,8 +262,8 @@ boot-img-clean:
 .PHONY: lloader
 lloader: arm-tf edk2
 	cd $(LLOADER_PATH) && \
-		ln -sf $(ARM_TF_PATH)/build/hikey960/$(ARM_TF_BUILD)/bl1.bin && \
-		ln -sf $(ARM_TF_PATH)/build/hikey960/$(ARM_TF_BUILD)/bl2.bin && \
+		ln -sf $(TF_A_PATH)/build/hikey960/$(TF_A_BUILD)/bl1.bin && \
+		ln -sf $(TF_A_PATH)/build/hikey960/$(TF_A_BUILD)/bl2.bin && \
 		ln -sf $(EDK2_BIN) && \
 		$(MAKE) hikey960 PTABLE_LST=linux-32g
 
@@ -341,6 +341,6 @@ endif
 	fastboot flash ptable $(LLOADER_PATH)/prm_ptable.img
 	fastboot flash xloader $(IMAGE_TOOLS_PATH)/hisi-sec_xloader.img
 	fastboot flash fastboot $(LLOADER_PATH)/l-loader.bin
-	fastboot flash fip $(ARM_TF_PATH)/build/hikey960/$(ARM_TF_BUILD)/fip.bin
+	fastboot flash fip $(TF_A_PATH)/build/hikey960/$(TF_A_BUILD)/fip.bin
 	fastboot flash nvme $(IMAGE_TOOLS_PATH)/hisi-nvme.img
 	fastboot flash boot $(BOOT_IMG)
