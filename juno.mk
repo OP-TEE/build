@@ -15,7 +15,7 @@ include common.mk
 ################################################################################
 # Paths to git projects and various binaries
 ################################################################################
-ARM_TF_PATH		?= $(ROOT)/arm-trusted-firmware
+TF_A_PATH		?= $(ROOT)/arm-trusted-firmware
 
 U-BOOT_PATH		?= $(ROOT)/u-boot
 U-BOOT_BIN		?= $(U-BOOT_PATH)/u-boot.bin
@@ -31,10 +31,10 @@ include toolchain.mk
 ################################################################################
 # ARM Trusted Firmware
 ################################################################################
-ARM_TF_EXPORTS ?= \
+TF_A_EXPORTS ?= \
 	CROSS_COMPILE="$(CCACHE)$(AARCH64_CROSS_COMPILE)"
 
-ARM_TF_FLAGS ?= \
+TF_A_FLAGS ?= \
 	SCP_BL2=$(ROOT)/vexpress-firmware/SOFTWARE/scp_bl2.bin \
 	BL32=$(OPTEE_OS_HEADER_V2_BIN) \
 	BL32_EXTRA1=$(OPTEE_OS_PAGER_V2_BIN) \
@@ -46,10 +46,10 @@ ARM_TF_FLAGS ?= \
 	SPD=opteed
 
 arm-tf: optee-os u-boot
-	$(ARM_TF_EXPORTS) $(MAKE) -C $(ARM_TF_PATH) $(ARM_TF_FLAGS) all fip
+	$(TF_A_EXPORTS) $(MAKE) -C $(TF_A_PATH) $(TF_A_FLAGS) all fip
 
 arm-tf-clean:
-	$(ARM_TF_EXPORTS) $(MAKE) -C $(ARM_TF_PATH) $(ARM_TF_FLAGS) clean
+	$(TF_A_EXPORTS) $(MAKE) -C $(TF_A_PATH) $(TF_A_FLAGS) clean
 
 ################################################################################
 # Das U-Boot
@@ -115,8 +115,8 @@ flash: $(ROOT)/out-br/images/ramdisk.img
 	@test -n "$(JUNO_IP)" || \
 		(echo "JUNO_IP not set" ; exit 1)
 	$(FTP-UPLOAD) $(ROOT)/vexpress-firmware/SOFTWARE/scp_bl1.bin
-	$(FTP-UPLOAD) $(ARM_TF_PATH)/build/juno/release/bl1.bin
-	$(FTP-UPLOAD) $(ARM_TF_PATH)/build/juno/release/fip.bin
+	$(FTP-UPLOAD) $(TF_A_PATH)/build/juno/release/bl1.bin
+	$(FTP-UPLOAD) $(TF_A_PATH)/build/juno/release/fip.bin
 	$(FTP-UPLOAD) $(ROOT)/linux/arch/arm64/boot/Image
 	$(FTP-UPLOAD) $(ROOT)/linux/arch/arm64/boot/dts/arm/juno.dtb
 	$(FTP-UPLOAD) $(ROOT)/linux/arch/arm64/boot/dts/arm/juno-r1.dtb

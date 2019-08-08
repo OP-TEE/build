@@ -17,14 +17,14 @@ include common.mk
 # Paths to git projects and various binaries
 ################################################################################
 ifeq ($(DEBUG),1)
-ARM_TF_BUILD		?= debug
+TF_A_BUILD		?= debug
 else
-ARM_TF_BUILD		?= release
+TF_A_BUILD		?= release
 endif
 
 OUT_PATH		?= $(ROOT)/out
 ROOTFS_BIN		?= $(ROOT)/out-br/images/rootfs.tar
-ARM_TF_PATH		?= $(ROOT)/arm-trusted-firmware
+TF_A_PATH		?= $(ROOT)/arm-trusted-firmware
 LLOADER_PATH		?= $(ROOT)/l-loader
 UBOOT_PATH		?= $(ROOT)/u-boot
 OPTEE_CLIENT_EXPORT	?= $(OPTEE_CLIENT_PATH)/out/export
@@ -32,8 +32,8 @@ OPTEE_PATH		?= $(ROOT)/optee_os
 LINUX_PATH		?= $(ROOT)/linux
 TOOLS_PATH		?= $(ROOT)/poplar-tools
 
-BL1_BIN			?= $(ARM_TF_PATH)/build/poplar/$(ARM_TF_BUILD)/bl1.bin
-FIP_BIN			?= $(ARM_TF_PATH)/build/poplar/$(ARM_TF_BUILD)/fip.bin
+BL1_BIN			?= $(TF_A_PATH)/build/poplar/$(TF_A_BUILD)/bl1.bin
+FIP_BIN			?= $(TF_A_PATH)/build/poplar/$(TF_A_BUILD)/fip.bin
 LLOADER_BIN		?= $(LLOADER_PATH)/l-loader.bin
 
 LINUX_DTB		?= $(LINUX_PATH)/arch/arm64/boot/dts/hisilicon/hi3798cv200-poplar.dtb
@@ -87,7 +87,7 @@ u-boot-clean:
 ################################################################################
 .PHONY: arm-tf
 arm-tf: u-boot optee-os
-	$(MAKE) -C $(ARM_TF_PATH) \
+	$(MAKE) -C $(TF_A_PATH) \
 		CROSS_COMPILE="$(CCACHE)$(AARCH64_CROSS_COMPILE)" \
 		all fip \
 		DEBUG=$(DEBUG) \
@@ -100,7 +100,7 @@ arm-tf: u-boot optee-os
 
 .PHONY: arm-tf-clean
 arm-tf-clean:
-	cd $(ARM_TF_PATH) && git clean -xdf
+	cd $(TF_A_PATH) && git clean -xdf
 
 ################################################################################
 # OP-TEE

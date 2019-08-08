@@ -17,9 +17,9 @@ include common.mk
 ################################################################################
 # Paths to git projects and various binaries
 ################################################################################
-ARM_TF_PATH		?= $(ROOT)/arm-trusted-firmware
-ARM_TF_OUT		?= $(ARM_TF_PATH)/build/rpi3/debug
-ARM_TF_BOOT		?= $(ARM_TF_OUT)/armstub8.bin
+TF_A_PATH		?= $(ROOT)/arm-trusted-firmware
+TF_A_OUT		?= $(TF_A_PATH)/build/rpi3/debug
+TF_A_BOOT		?= $(TF_A_OUT)/armstub8.bin
 
 OPTEE_PATH		?= $(ROOT)/optee_os
 U-BOOT_PATH		?= $(ROOT)/u-boot
@@ -53,10 +53,10 @@ include toolchain.mk
 ################################################################################
 # ARM Trusted Firmware
 ################################################################################
-ARM_TF_EXPORTS ?= \
+TF_A_EXPORTS ?= \
 	CROSS_COMPILE="$(CCACHE)$(AARCH64_CROSS_COMPILE)"
 
-ARM_TF_FLAGS ?= \
+TF_A_FLAGS ?= \
 	NEED_BL32=yes \
 	BL32=$(OPTEE_BIN) \
 	BL32_EXTRA1=$(OPTEE_BIN_EXTRA1) \
@@ -71,10 +71,10 @@ ARM_TF_FLAGS ?= \
 	SPD=opteed
 
 arm-tf: optee-os u-boot-env
-	$(ARM_TF_EXPORTS) $(MAKE) -C $(ARM_TF_PATH) $(ARM_TF_FLAGS) all fip
+	$(TF_A_EXPORTS) $(MAKE) -C $(TF_A_PATH) $(TF_A_FLAGS) all fip
 
 arm-tf-clean:
-	$(ARM_TF_EXPORTS) $(MAKE) -C $(ARM_TF_PATH) $(ARM_TF_FLAGS) clean
+	$(TF_A_EXPORTS) $(MAKE) -C $(TF_A_PATH) $(TF_A_FLAGS) clean
 
 ################################################################################
 # Das U-Boot
@@ -168,7 +168,7 @@ update_rootfs: arm-tf linux u-boot
 	@install -v -p --mode=755 $(LINUX_DTB_RPI3_BPLUS) $(BUILDROOT_TARGET_ROOT)/boot/bcm2710-rpi-3-b-plus.dtb
 	@install -v -p --mode=755 $(RPI3_BOOT_CONFIG) $(BUILDROOT_TARGET_ROOT)/boot/config.txt
 	@install -v -p --mode=755 $(LINUX_IMAGE) $(BUILDROOT_TARGET_ROOT)/boot/kernel8.img
-	@install -v -p --mode=755 $(ARM_TF_BOOT) $(BUILDROOT_TARGET_ROOT)/boot/armstub8.bin
+	@install -v -p --mode=755 $(TF_A_BOOT) $(BUILDROOT_TARGET_ROOT)/boot/armstub8.bin
 	@install -v -p --mode=755 $(RPI3_UBOOT_ENV) $(BUILDROOT_TARGET_ROOT)/boot/uboot.env
 	@install -v -p --mode=755 $(RPI3_STOCK_FW_PATH)/boot/bootcode.bin $(BUILDROOT_TARGET_ROOT)/boot/bootcode.bin
 	@install -v -p --mode=755 $(RPI3_STOCK_FW_PATH)/boot/COPYING.linux $(BUILDROOT_TARGET_ROOT)/boot/COPYING.linux

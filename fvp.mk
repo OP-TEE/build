@@ -16,7 +16,7 @@ include common.mk
 ################################################################################
 # Paths to git projects and various binaries
 ################################################################################
-ARM_TF_PATH		?= $(ROOT)/arm-trusted-firmware
+TF_A_PATH		?= $(ROOT)/arm-trusted-firmware
 EDK2_PATH		?= $(ROOT)/edk2
 EDK2_PLATFORMS_PATH	?= $(ROOT)/edk2-platforms
 EDK2_BIN		?= $(EDK2_PLATFORMS_PATH)/Build/ArmVExpress-FVP-AArch64/RELEASE_GCC49/FV/FVP_AARCH64_EFI.fd
@@ -49,10 +49,10 @@ $(OUT_PATH):
 ################################################################################
 # ARM Trusted Firmware
 ################################################################################
-ARM_TF_EXPORTS ?= \
+TF_A_EXPORTS ?= \
 	CROSS_COMPILE="$(CCACHE)$(AARCH64_CROSS_COMPILE)"
 
-ARM_TF_FLAGS ?= \
+TF_A_FLAGS ?= \
 	BL32=$(OPTEE_OS_HEADER_V2_BIN) \
 	BL32_EXTRA1=$(OPTEE_OS_PAGER_V2_BIN) \
 	BL32_EXTRA2=$(OPTEE_OS_PAGEABLE_V2_BIN) \
@@ -64,10 +64,10 @@ ARM_TF_FLAGS ?= \
 	SPD=opteed
 
 arm-tf: optee-os edk2
-	$(ARM_TF_EXPORTS) $(MAKE) -C $(ARM_TF_PATH) $(ARM_TF_FLAGS) all fip
+	$(TF_A_EXPORTS) $(MAKE) -C $(TF_A_PATH) $(TF_A_FLAGS) all fip
 
 arm-tf-clean:
-	$(ARM_TF_EXPORTS) $(MAKE) -C $(ARM_TF_PATH) $(ARM_TF_FLAGS) clean
+	$(TF_A_EXPORTS) $(MAKE) -C $(TF_A_PATH) $(TF_A_FLAGS) clean
 
 ################################################################################
 # EDK2 / Tianocore
@@ -193,7 +193,7 @@ run-only:
 	--secure-memory \
 	--visualization \
 	--gicv3 \
-	--data="$(ARM_TF_PATH)/build/fvp/release/bl1.bin"@0x0 \
-	--data="$(ARM_TF_PATH)/build/fvp/release/fip.bin"@0x8000000 \
+	--data="$(TF_A_PATH)/build/fvp/release/bl1.bin"@0x0 \
+	--data="$(TF_A_PATH)/build/fvp/release/fip.bin"@0x8000000 \
 	--block-device=$(BOOT_IMG)
 
