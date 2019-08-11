@@ -21,7 +21,7 @@ include common.mk
 ################################################################################
 # Paths to git projects and various binaries
 ################################################################################
-TF_A_PATH			?= $(ROOT)/arm-trusted-firmware
+TF_A_PATH			?= $(ROOT)/trusted-firmware-a
 ifeq ($(DEBUG),1)
 TF_A_BUILD			?= debug
 else

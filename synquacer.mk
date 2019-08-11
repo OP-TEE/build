@@ -29,7 +29,7 @@ include toolchain.mk
 ################################################################################
 # Paths to git projects and various binaries
 ################################################################################
-TFA_PATH ?= $(ROOT)/arm-trusted-firmware
+TFA_PATH ?= $(ROOT)/trusted-firmware-a
 TFA_OUT ?= $(TFA_PATH)/build/synquacer/$(TFA_BUILD)
 TFA_BL31 ?= $(TFA_OUT)/bl31.bin
 TFA_BL32 ?= $(TFA_OUT)/bl32.bin

@@ -17,7 +17,7 @@ include common.mk
 ################################################################################
 # Paths to git projects and various binaries
 ################################################################################
-TF_A_PATH		?= $(ROOT)/arm-trusted-firmware
+TF_A_PATH		?= $(ROOT)/trusted-firmware-a
 TF_A_OUT		?= $(TF_A_PATH)/build/rpi3/debug
 TF_A_BOOT		?= $(TF_A_OUT)/armstub8.bin
 

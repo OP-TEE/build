@@ -16,7 +16,7 @@ include common.mk
 ################################################################################
 # Paths to git projects and various binaries
 ################################################################################
-TF_A_PATH		?= $(ROOT)/arm-trusted-firmware
+TF_A_PATH		?= $(ROOT)/trusted-firmware-a
 EDK2_PATH		?= $(ROOT)/edk2
 EDK2_PLATFORMS_PATH	?= $(ROOT)/edk2-platforms
 EDK2_BIN		?= $(EDK2_PLATFORMS_PATH)/Build/ArmVExpress-FVP-AArch64/RELEASE_GCC49/FV/FVP_AARCH64_EFI.fd
