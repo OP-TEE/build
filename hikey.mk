@@ -23,7 +23,7 @@ include common.mk
 ################################################################################
 # Paths to git projects and various binaries
 ################################################################################
-TF_A_PATH			?= $(ROOT)/arm-trusted-firmware
+TF_A_PATH			?= $(ROOT)/trusted-firmware-a
 ATF_FB_PATH			?= $(ROOT)/atf-fastboot
 ifeq ($(DEBUG),1)
 TF_A_BUILD			?= debug

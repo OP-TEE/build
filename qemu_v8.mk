@@ -20,7 +20,7 @@ include common.mk
 ################################################################################
 # Paths to git projects and various binaries
 ################################################################################
-TF_A_PATH		?= $(ROOT)/arm-trusted-firmware
+TF_A_PATH		?= $(ROOT)/trusted-firmware-a
 BINARIES_PATH		?= $(ROOT)/out/bin
 EDK2_PATH		?= $(ROOT)/edk2
 EDK2_BIN		?= $(EDK2_PATH)/Build/ArmVirtQemuKernel-AARCH64/DEBUG_GCC49/FV/QEMU_EFI.fd

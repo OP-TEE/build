@@ -5,7 +5,7 @@ target extended-remote localhost:3333
 
 # substitute appropriate value from u-boot startup message (relocation offset)
 add-symbol-file ../../../u-boot/u-boot 0x3af3a000
-add-symbol-file ../../../arm-trusted-firmware/build/rpi3/debug/bl31/bl31.elf 0x08400000
+add-symbol-file ../../../trusted-firmware-a/build/rpi3/debug/bl31/bl31.elf 0x08400000
 add-symbol-file ../../../optee_os/out/arm/core/tee.elf 0x08420000
 add-symbol-file ../../../linux/vmlinux 0xffffffc000080800
 

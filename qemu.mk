@@ -15,7 +15,7 @@ include common.mk
 ################################################################################
 # Paths to git projects and various binaries
 ################################################################################
-TF_A_PATH			?= $(ROOT)/arm-trusted-firmware
+TF_A_PATH			?= $(ROOT)/trusted-firmware-a
 BINARIES_PATH			?= $(ROOT)/out/bin
 U-BOOT_PATH			?= $(ROOT)/u-boot
 QEMU_PATH			?= $(ROOT)/qemu
