@@ -194,55 +194,44 @@ else
 BUILDROOT_TOOLCHAIN=toolchain-aarch$(COMPILE_NS_USER)-legacy
 endif
 endif
-BUILDROOT_GETTY_PORT ?= \
-	$(if $(CFG_NW_CONSOLE_UART),ttyAMA$(CFG_NW_CONSOLE_UART),ttyAMA0)
+
+BR2_PACKAGE_LIBOPENSSL ?= y
+BR2_PACKAGE_MMC_UTILS ?= y
+BR2_PACKAGE_OPENSSL ?= y
+BR2_PACKAGE_OPTEE_BENCHMARK ?= $(CFG_TEE_BENCHMARK)
+BR2_PACKAGE_OPTEE_BENCHMARK_SITE ?= $(BENCHMARK_APP_PATH)
+BR2_PACKAGE_OPTEE_CLIENT_SITE ?= $(OPTEE_CLIENT_PATH)
+BR2_PACKAGE_OPTEE_EXAMPLES ?= y
+BR2_PACKAGE_OPTEE_EXAMPLES_CROSS_COMPILE ?= $(CROSS_COMPILE_S_USER)
+BR2_PACKAGE_OPTEE_EXAMPLES_SDK ?= $(OPTEE_OS_TA_DEV_KIT_DIR)
+BR2_PACKAGE_OPTEE_EXAMPLES_SITE ?= $(OPTEE_EXAMPLES_PATH)
+# The OPTEE_OS package builds nothing, it just installs files into the
+# root FS when applicable (for example: shared libraries)
+BR2_PACKAGE_OPTEE_OS ?= y
+BR2_PACKAGE_OPTEE_OS_SDK ?= $(OPTEE_OS_TA_DEV_KIT_DIR)
+BR2_PACKAGE_OPTEE_OS_SITE ?= $(CURDIR)/br-ext/package/optee_os
+BR2_PACKAGE_OPTEE_TEST ?= y
+BR2_PACKAGE_OPTEE_TEST_CROSS_COMPILE ?= $(CROSS_COMPILE_S_USER)
+BR2_PACKAGE_OPTEE_TEST_SDK ?= $(OPTEE_OS_TA_DEV_KIT_DIR)
+BR2_PACKAGE_OPTEE_TEST_SITE ?= $(OPTEE_TEST_PATH)
+BR2_PACKAGE_STRACE ?= y
+BR2_TARGET_GENERIC_GETTY_PORT ?= $(if $(CFG_NW_CONSOLE_UART),ttyAMA$(CFG_NW_CONSOLE_UART),ttyAMA0)
+
+# All BR2_* variables from the makefile or the environment are appended to
+# ../out-br/extra.conf. All values are quoted "..." except y and n.
+double-quote = "#" # This really sets the variable to " and avoids upsetting vim's syntax highlighting
+streq = $(and $(findstring $(1),$(2)),$(findstring $(2),$(1)))
+y-or-n = $(or $(call streq,y,$(1)),$(call streq,n,$(1)))
+append-var_ = echo '$(1)=$(3)'$($(1))'$(3)' >>$(2);
+append-var = $(call append-var_,$(1),$(2),$(if $(call y-or-n,$($(1))),,$(double-quote)))
+append-br2-vars = $(foreach var,$(filter BR2_%,$(.VARIABLES)),$(call append-var,$(var),$(1)))
+
 .PHONY: buildroot
 buildroot: optee-os
 	@mkdir -p ../out-br
 	@rm -f ../out-br/build/optee_*/.stamp_*
 	@rm -f ../out-br/extra.conf
-	@touch ../out-br/extra.conf
-	@echo "BR2_TARGET_GENERIC_GETTY_PORT=\"$(BUILDROOT_GETTY_PORT)\"" >> \
-		../out-br/extra.conf
-ifneq (,$(BR2_ROOTFS_OVERLAY))
-	@echo "BR2_ROOTFS_OVERLAY=\"$(BR2_ROOTFS_OVERLAY)\"" >> ../out-br/extra.conf
-endif
-ifneq (,$(BR2_ROOTFS_POST_BUILD_SCRIPT))
-	@echo "BR2_ROOTFS_POST_BUILD_SCRIPT=\"$(BR2_ROOTFS_POST_BUILD_SCRIPT)\"" >> \
-		../out-br/extra.conf
-endif
-	@# The OPTEE_OS package builds nothing, it just installs files into the
-	@# root FS when applicable (for example: shared libraries)
-	@echo "BR2_PACKAGE_OPTEE_OS_SITE=\"$(CURDIR)/br-ext/package/optee_os\"" >> \
-		../out-br/extra.conf
-	@echo "BR2_PACKAGE_OPTEE_OS_SDK=\"$(OPTEE_OS_TA_DEV_KIT_DIR)\"" >> \
-		../out-br/extra.conf
-	@echo "BR2_PACKAGE_OPTEE_TEST_CROSS_COMPILE=\"$(CROSS_COMPILE_S_USER)\"" >> \
-		../out-br/extra.conf
-	@echo "BR2_PACKAGE_OPTEE_EXAMPLES_CROSS_COMPILE=\"$(CROSS_COMPILE_S_USER)\"" >> \
-		../out-br/extra.conf
-	@echo "BR2_PACKAGE_OPTEE_TEST_SDK=\"$(OPTEE_OS_TA_DEV_KIT_DIR)\"" >> \
-		../out-br/extra.conf
-	@echo "BR2_PACKAGE_OPTEE_EXAMPLES_SDK=\"$(OPTEE_OS_TA_DEV_KIT_DIR)\"" >> \
-		../out-br/extra.conf
-	@echo "BR2_PACKAGE_OPTEE_CLIENT_SITE=\"$(OPTEE_CLIENT_PATH)\"" >> \
-		../out-br/extra.conf
-	@echo "BR2_PACKAGE_OPTEE_TEST_SITE=\"$(OPTEE_TEST_PATH)\"" >> \
-		../out-br/extra.conf
-	@echo "BR2_PACKAGE_OPTEE_EXAMPLES_SITE=\"$(OPTEE_EXAMPLES_PATH)\"" >> \
-		../out-br/extra.conf
-	@echo "BR2_PACKAGE_OPTEE_BENCHMARK_SITE=\"$(BENCHMARK_APP_PATH)\"" >> \
-		../out-br/extra.conf
-	@echo "BR2_PACKAGE_OPTEE_OS=y" >> ../out-br/extra.conf
-	@echo "BR2_PACKAGE_OPTEE_TEST=y" >> ../out-br/extra.conf
-	@echo "BR2_PACKAGE_OPTEE_EXAMPLES=y" >> ../out-br/extra.conf
-	@echo "BR2_PACKAGE_STRACE=y" >> ../out-br/extra.conf
-ifeq ($(CFG_TEE_BENCHMARK),y)
-	@echo "BR2_PACKAGE_OPTEE_BENCHMARK=y" >> ../out-br/extra.conf
-endif
-	@echo "BR2_PACKAGE_OPENSSL=y" >> ../out-br/extra.conf
-	@echo "BR2_PACKAGE_LIBOPENSSL=y" >> ../out-br/extra.conf
-	@echo "BR2_PACKAGE_MMC_UTILS=y" >> ../out-br/extra.conf
+	@$(call append-br2-vars,../out-br/extra.conf)
 	@(cd .. && python build/br-ext/scripts/make_def_config.py \
 		--br buildroot --out out-br --br-ext build/br-ext \
 		--top-dir "$(ROOT)" \
