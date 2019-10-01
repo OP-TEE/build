@@ -1,0 +1,8 @@
+auto lo
+iface lo inet loopback
+
+iface wlan0 inet dhcp
+        pre-up wpa_supplicant -i wlan0 -c /etc/wpa_supplicant.conf -B \
+	       && sleep 6  # wait before starting udhcpc
+        post-down killall -q wpa_supplicant
+
