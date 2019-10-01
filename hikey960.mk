@@ -13,6 +13,17 @@ CFG_CONSOLE_UART ?= 6
 # Needed by buildroot
 CFG_NW_CONSOLE_UART ?= $(CFG_CONSOLE_UART)
 
+# To enable Wi-Fi on HiKey960:
+# 1. Set the network name (SSID) and password in
+#    $(BR2_ROOTFS_OVERLAY)/etc/wpa_supplicant.conf before building
+# 2. Boot the board, login as root and run: ifup wlan0
+BR2_PACKAGE_LINUX_FIRMWARE = y
+BR2_PACKAGE_LINUX_FIRMWARE_TI_WL18XX = y
+BR2_PACKAGE_WPA_SUPPLICANT = y
+BR2_PACKAGE_WIRELESS_REGDB = y
+
+BR2_ROOTFS_OVERLAY = $(ROOT)/build/br-ext/board/hikey960/overlay
+
 ################################################################################
 # Includes
 ################################################################################
