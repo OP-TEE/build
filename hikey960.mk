@@ -45,7 +45,6 @@ LLOADER_PATH			?=$(ROOT)/l-loader
 IMAGE_TOOLS_PATH		?=$(ROOT)/tools-images-hikey960
 IMAGE_TOOLS_CONFIG		?=$(OUT_PATH)/config
 PATCHES_PATH			?=$(ROOT)/patches_hikey
-STRACE_PATH			?=$(ROOT)/strace
 
 ################################################################################
 # Targets

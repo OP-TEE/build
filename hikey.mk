@@ -49,7 +49,6 @@ NVME_IMG			?=$(ROOT)/out/nvme.img
 GRUB_PATH			?=$(ROOT)/grub
 LLOADER_PATH			?=$(ROOT)/l-loader
 PATCHES_PATH			?=$(ROOT)/patches_hikey
-STRACE_PATH			?=$(ROOT)/strace
 
 ################################################################################
 # Targets
