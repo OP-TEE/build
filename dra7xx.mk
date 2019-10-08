@@ -9,7 +9,7 @@ override COMPILE_S_USER    := 32
 override COMPILE_S_KERNEL  := 32
 
 # Need to set this before including common.mk
-BUILDROOT_GETTY_PORT ?= ttyS0
+BR2_TARGET_GENERIC_GETTY_PORT ?= ttyS0
 
 ###############################################################################
 # Includes
