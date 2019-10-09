@@ -120,7 +120,8 @@ optee-os-clean: optee-os-clean-common
 l-loader: arm-tf
 	cp $(BL1_BIN) $(LLOADER_PATH)/atf
 	cp $(FIP_BIN) $(LLOADER_PATH)/atf
-	$(MAKE) -C $(LLOADER_PATH) CROSS_COMPILE="$(AARCH32_CROSS_COMPILE)"
+	$(MAKE) -C $(LLOADER_PATH) CROSS_COMPILE="$(AARCH32_CROSS_COMPILE)" \
+		ARM_TRUSTED_FIRMWARE="$(TF_A_PATH)"
 
 .PHONY: l-loader-clean
 l-loader-clean:
