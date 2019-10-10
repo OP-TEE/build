@@ -8,11 +8,13 @@ OPTEE_EXAMPLES_SDK = $(BR2_PACKAGE_OPTEE_EXAMPLES_SDK)
 OPTEE_EXAMPLES_CONF_OPTS = -DOPTEE_EXAMPLES_SDK=$(OPTEE_EXAMPLES_SDK)
 
 define OPTEE_EXAMPLES_BUILD_TAS
-	@$(foreach f,$(wildcard $(@D)/*/ta/Makefile), \
-		echo Building $f && \
+	@for f in $(@D)/*/ta/Makefile; \
+	do \
+	  echo Building $$f && \
 			$(MAKE) CROSS_COMPILE="$(shell echo $(BR2_PACKAGE_OPTEE_EXAMPLES_CROSS_COMPILE))" \
 			O=out TA_DEV_KIT_DIR=$(OPTEE_EXAMPLES_SDK) \
-			$(TARGET_CONFIGURE_OPTS) -C $(dir $f) all &&) true
+			$(TARGET_CONFIGURE_OPTS) -C $${f%/*} all; \
+	done
 endef
 
 define OPTEE_EXAMPLES_INSTALL_TAS
