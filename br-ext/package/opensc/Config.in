@@ -1,0 +1,5 @@
+config BR2_PACKAGE_OPENSC
+	bool "opensc"
+	select BR2_PACKAGE_PCSC_LITE
+	help
+	    Installs opensc

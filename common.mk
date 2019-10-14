@@ -269,6 +269,9 @@ BR2_PACKAGE_OPTEE_TEST_EXT_GP_PACKAGE := $(GP_PACKAGE)
 BR2_PACKAGE_STRACE ?= y
 BR2_TARGET_GENERIC_GETTY_PORT ?= $(if $(CFG_NW_CONSOLE_UART),ttyAMA$(CFG_NW_CONSOLE_UART),ttyAMA0)
 
+# Embed opensc for pkcs11-tool
+BR2_PACKAGE_OPENSC ?= y
+
 # All BR2_* variables from the makefile or the environment are appended to
 # ../out-br/extra.conf. All values are quoted "..." except y and n.
 double-quote = "#" # This really sets the variable to " and avoids upsetting vim's syntax highlighting
