@@ -8,13 +8,9 @@ OPTEE_TEST_SDK = $(BR2_PACKAGE_OPTEE_TEST_SDK)
 OPTEE_TEST_CONF_OPTS = -DOPTEE_TEST_SDK=$(OPTEE_TEST_SDK)
 
 define OPTEE_TEST_BUILD_TAS
-	@for f in $(@D)/ta/*/Makefile; \
-	do \
-	  echo Building $$f && \
 	  $(MAKE) CROSS_COMPILE="$(shell echo $(BR2_PACKAGE_OPTEE_TEST_CROSS_COMPILE))" \
 	  O=out TA_DEV_KIT_DIR=$(OPTEE_TEST_SDK) \
-	  $(TARGET_CONFIGURE_OPTS) -C $${f%/*} all; \
-	done
+	  $(TARGET_CONFIGURE_OPTS) -C $(@D)/ta -f $(@D)/ta/Makefile.gmake
 endef
 
 define OPTEE_TEST_INSTALL_TAS
