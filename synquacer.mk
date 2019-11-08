@@ -8,7 +8,12 @@ COMPILE_NS_KERNEL ?= 64
 COMPILE_S_USER    ?= 64
 COMPILE_S_KERNEL  ?= 64
 
-DEBUG ?= 0
+################################################################################
+# Includes
+################################################################################
+include common.mk
+include toolchain.mk
+
 ifeq ($(DEBUG),1)
 TFA_BUILD ?= debug
 else
@@ -19,12 +24,6 @@ EDK2_BUILD ?= DEBUG
 else
 EDK2_BUILD ?= RELEASE
 endif
-
-################################################################################
-# Includes
-################################################################################
-include common.mk
-include toolchain.mk
 
 ################################################################################
 # Paths to git projects and various binaries
