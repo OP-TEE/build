@@ -17,17 +17,22 @@ BR2_ROOTFS_OVERLAY = $(ROOT)/build/br-ext/board/qemu/overlay
 
 include common.mk
 
+DEBUG ?= 1
+
 ################################################################################
 # Paths to git projects and various binaries
 ################################################################################
 TF_A_PATH		?= $(ROOT)/trusted-firmware-a
 BINARIES_PATH		?= $(ROOT)/out/bin
 EDK2_PATH		?= $(ROOT)/edk2
-EDK2_BIN		?= $(EDK2_PATH)/Build/ArmVirtQemuKernel-AARCH64/DEBUG_GCC49/FV/QEMU_EFI.fd
+ifeq ($(DEBUG),1)
+EDK2_BUILD		?= DEBUG
+else
+EDK2_BUILD		?= RELEASE
+endif
+EDK2_BIN		?= $(EDK2_PATH)/Build/ArmVirtQemuKernel-AARCH64/$(EDK2_BUILD)_GCC49/FV/QEMU_EFI.fd
 QEMU_PATH		?= $(ROOT)/qemu
 SOC_TERM_PATH		?= $(ROOT)/soc_term
-
-DEBUG ?= 1
 
 ################################################################################
 # Targets
@@ -118,7 +123,7 @@ define edk2-call
         GCC49_AARCH64_PREFIX=$(AARCH64_CROSS_COMPILE) \
         build -n `getconf _NPROCESSORS_ONLN` -a AARCH64 \
                 -t GCC49 -p ArmVirtPkg/ArmVirtQemuKernel.dsc \
-		-b DEBUG
+		-b $(EDK2_BUILD)
 endef
 
 edk2: edk2-common
