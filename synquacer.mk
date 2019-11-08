@@ -39,6 +39,8 @@ EDK2_PLATFORMS_PATH ?= $(ROOT)/edk2-platforms
 EDK2_NON_OSI_PATH ?= $(ROOT)/edk2-non-osi
 EDK2_PKGS_PATH := "$(EDK2_PATH):$(EDK2_PLATFORMS_PATH):$(EDK2_NON_OSI_PATH)"
 EDK2_FIP ?= $(EDK2_NON_OSI_PATH)/Platform/Socionext/DeveloperBox/fip_all_arm_tf.bin
+EDK2_TOOLCHAIN ?= GCC5
+EDK2_ARCH ?= AARCH64
 
 ################################################################################
 # Targets
@@ -91,9 +93,9 @@ define edk2-env
 endef
 
 define edk2-call
-	GCC5_AARCH64_PREFIX=$(AARCH64_CROSS_COMPILE) \
+	$(EDK2_TOOLCHAIN)_$(EDK2_ARCH)_PREFIX=$(AARCH64_CROSS_COMPILE) \
 	build -n `getconf _NPROCESSORS_ONLN` \
-		-a "AARCH64" -t "GCC5" -b $(EDK2_BUILD) \
+		-a $(EDK2_ARCH) -t $(EDK2_TOOLCHAIN) -b $(EDK2_BUILD) \
 		-p Platform/Socionext/DeveloperBox/DeveloperBox.dsc
 endef
 

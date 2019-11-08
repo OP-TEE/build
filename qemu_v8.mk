@@ -25,12 +25,14 @@ DEBUG ?= 1
 TF_A_PATH		?= $(ROOT)/trusted-firmware-a
 BINARIES_PATH		?= $(ROOT)/out/bin
 EDK2_PATH		?= $(ROOT)/edk2
+EDK2_TOOLCHAIN		?= GCC49
+EDK2_ARCH		?= AARCH64
 ifeq ($(DEBUG),1)
 EDK2_BUILD		?= DEBUG
 else
 EDK2_BUILD		?= RELEASE
 endif
-EDK2_BIN		?= $(EDK2_PATH)/Build/ArmVirtQemuKernel-AARCH64/$(EDK2_BUILD)_GCC49/FV/QEMU_EFI.fd
+EDK2_BIN		?= $(EDK2_PATH)/Build/ArmVirtQemuKernel-$(EDK2_ARCH)/$(EDK2_BUILD)_$(EDK2_TOOLCHAIN)/FV/QEMU_EFI.fd
 QEMU_PATH		?= $(ROOT)/qemu
 SOC_TERM_PATH		?= $(ROOT)/soc_term
 
@@ -120,9 +122,9 @@ define edk2-env
 endef
 
 define edk2-call
-        GCC49_AARCH64_PREFIX=$(AARCH64_CROSS_COMPILE) \
-        build -n `getconf _NPROCESSORS_ONLN` -a AARCH64 \
-                -t GCC49 -p ArmVirtPkg/ArmVirtQemuKernel.dsc \
+        $(EDK2_TOOLCHAIN)_$(EDK2_ARCH)_PREFIX=$(AARCH64_CROSS_COMPILE) \
+        build -n `getconf _NPROCESSORS_ONLN` -a $(EDK2_ARCH) \
+                -t $(EDK2_TOOLCHAIN) -p ArmVirtPkg/ArmVirtQemuKernel.dsc \
 		-b $(EDK2_BUILD)
 endef
 
