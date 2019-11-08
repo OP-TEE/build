@@ -1,5 +1,3 @@
-DEBUG ?= 1
-
 ################################################################################
 # Following variables defines how the NS_USER (Non Secure User - Client
 # Application), NS_KERNEL (Non Secure Kernel), S_KERNEL (Secure Kernel) and
@@ -57,7 +55,7 @@ TF_A_FLAGS ?= \
 	BL32_EXTRA1=$(OPTEE_OS_PAGER_V2_BIN) \
 	BL32_EXTRA2=$(OPTEE_OS_PAGEABLE_V2_BIN) \
 	BL33=$(EDK2_BIN) \
-	DEBUG=0 \
+	DEBUG=$(DEBUG) \
 	ARM_TSP_RAM_LOCATION=tdram \
 	FVP_USE_GIC_DRIVER=FVP_GICV3 \
 	PLAT=fvp \

@@ -8,8 +8,6 @@ override COMPILE_NS_KERNEL := 64
 override COMPILE_S_USER    := 64
 override COMPILE_S_KERNEL  := 64
 
-DEBUG ?= 0
-
 include common.mk
 
 ################################################################################
