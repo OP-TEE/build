@@ -15,9 +15,19 @@ include common.mk
 # Paths to git projects and various binaries
 ################################################################################
 TF_A_PATH		?= $(ROOT)/trusted-firmware-a
+ifeq ($(DEBUG),1)
+TF_A_BUILD		?= debug
+else
+TF_A_BUILD		?= release
+endif
 EDK2_PATH		?= $(ROOT)/edk2
 EDK2_PLATFORMS_PATH	?= $(ROOT)/edk2-platforms
-EDK2_BIN		?= $(EDK2_PLATFORMS_PATH)/Build/ArmVExpress-FVP-AArch64/RELEASE_GCC49/FV/FVP_AARCH64_EFI.fd
+ifeq ($(DEBUG),1)
+EDK2_BUILD		?= DEBUG
+else
+EDK2_BUILD		?= RELEASE
+endif
+EDK2_BIN		?= $(EDK2_PLATFORMS_PATH)/Build/ArmVExpress-FVP-AArch64/$(EDK2_BUILD)_GCC49/FV/FVP_AARCH64_EFI.fd
 FOUNDATION_PATH		?= $(ROOT)/Foundation_Platformpkg
 ifeq ($(wildcard $(FOUNDATION_PATH)),)
 $(error $(FOUNDATION_PATH) does not exist)
@@ -77,7 +87,7 @@ endef
 define edk2-call
 	GCC49_AARCH64_PREFIX=$(AARCH64_CROSS_COMPILE) \
 	build -n `getconf _NPROCESSORS_ONLN` -a "AARCH64" \
-		-t "GCC49" -p Platform/ARM/VExpressPkg/ArmVExpress-FVP-AArch64.dsc -b RELEASE
+		-t "GCC49" -p Platform/ARM/VExpressPkg/ArmVExpress-FVP-AArch64.dsc -b $(EDK2_BUILD)
 endef
 
 edk2: edk2-common
@@ -191,7 +201,7 @@ run-only:
 	--secure-memory \
 	--visualization \
 	--gicv3 \
-	--data="$(TF_A_PATH)/build/fvp/release/bl1.bin"@0x0 \
-	--data="$(TF_A_PATH)/build/fvp/release/fip.bin"@0x8000000 \
+	--data="$(TF_A_PATH)/build/fvp/$(TF_A_BUILD)/bl1.bin"@0x0 \
+	--data="$(TF_A_PATH)/build/fvp/$(TF_A_BUILD)/fip.bin"@0x8000000 \
 	--block-device=$(BOOT_IMG)
 
