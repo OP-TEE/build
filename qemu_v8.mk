@@ -142,7 +142,7 @@ LINUX_DEFCONFIG_COMMON_FILES := \
 
 linux-defconfig: $(LINUX_PATH)/.config
 
-LINUX_COMMON_FLAGS += ARCH=arm64
+LINUX_COMMON_FLAGS += ARCH=arm64 zImage
 
 linux: linux-common
 	mkdir -p $(BINARIES_PATH)
