@@ -121,7 +121,6 @@ endif
 
 define edk2-call
 	$(EDK2_TOOLCHAIN)_$(EDK2_ARCH)_PREFIX=$(AARCH64_CROSS_COMPILE) \
-	BUILD_CC="gcc -Wno-error=stringop-truncation" \
 	build -n `getconf _NPROCESSORS_ONLN` -a $(EDK2_ARCH) \
 		-t $(EDK2_TOOLCHAIN) -p $(EDK2_DSC) \
 		-b $(EDK2_BUILD) $(EDK2_BUILDFLAGS)
@@ -132,7 +131,8 @@ edk2:
 	cd $(EDK2_PATH) && rm -rf OpenPlatformPkg && \
 		ln -s $(OPENPLATPKG_PATH)
 	set -e && cd $(EDK2_PATH) && source edksetup.sh && \
-		$(MAKE) -j1 -C $(EDK2_PATH)/BaseTools && \
+		$(MAKE) -j1 -C $(EDK2_PATH)/BaseTools \
+			BUILD_CC="gcc -Wno-error=stringop-truncation" && \
 		$(call edk2-call)
 
 .PHONY: edk2-clean
