@@ -307,6 +307,9 @@ edk2-clean-common:
 # QEMU / QEMUv8
 ################################################################################
 QEMU_CONFIGURE_PARAMS_COMMON = --cc="$(CCACHE)gcc" --extra-cflags="-Wno-error"
+QEMU_EXTRA_ARGS +=\
+	-object rng-random,filename=/dev/urandom,id=rng0 \
+	-device virtio-rng-pci,rng=rng0,max-bytes=1024,period=1000
 
 ifeq ($(QEMU_VIRTFS_ENABLE),y)
 QEMU_CONFIGURE_PARAMS_COMMON +=  --enable-virtfs
