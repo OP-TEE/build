@@ -135,7 +135,8 @@ edk2:
 	cd $(EDK2_PATH) && rm -rf OpenPlatformPkg && \
 		ln -s $(OPENPLATPKG_PATH)
 	set -e && cd $(EDK2_PATH) && source edksetup.sh && \
-		$(MAKE) -j1 -C $(EDK2_PATH)/BaseTools && \
+		$(MAKE) -j1 -C $(EDK2_PATH)/BaseTools \
+			BUILD_CC="gcc $(call cc-option,gcc,-Wno-error=stringop-truncation,)" && \
 		$(call edk2-call)
 
 .PHONY: edk2-clean
