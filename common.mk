@@ -148,6 +148,19 @@ endef
 
 DEBUG ?= 0
 
+# Macro to check if a compiler supports a given option
+# For example: $(call cc-option,gcc,-Wno-error=stringop-truncation,)
+#   ...will return -Wno-error=stringop-truncation if gcc supports it, empty
+#   otherwise.
+__cc-option = $(if $(shell $(1) $(2) -c -x c /dev/null -o /dev/null 2>&1 >/dev/null),$(3),$(2))
+_cc-opt-cached-var-name = cached-cc-option$(subst =,~,$(strip $(2)))$(subst $(empty) $(empty),,$(1))
+define _cc-option
+$(eval _cached := $(call _cc-opt-cached-var-name,$1,$2))
+$(eval $(_cached) := $(if $(filter $(origin $(_cached)),undefined),$(call __cc-option,$(1),$(2),$(3)),$($(_cached))))
+$($(_cached))
+endef
+cc-option = $(strip $(call _cc-option,$(1),$(2),$(3)))
+
 ################################################################################
 # default target is all
 ################################################################################
