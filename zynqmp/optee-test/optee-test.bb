@@ -8,13 +8,20 @@ LICENSE = "BSD"
 LIC_FILES_CHKSUM = "file://LICENSE.md;md5=daa2bcccc666345ab8940aab1315a4fa"
 
 PROVIDES = "virtual/optee-test"
-DEPENDS += "virtual/optee-os virtual/optee-client"
+DEPENDS += "\
+            virtual/optee-os \
+            virtual/optee-client \
+            python3-pycryptodome-native \
+            python3-pycryptodomex-native\
+            "
 
 S = "${WORKDIR}/git"
 PV = "${OPTEE_VERSION}+git${SRCPV}"
 
 REPO ??= "git://github.com/OP-TEE/optee_test.git;protocol=git"
 SRC_URI = "${REPO};branch=${BRANCH}"
+
+inherit python3native
 
 # requires CROSS_COMPILE set by hand as there is no configure script
 export CROSS_COMPILE="${TARGET_PREFIX}"
