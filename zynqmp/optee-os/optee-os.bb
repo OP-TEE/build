@@ -11,16 +11,21 @@ DESCRIPTION = "OP-TEE OS"
 # post-3.5.0: LIC_FILES_CHKSUM = "file://LICENSE;md5=c1f21c4f72f372ef38a5a4aee55ec173"
 LICENSE = "CLOSED"
 
-inherit deploy
-
 PROVIDES = "virtual/optee-os"
-DEPENDS += "u-boot-mkimage-native"
+DEPENDS += "\
+            u-boot-mkimage-native \
+            python3-pycryptodome-native \
+            python3-pycryptodomex-native \
+            python3-pyelftools-native \
+            "
 
 S = "${WORKDIR}/git"
 PV = "${OPTEE_VERSION}+git${SRCPV}"
 
 REPO ??= "git://github.com/OP-TEE/optee_os.git;protocol=https"
 SRC_URI = "${REPO};branch=${BRANCH}"
+
+inherit deploy python3native
 
 OPTEE_BASE_NAME ?= "${PN}-${PKGE}-${PKGV}-${PKGR}-${DATETIME}"
 OPTEE_BASE_NAME[vardepsexclude] = "DATETIME"

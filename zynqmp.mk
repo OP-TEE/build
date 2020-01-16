@@ -77,6 +77,9 @@ petalinux-create: check-petalinux
 	    $(PRJ_PATH)/project-spec/meta-user/recipes-apps/optee-client/
 	@cp -r $(PETALINUX_CFG_PATH)/optee-test/* \
 	    $(PRJ_PATH)/project-spec/meta-user/recipes-apps/optee-test/
+	@mkdir -p $(PRJ_PATH)/project-spec/meta-user/recipes-devtools/python
+	@cp -r $(PETALINUX_CFG_PATH)/python/* \
+	    $(PRJ_PATH)/project-spec/meta-user/recipes-devtools/python/
 	
 petalinux-config: check-petalinux
 	$(call set_optee_version,$(OPTEE_VER),$(PRJ_PATH)/project-spec/meta-user/recipes-apps/optee-test/optee-test.bbappend)
