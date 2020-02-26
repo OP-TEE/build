@@ -12,11 +12,31 @@ OPTEE_OS_PLATFORM = vexpress-fvp
 
 include common.mk
 
+################################################################################
+# Variables used for TPM configuration.
+################################################################################
+BR2_ROOTFS_OVERLAY = $(ROOT)/build/br-ext/board/fvp/overlay
+BR2_PACKAGE_FTPM_OPTEE_EXT_SITE ?= $(CURDIR)/br-ext/package/ftpm_optee_ext
+BR2_PACKAGE_FTPM_OPTEE_PACKAGE_SITE ?= $(ROOT)/ms-tpm-20-ref
+
+# The fTPM implementation is based on ARM32 architecture whereas the rest of the
+# system is built to run on 64-bit mode (COMPILE_S_USER = 64). Therefore set
+# BR2_PACKAGE_FTPM_OPTEE_EXT_SDK manually to the arm32 OPTEE toolkit rather than
+# relying on OPTEE_OS_TA_DEV_KIT_DIR variable.
+BR2_PACKAGE_FTPM_OPTEE_EXT_SDK ?= $(OPTEE_OS_PATH)/out/arm/export-ta_arm32
+
+BR2_PACKAGE_LINUX_FTPM_MOD_EXT_SITE ?= $(CURDIR)/br-ext/package/linux_ftpm_mod_ext
+BR2_PACKAGE_LINUX_FTPM_MOD_EXT_PATH ?= $(LINUX_PATH)
 
 ################################################################################
 # Paths to git projects and various binaries
 ################################################################################
+MEASURED_BOOT		?= n
 TF_A_PATH		?= $(ROOT)/trusted-firmware-a
+ifeq ($(MEASURED_BOOT),y)
+# Prefer release mode for TF-A if using Measured Boot, debug may exhaust memory.
+TF_A_BUILD		?= release
+endif
 ifeq ($(DEBUG),1)
 TF_A_BUILD		?= debug
 else
@@ -41,14 +61,21 @@ GRUB_CONFIG_PATH	?= $(BUILD_PATH)/fvp/grub
 OUT_PATH		?= $(ROOT)/out
 GRUB_BIN		?= $(OUT_PATH)/bootaa64.efi
 BOOT_IMG		?= $(OUT_PATH)/boot-fat.uefi.img
+FTPM_PATH		?= $(ROOT)/ms-tpm-20-ref/Samples/ARM32-FirmwareTPM/optee_ta
+
+# Build ancillary components to access fTPM if Measured Boot is enabled.
+ifeq ($(MEASURED_BOOT),y)
+DEFCONFIG_FTPM ?= --br-defconfig build/br-ext/configs/ftpm_optee
+DEFCONFIG_TPM_MODULE ?= --br-defconfig build/br-ext/configs/linux_ftpm
+DEFCONFIG_TSS ?= --br-defconfig build/br-ext/configs/tss
+endif
 
 ################################################################################
 # Targets
 ################################################################################
-all: arm-tf boot-img edk2 grub linux optee-os
+all: arm-tf optee-os ftpm boot-img linux edk2
 clean: arm-tf-clean boot-img-clean buildroot-clean edk2-clean grub-clean \
-	optee-os-clean
-
+	ftpm-clean optee-os-clean
 
 include toolchain.mk
 
@@ -69,11 +96,24 @@ TF_A_FLAGS ?= \
 	BL32_EXTRA1=$(OPTEE_OS_PAGER_V2_BIN) \
 	BL32_EXTRA2=$(OPTEE_OS_PAGEABLE_V2_BIN) \
 	BL33=$(EDK2_BIN) \
-	DEBUG=$(DEBUG) \
 	ARM_TSP_RAM_LOCATION=tdram \
 	FVP_USE_GIC_DRIVER=FVP_GICV3 \
 	PLAT=fvp \
 	SPD=opteed
+
+ifneq ($(MEASURED_BOOT),y)
+	TF_A_FLAGS += DEBUG=$(DEBUG)
+else
+	TF_A_FLAGS += DEBUG=0 \
+		      MBEDTLS_DIR=$(ROOT)/mbedtls  \
+		      ARM_ROTPK_LOCATION=devel_rsa \
+		      GENERATE_COT=1 \
+		      MEASURED_BOOT=1 \
+		      ROT_KEY=plat/arm/board/common/rotpk/arm_rotprivk_rsa.pem \
+		      TPM_HASH_ALG=sha256 \
+		      TRUSTED_BOARD_BOOT=1 \
+		      EVENT_LOG_LEVEL=20
+endif
 
 arm-tf: optee-os edk2
 	$(TF_A_EXPORTS) $(MAKE) -C $(TF_A_PATH) $(TF_A_FLAGS) all fip
@@ -106,6 +146,14 @@ LINUX_DEFCONFIG_COMMON_FILES := \
 		$(LINUX_PATH)/arch/arm64/configs/defconfig \
 		$(CURDIR)/kconfigs/fvp.conf
 
+.PHONY: linux-ftpm-module
+linux-ftpm-module: linux
+ifeq ($(MEASURED_BOOT),y)
+linux-ftpm-module:
+	$(MAKE) -C $(LINUX_PATH) $(LINUX_COMMON_FLAGS) M=drivers/char/tpm  \
+		modules_install INSTALL_MOD_PATH=$(LINUX_PATH)
+endif
+
 linux-defconfig: $(LINUX_PATH)/.config
 
 LINUX_COMMON_FLAGS += ARCH=arm64
@@ -126,9 +174,20 @@ linux-cleaner: linux-cleaner-common
 # OP-TEE
 ################################################################################
 OPTEE_OS_COMMON_FLAGS += CFG_ARM_GICV3=y
+
+ifeq ($(MEASURED_BOOT),y)
+	OPTEE_OS_COMMON_FLAGS += CFG_DT=y CFG_CORE_TPM_EVENT_LOG=y
+endif
+
 optee-os: optee-os-common
 
-optee-os-clean: optee-os-clean-common
+optee-os-clean: ftpm-clean optee-os-clean-common
+
+################################################################################
+# Buildroot
+################################################################################
+
+buildroot: linux-ftpm-module
 
 ################################################################################
 # grub
@@ -173,8 +232,9 @@ grub-clean:
 ################################################################################
 # Boot Image
 ################################################################################
+
 .PHONY: boot-img
-boot-img: linux grub buildroot
+boot-img: grub buildroot
 	rm -f $(BOOT_IMG)
 	mformat -i $(BOOT_IMG) -n 64 -h 255 -T 131072 -v "BOOT IMG" -C ::
 	mcopy -i $(BOOT_IMG) $(LINUX_PATH)/arch/arm64/boot/Image ::
@@ -207,4 +267,3 @@ run-only:
 	--data="$(TF_A_PATH)/build/fvp/$(TF_A_BUILD)/bl1.bin"@0x0 \
 	--data="$(TF_A_PATH)/build/fvp/$(TF_A_BUILD)/fip.bin"@0x8000000 \
 	--block-device=$(BOOT_IMG)
-

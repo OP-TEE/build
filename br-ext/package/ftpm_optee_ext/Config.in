@@ -1,0 +1,29 @@
+config BR2_PACKAGE_FTPM_OPTEE_EXT
+       bool "Enable fTPM based on OPTEE"
+       depends on BR2_PACKAGE_OPTEE_OS_EXT
+       select BR2_PACKAGE_OPTEE_OS_EXT
+       help
+         fTPM, http://github.com/microsoft/ms-tpm-20-ref.
+	 NOTE: This package currently only takes care of installing files
+	 into the root FS, that have been compiled already.
+	 The build of the OPTEE fTPM service is assumed to have been done
+	 previously.
+
+config BR2_PACKAGE_FTPM_OPTEE_EXT_SITE
+	string "FTPM_OPTEE installation package path"
+	default ""
+	help
+	  The path to this installation package.
+
+config BR2_PACKAGE_FTPM_OPTEE_PACKAGE_SITE
+	string "Path to the TPM 2.0 Reference Implementation"
+	default ""
+	help
+	  The path to this installation package.
+
+config BR2_PACKAGE_FTPM_OPTEE_EXT_TA_SRC
+       string "Path of the fTPM sources within the TPM Ref. Implementation"
+       default "Samples/ARM32-FirmwareTPM/optee_ta"
+       help
+         The path, relative to where the TPM 2.0 Reference Implementation
+	 is installed, where the sources for the fTPM can be found.
