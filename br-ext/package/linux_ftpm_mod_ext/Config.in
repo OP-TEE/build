@@ -1,0 +1,20 @@
+config BR2_PACKAGE_LINUX_FTPM_MOD_EXT
+       bool "Enable TPM Kernel module"
+       help
+         Enable TPM Kernel module.
+	 NOTE: This package currently only takes care of installing files
+	 into the root FS, that have been compiled already.
+	 The build of the TPM Kernel module is assumed to have been done
+	 previously.
+
+config BR2_PACKAGE_LINUX_FTPM_MOD_EXT_SITE
+	string "TPM Kernel Module installation package path"
+	default ""
+	help
+	  The path to this installation package.
+
+config BR2_PACKAGE_LINUX_FTPM_MOD_EXT_PATH
+	string "Path to the TPM Kernel module"
+	default ""
+	help
+	  The path of the TPM Kernel sources.

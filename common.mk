@@ -320,6 +320,9 @@ buildroot: optee-os
 		--br-defconfig build/br-ext/configs/$(BUILDROOT_TOOLCHAIN) \
 		$(DEFCONFIG_GDBSERVER) \
 		$(DEFCONFIG_XEN_TOOLS) \
+		$(DEFCONFIG_TSS) \
+		$(DEFCONFIG_TPM_MODULE) \
+		$(DEFCONFIG_FTPM) \
 		--br-defconfig out-br/extra.conf \
 		--make-cmd $(MAKE))
 	@$(MAKE) -C ../out-br all
@@ -498,3 +501,31 @@ optee-os-common:
 .PHONY: optee-os-clean-common
 optee-os-clean-common:
 	$(MAKE) -C $(OPTEE_OS_PATH) $(OPTEE_OS_COMMON_FLAGS) clean
+
+################################################################################
+# fTPM Rules
+################################################################################
+
+# The fTPM implementation is based on ARM32 architecture whereas the rest of the
+# system is built to run on 64-bit mode (COMPILE_S_USER = 64). Therefore set
+# TA_DEV_KIT_DIR manually to the arm32 OPTEE toolkit rather than relying on
+# OPTEE_OS_TA_DEV_KIT_DIR variable.
+FTPM_FLAGS ?= 						\
+	TA_CPU=cortex-a9				\
+	TA_CROSS_COMPILE=$(AARCH32_CROSS_COMPILE)	\
+	TA_DEV_KIT_DIR=$(OPTEE_OS_PATH)/out/arm/export-ta_arm32 \
+	CFG_TA_DEBUG=y CFG_TEE_TA_LOG_LEVEL=4 CFG_TA_MEASURED_BOOT=y
+
+.PHONY: ftpm
+ftpm:
+ifeq ($(MEASURED_BOOT),y)
+ftpm: optee-os
+	$(FTPM_FLAGS) $(MAKE) -C $(FTPM_PATH)
+endif
+
+.PHONY: ftpm-clean
+ftpm-clean:
+ifeq ($(MEASURED_BOOT),y)
+ftpm-clean:
+	-$(FTPM_FLAGS) $(MAKE) -C $(FTPM_PATH) clean
+endif
