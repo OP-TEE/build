@@ -9,5 +9,5 @@ specific information] at he new location for the OP-TEE documentation.
 
 // OP-TEE core maintainers
 
-[build]: https://optee.readthedocs.io/building/gits/build.html
-[Device specific information]: https://optee.readthedocs.io/building/devices/index.html
+[build]: https://optee.readthedocs.io/en/latest/building/index.html
+[Device specific information]: https://optee.readthedocs.io/en/latest/building/devices/index.html
