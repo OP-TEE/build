@@ -347,7 +347,7 @@ recovery:
 	@echo
 	$(call flash_help)
 	@echo
-	python $(ROOT)/burn-boot/hisi-idt.py --img1=$(LLOADER_PATH)/recovery.bin
+	$(ROOT)/burn-boot/hisi-idt.py --img1=$(LLOADER_PATH)/recovery.bin
 	fastboot flash loader $(LLOADER_PATH)/l-loader.bin
 	@echo
 	@echo "3. Wait until you see the (UART) message"
