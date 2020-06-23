@@ -10,6 +10,16 @@ OPTEE_TEST_EXT_CONF_OPTS = -DOPTEE_TEST_SDK=$(OPTEE_TEST_EXT_SDK)
 OPTEE_TEST_EXT_TAS = os_test_lib os_test_lib_dl os_test *
 uniq = $(if $1,$(firstword $1) $(call uniq,$(filter-out $(firstword $1),$1)))
 
+ifneq ($(BR2_PACKAGE_OPTEE_TEST_EXT_GP_PACKAGE),"")
+OPTEE_TEST_EXT_CONF_OPTS += -DWITH_GP_TESTS=1
+OPTEE_TEST_EXT_PRE_CONFIGURE_HOOKS += OPTEE_TEST_EXT_PREPARE_GP_SUITE
+endif
+
+define OPTEE_TEST_EXT_PREPARE_GP_SUITE
+	sh $(@D)/host/xtest/gp/prepare_suite.sh $(@D) \
+		$(BR2_PACKAGE_OPTEE_TEST_EXT_GP_PACKAGE)
+endef
+
 define OPTEE_TEST_EXT_BUILD_TAS
 	@$(foreach f,$(call uniq,$(foreach t,$(OPTEE_TEST_EXT_TAS),$(wildcard $(@D)/ta/$(t)/Makefile))), \
 		echo Building $f && \
@@ -27,7 +37,27 @@ define OPTEE_TEST_EXT_INSTALL_TAS
 			&&) true
 endef
 
+
+define OPTEE_TEST_EXT_BUILD_GP_TAS
+	@$(foreach f,$(wildcard $(shell echo $(@D)/host/xtest/gp-suite/TTAs_Internal_API_1_1_1/*/*/{*/,}code_files/Makefile)), \
+		echo Building $f && \
+			$(MAKE) CROSS_COMPILE="$(shell echo $(BR2_PACKAGE_OPTEE_TEST_EXT_CROSS_COMPILE))" \
+			O=out TA_DEV_KIT_DIR=$(OPTEE_TEST_EXT_SDK) \
+			$(TARGET_CONFIGURE_OPTS) -C $(dir $f) all &&) true
+
+endef
+
+define OPTEE_TEST_EXT_INSTALL_GP_TAS
+	@$(foreach f,$(wildcard $(shell echo $(@D)/host/xtest/gp-suite/TTAs_Internal_API_1_1_1/*/*/{*/,}code_files/out/*.ta)), \
+		mkdir -p $(TARGET_DIR)/lib/optee_armtz && \
+		$(INSTALL) -v -p  --mode=444 \
+			--target-directory=$(TARGET_DIR)/lib/optee_armtz $f \
+			&&) true
+endef
+
 OPTEE_TEST_EXT_POST_BUILD_HOOKS += OPTEE_TEST_EXT_BUILD_TAS
+OPTEE_TEST_EXT_POST_BUILD_HOOKS += OPTEE_TEST_EXT_BUILD_GP_TAS
 OPTEE_TEST_EXT_POST_INSTALL_TARGET_HOOKS += OPTEE_TEST_EXT_INSTALL_TAS
+OPTEE_TEST_EXT_POST_INSTALL_TARGET_HOOKS += OPTEE_TEST_EXT_INSTALL_GP_TAS
 
 $(eval $(cmake-package))

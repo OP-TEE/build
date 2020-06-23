@@ -24,4 +24,17 @@ config BR2_PACKAGE_OPTEE_TEST_EXT_CROSS_COMPILE
 	help
 	  some help
 
+config BR2_PACKAGE_OPTEE_TEST_EXT_GP_PACKAGE
+	string "GP package"
+	default ""
+	help
+	  Path to the GlobalPlatform package containing description files
+	  and TAs needed to build the complete GP test suite. The package
+	  is free for GP members, but can be acquired directly from
+	  GlobalPlatform for non-members. See
+	  https://globalplatform.org/test-suites/tee-initial-configuration-test-suite-with-excluded-tests-list/
+	  The name of the package is currently "TEE Initial Configuration
+	  Test Suite with Excluded Tests List v2.0.0.2" with the file name
+	  TEE_Initial_Configuration-Test_Suite_v2_0_0_2-2017_06_09.7z
+
 endif
