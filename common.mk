@@ -2,6 +2,26 @@
 # Common definition to all platforms
 #
 
+# Set a variable or error out if it was previously set to a different value
+# The reason message (3rd parameter) is optional
+# Example:
+# $(call force,CFG_FOO,foo,required by CFG_BAR)
+define force
+$(eval $(call _force,$(1),$(2),$(3)))
+endef
+
+define _force
+ifdef $(1)
+ifneq ($($(1)),$(2))
+ifneq (,$(3))
+_reason := $$(_empty) [$(3)]
+endif
+$$(error $(1) is set to '$($(1))' (from $(origin $(1))) but its value must be '$(2)'$$(_reason))
+endif
+endif
+$(1) := $(2)
+endef
+
 SHELL := bash
 BASH ?= bash
 ROOT ?= $(shell pwd)/..
@@ -28,12 +48,55 @@ CFG_TEE_BENCHMARK		?= n
 
 CCACHE ?= $(shell which ccache) # Don't remove this comment (space is needed)
 
+# QEMU shared folders settings
+#
+# TL;DR:
+# 1) make QEMU_VIRTFS_AUTOMOUNT=y run
+#    will mount the project's root on the host as /mnt/host in QEMU.
+# 2) mkdir -p /tmp/qemu-data-tee && make QEMU_PSS_AUTOMOUNT=y run
+#    will mount the host directory /tmp/qemu-data-tee as /data/tee
+#    in QEMU, thus creating persistent secure storage.
+
+ifeq ($(QEMU_VIRTFS_AUTOMOUNT),y)
+$(call force,QEMU_VIRTFS_ENABLE,y,required by QEMU_VIRTFS_AUTOMOUNT)
+endif
+
+ifeq ($(QEMU_PSS_AUTOMOUNT),y)
+$(call force,QEMU_PSS_ENABLE,y,required by QEMU_PSS_AUTOMOUNT)
+endif
+
+ifeq ($(QEMU_PSS_ENABLE),y)
+$(call force,QEMU_VIRTFS_ENABLE,y,required by QEMU_PSS_ENABLE)
+endif
+
 # Accessing a shared folder on the host from QEMU:
 # # Set QEMU_VIRTFS_ENABLE to 'y' and adjust QEMU_VIRTFS_HOST_DIR
 # # Then in QEMU, run:
 # # $ mount -t 9p -o trans=virtio host <mount_point>
-QEMU_VIRTFS_ENABLE		?= n
+# # Or enable QEMU_VIRTFS_AUTOMOUNT
+QEMU_VIRTFS_ENABLE	?= n
 QEMU_VIRTFS_HOST_DIR	?= $(ROOT)
+
+# Persistent Secure Storage via shared folder
+# # Set QEMU_PSS_ENABLE to 'y' and adjust QEMU_PSS_HOST_DIR
+# # Then in QEMU, run:
+# # $ mount -t 9p -o trans=virtio secure /data/tee
+# # Or enable QEMU_PSS_AUTOMOUNT
+QEMU_PSS_ENABLE		?= n
+QEMU_PSS_HOST_DIR	?= /tmp/qemu-data-tee
+
+# Warning: when these variables are modified, you must remake the buildroot
+# target directory. This can be done without rebuilding everything as follows:
+# rm -rf ../out-br/target; find ../out-br/ -name .stamp_target_installed | xargs rm
+# make <flags> run
+QEMU_VIRTFS_AUTOMOUNT	?= n
+QEMU_PSS_AUTOMOUNT	?= n
+# Mount point for the shared directory inside QEMU
+# Used by the post-build script, this is written to /etc/fstab as the mount
+# point of the shared directory
+QEMU_VIRTFS_MOUNTPOINT	?= /mnt/host
+
+# End of QEMU shared folder settings
 
 ################################################################################
 # Mandatory for autotools (for specifying --host)
@@ -302,6 +365,11 @@ QEMU_CONFIGURE_PARAMS_COMMON +=  --enable-virtfs
 QEMU_EXTRA_ARGS +=\
 	-fsdev local,id=fsdev0,path=$(QEMU_VIRTFS_HOST_DIR),security_model=none \
 	-device virtio-9p-device,fsdev=fsdev0,mount_tag=host
+ifeq ($(QEMU_PSS_ENABLE),y)
+QEMU_EXTRA_ARGS +=\
+	  -fsdev local,id=fsdev1,path=$(QEMU_PSS_HOST_DIR),security_model=none \
+	  -device virtio-9p-device,fsdev=fsdev1,mount_tag=secure
+endif
 endif
 
 ifeq ($(GDBSERVER),y)

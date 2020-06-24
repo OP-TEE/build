@@ -1,0 +1,2 @@
+This directory is intended to be mounted onto a shared directory on the host.
+See QEMU_VIRTFS_AUTOMOUNT / QEMU_VIRTFS_MOUNTPOINT in build/common.mk.
