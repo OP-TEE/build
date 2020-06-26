@@ -367,7 +367,8 @@ ifneq ($(FROM_RECOVERY),1)
 	@echo
 	$(call flash_help)
 	@echo "3. Wait until you see the (UART) message"
-	@echo "    \"Android Fastboot mode - version x.x Press any key to quit.\""
+	@echo "    \"Android Fastboot mode - version x.x.\""
+	@echo "     Press RETURN or SPACE key to quit.\""
 endif
 	@read -r -p "Then press enter to continue flashing" dummy
 	@echo
