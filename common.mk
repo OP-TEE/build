@@ -13,7 +13,7 @@ GEN_ROOTFS_PATH			?= $(ROOT)/gen_rootfs
 GEN_ROOTFS_FILELIST		?= $(GEN_ROOTFS_PATH)/filelist-tee.txt
 OPTEE_OS_PATH			?= $(ROOT)/optee_os
 OPTEE_CLIENT_PATH		?= $(ROOT)/optee_client
-OPTEE_CLIENT_EXPORT		?= $(OPTEE_CLIENT_PATH)/out/export
+OPTEE_CLIENT_EXPORT		?= $(OPTEE_CLIENT_PATH)/out/export/usr
 OPTEE_TEST_PATH			?= $(ROOT)/optee_test
 OPTEE_TEST_OUT_PATH		?= $(ROOT)/optee_test/out
 OPTEE_EXAMPLES_PATH		?= $(ROOT)/optee_examples
@@ -202,6 +202,11 @@ BR2_PACKAGE_OPTEE_TEST_EXT_SDK ?= $(OPTEE_OS_TA_DEV_KIT_DIR)
 BR2_PACKAGE_OPTEE_TEST_EXT_SITE ?= $(OPTEE_TEST_PATH)
 BR2_PACKAGE_STRACE ?= y
 BR2_TARGET_GENERIC_GETTY_PORT ?= $(if $(CFG_NW_CONSOLE_UART),ttyAMA$(CFG_NW_CONSOLE_UART),ttyAMA0)
+
+#POC Remote Attestation specific stuff
+BR2_PACKAGE_DROPBEAR ?= y
+BR2_TARGET_GENERIC_ROOT_PASSWD ?= "test" # ssh needs a password, otherwise would reject connections
+BR2_PACKAGE_LIBWEBSOCK ?= y
 
 # All BR2_* variables from the makefile or the environment are appended to
 # ../out-br/extra.conf. All values are quoted "..." except y and n.
@@ -428,7 +433,7 @@ OPTEE_EXAMPLES_COMMON_FLAGS ?= HOST_CROSS_COMPILE=$(CROSS_COMPILE_NS_USER)\
 	TEEC_EXPORT=$(OPTEE_CLIENT_EXPORT)
 
 .PHONY: optee-examples-common
-optee-examples-common: optee-os optee-client
+optee-examples-common: optee-os optee-client-common
 	$(MAKE) -C $(OPTEE_EXAMPLES_PATH) $(OPTEE_EXAMPLES_COMMON_FLAGS)
 
 OPTEE_EXAMPLES_CLEAN_COMMON_FLAGS ?= TA_DEV_KIT_DIR=$(OPTEE_OS_TA_DEV_KIT_DIR)
