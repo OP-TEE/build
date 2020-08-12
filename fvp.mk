@@ -198,7 +198,7 @@ run: all
 
 run-only:
 	@cd $(FOUNDATION_PATH); \
-	$(FOUNDATION_PATH)/models/Linux64_GCC-4.9/Foundation_Platform \
+	$(FOUNDATION_PATH)/models/Linux64_GCC-6.4/Foundation_Platform \
 	--arm-v8.0 \
 	--cores=4 \
 	--secure-memory \
