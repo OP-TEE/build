@@ -99,7 +99,7 @@ expect {
 	"+-----------------------------------------------------\r\r" {}
 	# Handle errors in TEE core output
 	-i $teecore -re {(assertion.*failed at.*)\n} {
-		info "!!! TEE core assertion failed: '$expect_out(1,string)'\n"
+		info "!!! $expect_out(1,string)\n"
 		exit 1
 	}
 	timeout {
