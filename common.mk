@@ -191,6 +191,8 @@ endif
 
 ifeq ($(COMPILE_S_KERNEL),64)
 OPTEE_OS_COMMON_EXTRA_FLAGS	+= CFG_ARM64_core=y
+else
+OPTEE_OS_COMMON_EXTRA_FLAGS	+= CFG_ARM64_core=n
 endif
 
 
