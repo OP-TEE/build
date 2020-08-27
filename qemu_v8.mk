@@ -5,7 +5,7 @@
 ################################################################################
 override COMPILE_NS_USER   := 64
 override COMPILE_NS_KERNEL := 64
-override COMPILE_S_USER    := 64
+COMPILE_S_USER ?= 64
 override COMPILE_S_KERNEL  := 64
 
 ################################################################################
