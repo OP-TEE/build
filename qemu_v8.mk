@@ -6,7 +6,7 @@
 COMPILE_NS_USER ?= 64
 override COMPILE_NS_KERNEL := 64
 COMPILE_S_USER ?= 64
-override COMPILE_S_KERNEL  := 64
+COMPILE_S_KERNEL ?= 64
 
 ################################################################################
 # If you change this, you MUST run `make arm-tf-clean` first before rebuilding
@@ -165,7 +165,7 @@ linux-cleaner: linux-cleaner-common
 ################################################################################
 # OP-TEE
 ################################################################################
-OPTEE_OS_COMMON_FLAGS += CFG_ARM64_core=y DEBUG=$(DEBUG)
+OPTEE_OS_COMMON_FLAGS += DEBUG=$(DEBUG)
 optee-os: optee-os-common
 
 optee-os-clean: optee-os-clean-common
