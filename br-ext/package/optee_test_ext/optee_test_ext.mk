@@ -6,9 +6,12 @@ OPTEE_TEST_EXT_INSTALL_STAGING = YES
 OPTEE_TEST_EXT_DEPENDENCIES = optee_client_ext openssl host-python-pycrypto
 OPTEE_TEST_EXT_SDK = $(BR2_PACKAGE_OPTEE_TEST_EXT_SDK)
 OPTEE_TEST_EXT_CONF_OPTS = -DOPTEE_TEST_SDK=$(OPTEE_TEST_EXT_SDK)
+# os_test has dependencies, this enforces a valid build order
+OPTEE_TEST_EXT_TAS = os_test_lib os_test_lib_dl os_test *
+uniq = $(if $1,$(firstword $1) $(call uniq,$(filter-out $(firstword $1),$1)))
 
 define OPTEE_TEST_EXT_BUILD_TAS
-	@$(foreach f,$(wildcard $(@D)/ta/*/Makefile), \
+	@$(foreach f,$(call uniq,$(foreach t,$(OPTEE_TEST_EXT_TAS),$(wildcard $(@D)/ta/$(t)/Makefile))), \
 		echo Building $f && \
 			$(MAKE) CROSS_COMPILE="$(shell echo $(BR2_PACKAGE_OPTEE_TEST_EXT_CROSS_COMPILE))" \
 			O=out TA_DEV_KIT_DIR=$(OPTEE_TEST_EXT_SDK) \
