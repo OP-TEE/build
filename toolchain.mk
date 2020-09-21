@@ -6,13 +6,13 @@ TOOLCHAIN_ROOT 			?= $(ROOT)/toolchains
 
 AARCH32_PATH 			?= $(TOOLCHAIN_ROOT)/aarch32
 AARCH32_CROSS_COMPILE 		?= $(AARCH32_PATH)/bin/arm-linux-gnueabihf-
-AARCH32_GCC_VERSION 		?= gcc-arm-8.3-2019.03-x86_64-arm-linux-gnueabihf
-SRC_AARCH32_GCC 		?= https://developer.arm.com/-/media/Files/downloads/gnu-a/8.3-2019.03/binrel/${AARCH32_GCC_VERSION}.tar.xz
+AARCH32_GCC_VERSION 		?= gcc-arm-9.2-2019.12-x86_64-arm-none-linux-gnueabihf
+SRC_AARCH32_GCC 		?= https://developer.arm.com/-/media/Files/downloads/gnu-a/9.2-2019.12/binrel/$(AARCH32_GCC_VERSION).tar.xz
 
 AARCH64_PATH 			?= $(TOOLCHAIN_ROOT)/aarch64
 AARCH64_CROSS_COMPILE 		?= $(AARCH64_PATH)/bin/aarch64-linux-gnu-
-AARCH64_GCC_VERSION 		?= gcc-arm-8.3-2019.03-x86_64-aarch64-linux-gnu
-SRC_AARCH64_GCC 		?= https://developer.arm.com/-/media/Files/downloads/gnu-a/8.3-2019.03/binrel/${AARCH64_GCC_VERSION}.tar.xz
+AARCH64_GCC_VERSION 		?= gcc-arm-9.2-2019.12-x86_64-aarch64-none-linux-gnu
+SRC_AARCH64_GCC 		?= https://developer.arm.com/-/media/Files/downloads/gnu-a/9.2-2019.12/binrel/$(AARCH64_GCC_VERSION).tar.xz
 
 # Download toolchain macro for saving some repetition
 # $(1) is $AARCH.._PATH		: i.e., path to the destination
@@ -24,6 +24,7 @@ define dltc
 		echo "Downloading $(3) ..."; \
 		curl -s -L $(2) -o $(TOOLCHAIN_ROOT)/$(3).tar.xz; \
 		tar xf $(TOOLCHAIN_ROOT)/$(3).tar.xz -C $(1) --strip-components=1; \
+		(cd $(1)/bin && for f in *-none-linux*; do ln -s $$f $${f//-none} ; done;) \
 	fi
 endef
 
