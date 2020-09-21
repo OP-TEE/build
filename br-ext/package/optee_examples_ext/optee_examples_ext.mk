@@ -12,6 +12,7 @@ define OPTEE_EXAMPLES_EXT_BUILD_TAS
 		echo Building $f && \
 			$(MAKE) CROSS_COMPILE="$(shell echo $(BR2_PACKAGE_OPTEE_EXAMPLES_EXT_CROSS_COMPILE))" \
 			O=out TA_DEV_KIT_DIR=$(OPTEE_EXAMPLES_EXT_SDK) \
+			PYTHON3=$(HOST_DIR)/bin/python3 \
 			$(TARGET_CONFIGURE_OPTS) -C $(dir $f) all &&) true
 endef
 
