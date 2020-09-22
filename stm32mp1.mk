@@ -58,8 +58,7 @@ all: tfa optee-os u-boot linux buildroot
 	@$(call install_in_binaries,$(ROOT)/out-br/images/sdcard.img)
 	@echo Build for platform $(PLATFORM) completed
 
-clean: tfa-clean optee-os-clean u-boot-clean linux-clean buildroot-clean \
-       check-clean
+clean: tfa-clean optee-os-clean u-boot-clean linux-clean buildroot-clean
 
 include toolchain.mk
 
