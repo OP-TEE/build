@@ -37,4 +37,10 @@ config BR2_PACKAGE_OPTEE_TEST_EXT_GP_PACKAGE
 	  Test Suite with Excluded Tests List v2.0.0.2" with the file name
 	  TEE_Initial_Configuration-Test_Suite_v2_0_0_2-2017_06_09.7z
 
+config BR2_PACKAGE_OPTEE_TEST_EXT_WITH_TLS_TESTS
+	bool "with-tls-tests"
+	help
+	  Select Thread Local Storage tests in Trusted Applications. Some
+	  toolchains may not support this.
+
 endif
