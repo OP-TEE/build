@@ -43,4 +43,10 @@ config BR2_PACKAGE_OPTEE_TEST_EXT_WITH_TLS_TESTS
 	  Select Thread Local Storage tests in Trusted Applications. Some
 	  toolchains may not support this.
 
+config BR2_PACKAGE_OPTEE_TEST_EXT_WITH_CXX_TESTS
+	bool "with-cxx-tests"
+	help
+	  Select C++ tests in Trusted Applications. Some toolchains may not
+	  support this.
+
 endif
