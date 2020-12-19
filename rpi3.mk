@@ -12,6 +12,16 @@ override COMPILE_S_KERNEL  := 64
 BR2_TARGET_GENERIC_GETTY_PORT ?= ttyS0
 BR2_ROOTFS_POST_BUILD_SCRIPT ?= "board/raspberrypi3-64/post-build.sh"
 
+# Network support related packages:
+BR2_PACKAGE_DHCPCD ?= y
+BR2_PACKAGE_ETHTOOL ?= y
+BR2_PACKAGE_XINETD ?= y
+
+# SSH Packages :
+BR2_PACKAGE_OPENSSH ?= y
+BR2_PACKAGE_OPENSSH_SERVER ?= y
+BR2_PACKAGE_OPENSSH_KEY_UTILS ?= y
+
 OPTEE_OS_PLATFORM = rpi3
 
 include common.mk
