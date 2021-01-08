@@ -22,4 +22,11 @@ config BR2_PACKAGE_OPTEE_OS_EXT_SDK
 	  The path to export-ta_arm32 or export-ta_arm64 in the optee_os output
 	  directory.
 
+config BR2_PACKAGE_OPTEE_OS_EXT_PKCS11_TA
+	string "Path of OP-TEE PKCS11 TA to embed in target"
+	default ""
+	help
+	  Path of the OP-TEE OS PKCS11 TA that is to be installed in
+	  target filesystem.
+
 endif

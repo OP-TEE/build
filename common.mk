@@ -278,6 +278,10 @@ BR2_PACKAGE_OPTEE_TEST_EXT_WITH_CXX_TESTS := $(WITH_CXX_TESTS)
 BR2_PACKAGE_STRACE ?= y
 BR2_TARGET_GENERIC_GETTY_PORT ?= $(if $(CFG_NW_CONSOLE_UART),ttyAMA$(CFG_NW_CONSOLE_UART),ttyAMA0)
 
+ifeq ($(CFG_PKCS11_TA),y)
+BR2_PACKAGE_OPTEE_OS_EXT_PKCS11_TA ?= $(OPTEE_OS_PATH)/out/arm/ta/pkcs11/fd02c9da-306c-48c7-a49c-bbd827ae86ee.ta
+endif
+
 # All BR2_* variables from the makefile or the environment are appended to
 # ../out-br/extra.conf. All values are quoted "..." except y and n.
 double-quote = "#" # This really sets the variable to " and avoids upsetting vim's syntax highlighting
