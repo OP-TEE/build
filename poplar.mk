@@ -107,7 +107,8 @@ arm-tf-clean:
 ################################################################################
 # OP-TEE
 ################################################################################
-OPTEE_OS_COMMON_FLAGS += CFG_ARM64_core=y CFG_DRAM_SIZE_GB=1
+OPTEE_OS_COMMON_FLAGS += CFG_ARM64_core=y CFG_DRAM_SIZE_GB=1 \
+			 CFG_ENABLE_EMBEDDED_TESTS=y
 
 .PHONY: optee-os
 optee-os: optee-os-common
