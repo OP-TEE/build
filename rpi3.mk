@@ -183,7 +183,7 @@ img-help:
 	@echo "   > p             # create primary"
 	@echo "   > 1             # make it the first partition"
 	@echo "   > <enter>       # use the default sector"
-	@echo "   > +32M          # create a boot partition with 32MB of space"
+	@echo "   > +64M          # create a boot partition with 64MB of space"
 	@echo "   > n             # create rootfs partition"
 	@echo "   > p"
 	@echo "   > 2"
