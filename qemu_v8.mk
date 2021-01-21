@@ -122,7 +122,7 @@ qemu-clean:
 # EDK2 / Tianocore
 ################################################################################
 define edk2-env
-	export WORKSPACE=$(EDK2_PATH)
+	export WORKSPACE=$(EDK2_PATH) PYTHON3_ENABLE=TRUE
 endef
 
 define edk2-call
