@@ -203,7 +203,7 @@ run-only:
 		-smp $(QEMU_SMP) \
 		-s -S -machine virt,secure=on -cpu cortex-a57 \
 		-d unimp -semihosting-config enable,target=native \
-		-m 1057 \
+		-m 1024 \
 		-bios bl1.bin \
 		-initrd rootfs.cpio.gz \
 		-kernel Image -no-acpi \

@@ -177,7 +177,7 @@ run-only:
 		-smp $(QEMU_SMP) \
 		-s -S -machine virt,secure=on -cpu cortex-a15 \
 		-d unimp -semihosting-config enable,target=native \
-		-m 1057 \
+		-m 1024 \
 		-bios bl1.bin \
 		$(QEMU_EXTRA_ARGS)
 
