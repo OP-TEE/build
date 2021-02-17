@@ -1,0 +1,17 @@
+run loadfdt;
+fdt addr ${fdt_addr};
+fdt get value optee_compatible /firmware/optee compatible;
+if test "${optee_compatible}" = "linaro,optee-tz"; then
+	echo Found optee node, using it;
+else
+	echo optee node missing, trying to add it;
+	fdt resize 4096;
+	fdt mknode / firmware;
+	fdt mknode /firmware optee;
+	fdt set /firmware/optee compatible "linaro,optee-tz";
+	fdt set /firmware/optee method "smc";
+fi;
+fdt print /firmware/optee;
+run loadimage;
+fatload mmc ${mmcdev}:${mmcpart}  ${initrd_addr} ramdisk.img;
+booti ${loadaddr} ${initrd_addr} ${fdt_addr};
