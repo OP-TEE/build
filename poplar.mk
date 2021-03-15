@@ -29,7 +29,6 @@ ROOTFS_BIN		?= $(ROOT)/out-br/images/rootfs.tar
 TF_A_PATH		?= $(ROOT)/trusted-firmware-a
 LLOADER_PATH		?= $(ROOT)/l-loader
 UBOOT_PATH		?= $(ROOT)/u-boot
-OPTEE_CLIENT_EXPORT	?= $(OPTEE_CLIENT_PATH)/out/export
 OPTEE_PATH		?= $(ROOT)/optee_os
 LINUX_PATH		?= $(ROOT)/linux
 TOOLS_PATH		?= $(ROOT)/poplar-tools
