@@ -110,9 +110,11 @@ arm-tf-clean:
 ################################################################################
 # QEMU
 ################################################################################
-qemu:
+$(QEMU_PATH)/config-host.mak:
 	cd $(QEMU_PATH); ./configure --target-list=aarch64-softmmu\
 			$(QEMU_CONFIGURE_PARAMS_COMMON)
+
+qemu: $(QEMU_PATH)/config-host.mak
 	$(MAKE) -C $(QEMU_PATH)
 
 qemu-clean:
