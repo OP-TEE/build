@@ -28,16 +28,10 @@ ROOT ?= $(shell pwd)/..
 
 BUILD_PATH			?= $(ROOT)/build
 LINUX_PATH			?= $(ROOT)/linux
-OPTEE_GENDRV_MODULE		?= $(LINUX_PATH)/drivers/tee/optee/optee.ko
-GEN_ROOTFS_PATH			?= $(ROOT)/gen_rootfs
-GEN_ROOTFS_FILELIST		?= $(GEN_ROOTFS_PATH)/filelist-tee.txt
 OPTEE_OS_PATH			?= $(ROOT)/optee_os
 OPTEE_CLIENT_PATH		?= $(ROOT)/optee_client
-OPTEE_CLIENT_EXPORT		?= $(OPTEE_CLIENT_PATH)/out/export
 OPTEE_TEST_PATH			?= $(ROOT)/optee_test
-OPTEE_TEST_OUT_PATH		?= $(ROOT)/optee_test/out
 OPTEE_EXAMPLES_PATH		?= $(ROOT)/optee_examples
-OPTEE_BENCHMARK_PATH		?= $(ROOT)/optee_benchmark
 BUILDROOT_TARGET_ROOT		?= $(ROOT)/out-br/target
 
 # default high verbosity. slow uarts shall specify lower if prefered
@@ -459,81 +453,3 @@ optee-os-clean-common: benchmark-app-clean-common
 endif
 optee-os-clean-common: xtest-clean-common optee-examples-clean-common
 	$(MAKE) -C $(OPTEE_OS_PATH) $(OPTEE_OS_COMMON_FLAGS) clean
-
-OPTEE_CLIENT_COMMON_FLAGS ?= CROSS_COMPILE=$(CROSS_COMPILE_NS_USER) \
-	CFG_TEE_BENCHMARK=$(CFG_TEE_BENCHMARK) \
-	CFG_TA_TEST_PATH=y
-
-.PHONY: optee-client-common
-optee-client-common:
-	$(MAKE) -C $(OPTEE_CLIENT_PATH) $(OPTEE_CLIENT_COMMON_FLAGS)
-
-# OPTEE_CLIENT_CLEAN_COMMON_FLAGS can be defined in specific makefiles
-# (hikey.mk,...) if necessary
-
-.PHONY: optee-client-clean-common
-optee-client-clean-common:
-	$(MAKE) -C $(OPTEE_CLIENT_PATH) $(OPTEE_CLIENT_CLEAN_COMMON_FLAGS) \
-		clean
-
-################################################################################
-# xtest / optee_test
-################################################################################
-XTEST_COMMON_FLAGS ?= CROSS_COMPILE_HOST=$(CROSS_COMPILE_NS_USER)\
-	CROSS_COMPILE_TA=$(CROSS_COMPILE_S_USER) \
-	TA_DEV_KIT_DIR=$(OPTEE_OS_TA_DEV_KIT_DIR) \
-	OPTEE_CLIENT_EXPORT=$(OPTEE_CLIENT_EXPORT) \
-	COMPILE_NS_USER=$(COMPILE_NS_USER) \
-	O=$(OPTEE_TEST_OUT_PATH)
-
-.PHONY: xtest-common
-xtest-common: optee-os optee-client
-	$(MAKE) -C $(OPTEE_TEST_PATH) $(XTEST_COMMON_FLAGS)
-
-XTEST_CLEAN_COMMON_FLAGS ?= O=$(OPTEE_TEST_OUT_PATH) \
-	TA_DEV_KIT_DIR=$(OPTEE_OS_TA_DEV_KIT_DIR) \
-
-.PHONY: xtest-clean-common
-xtest-clean-common:
-	$(MAKE) -C $(OPTEE_TEST_PATH) $(XTEST_CLEAN_COMMON_FLAGS) clean
-
-XTEST_PATCH_COMMON_FLAGS ?= $(XTEST_COMMON_FLAGS)
-
-.PHONY: xtest-patch-common
-xtest-patch-common:
-	$(MAKE) -C $(OPTEE_TEST_PATH) $(XTEST_PATCH_COMMON_FLAGS) patch
-
-################################################################################
-# sample applications / optee_examples
-################################################################################
-OPTEE_EXAMPLES_COMMON_FLAGS ?= HOST_CROSS_COMPILE=$(CROSS_COMPILE_NS_USER)\
-	TA_CROSS_COMPILE=$(CROSS_COMPILE_S_USER) \
-	TA_DEV_KIT_DIR=$(OPTEE_OS_TA_DEV_KIT_DIR) \
-	TEEC_EXPORT=$(OPTEE_CLIENT_EXPORT)
-
-.PHONY: optee-examples-common
-optee-examples-common: optee-os optee-client
-	$(MAKE) -C $(OPTEE_EXAMPLES_PATH) $(OPTEE_EXAMPLES_COMMON_FLAGS)
-
-OPTEE_EXAMPLES_CLEAN_COMMON_FLAGS ?= TA_DEV_KIT_DIR=$(OPTEE_OS_TA_DEV_KIT_DIR)
-
-.PHONY: optee-examples-clean-common
-optee-examples-clean-common:
-	$(MAKE) -C $(OPTEE_EXAMPLES_PATH) \
-			$(OPTEE_EXAMPLES_CLEAN_COMMON_FLAGS) clean
-
-################################################################################
-# benchmark_app
-################################################################################
-BENCHMARK_APP_COMMON_FLAGS ?= CROSS_COMPILE=$(CROSS_COMPILE_NS_USER) \
-	TEEC_EXPORT=$(OPTEE_CLIENT_EXPORT) \
-	TEEC_INTERNAL_INCLUDES=$(OPTEE_CLIENT_PATH)/libteec \
-	MULTIARCH=$(MULTIARCH)
-
-.PHONY: benchmark-app-common
-benchmark-app-common: optee-os optee-client
-	$(MAKE) -C $(OPTEE_BENCHMARK_PATH) $(BENCHMARK_APP_COMMON_FLAGS)
-
-.PHONY: benchmark-app-clean-common
-benchmark-app-clean-common:
-	$(MAKE) -C $(OPTEE_BENCHMARK_PATH) clean
