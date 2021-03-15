@@ -21,7 +21,6 @@ OUT_PATH		?= $(ROOT)/out
 ROOTFS_BIN		?= $(ROOT)/out-br/images/rootfs.tar
 TF_A_PATH		?= $(ROOT)/trusted-firmware-a
 UBOOT_PATH		?= $(ROOT)/u-boot
-OPTEE_CLIENT_EXPORT	?= $(OPTEE_CLIENT_PATH)/out/export
 OPTEE_PATH		?= $(ROOT)/optee_os
 LINUX_PATH		?= $(ROOT)/linux
 
