@@ -61,9 +61,6 @@ optee-os: optee-os-common
 OPTEE_OS_CLEAN_COMMON_FLAGS += PLATFORM=$(OPTEE_OS_PLATFORM)
 optee-os-clean: optee-os-clean-common
 
-optee-client: optee-client-common
-optee-client-clean: optee-client-clean-common
-
 ###############################################################################
 # Build FIT
 ###############################################################################
