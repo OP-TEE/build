@@ -356,7 +356,7 @@ edk2-common:
 .PHONY: edk2-clean-common
 edk2-clean-common:
 	$(call edk2-env) && \
-	export PACKAGES_PATH=$(EDK2_PATH):$(ROOT)/edk2-platforms && \
+	export PACKAGES_PATH=$(EDK2_PATH):$(EDK2_PLATFORMS_PATH) && \
 	source $(EDK2_PATH)/edksetup.sh && \
 	$(MAKE) -j1 -C $(EDK2_PATH)/BaseTools clean && \
 	$(call edk2-call) cleanall
