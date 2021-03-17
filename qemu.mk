@@ -23,6 +23,7 @@ TF_A_PATH			?= $(ROOT)/trusted-firmware-a
 BINARIES_PATH			?= $(ROOT)/out/bin
 U-BOOT_PATH			?= $(ROOT)/u-boot
 QEMU_PATH			?= $(ROOT)/qemu
+QEMU_BUILD			?= $(QEMU_PATH)/build
 SOC_TERM_PATH			?= $(ROOT)/soc_term
 
 DEBUG = 1
@@ -81,11 +82,11 @@ arm-tf-clean:
 ################################################################################
 # QEMU
 ################################################################################
-$(QEMU_PATH)/config-host.mak:
+$(QEMU_BUILD)/config-host.mak:
 	cd $(QEMU_PATH); ./configure --target-list=arm-softmmu\
 			$(QEMU_CONFIGURE_PARAMS_COMMON)
 
-qemu: $(QEMU_PATH)/config-host.mak
+qemu: $(QEMU_BUILD)/config-host.mak
 	$(MAKE) -C $(QEMU_PATH)
 
 qemu-clean:
@@ -173,7 +174,7 @@ run-only:
 	$(call launch-terminal,54320,"Normal World")
 	$(call launch-terminal,54321,"Secure World")
 	$(call wait-for-ports,54320,54321)
-	cd $(BINARIES_PATH) && $(QEMU_PATH)/arm-softmmu/qemu-system-arm \
+	cd $(BINARIES_PATH) && $(QEMU_BUILD)/arm-softmmu/qemu-system-arm \
 		-nographic \
 		-serial tcp:localhost:54320 -serial tcp:localhost:54321 \
 		-smp $(QEMU_SMP) \
@@ -195,7 +196,7 @@ endif
 check: $(CHECK_DEPS)
 	ln -sf $(ROOT)/out-br/images/rootfs.cpio.gz $(BINARIES_PATH)/
 	cd $(BINARIES_PATH) && \
-		export QEMU=$(ROOT)/qemu/arm-softmmu/qemu-system-arm && \
+		export QEMU=$(QEMU_BUILD)/arm-softmmu/qemu-system-arm && \
 		export QEMU_SMP=$(QEMU_SMP) && \
 		expect $(ROOT)/build/qemu-check.exp -- $(check-args) || \
 		(if [ "$(DUMP_LOGS_ON_ERROR)" ]; then \
