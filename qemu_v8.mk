@@ -38,6 +38,7 @@ EDK2_BUILD		?= RELEASE
 endif
 EDK2_BIN		?= $(EDK2_PATH)/Build/ArmVirtQemuKernel-$(EDK2_ARCH)/$(EDK2_BUILD)_$(EDK2_TOOLCHAIN)/FV/QEMU_EFI.fd
 QEMU_PATH		?= $(ROOT)/qemu
+QEMU_BUILD		?= $(QEMU_PATH)/build
 SOC_TERM_PATH		?= $(ROOT)/soc_term
 
 ################################################################################
@@ -110,11 +111,11 @@ arm-tf-clean:
 ################################################################################
 # QEMU
 ################################################################################
-$(QEMU_PATH)/config-host.mak:
+$(QEMU_BUILD)/config-host.mak:
 	cd $(QEMU_PATH); ./configure --target-list=aarch64-softmmu\
 			$(QEMU_CONFIGURE_PARAMS_COMMON)
 
-qemu: $(QEMU_PATH)/config-host.mak
+qemu: $(QEMU_BUILD)/config-host.mak
 	$(MAKE) -C $(QEMU_PATH)
 
 qemu-clean:
@@ -199,7 +200,7 @@ run-only:
 	$(call launch-terminal,54320,"Normal World")
 	$(call launch-terminal,54321,"Secure World")
 	$(call wait-for-ports,54320,54321)
-	cd $(BINARIES_PATH) && $(QEMU_PATH)/aarch64-softmmu/qemu-system-aarch64 \
+	cd $(BINARIES_PATH) && $(QEMU_BUILD)/aarch64-softmmu/qemu-system-aarch64 \
 		-nographic \
 		-serial tcp:localhost:54320 -serial tcp:localhost:54321 \
 		-smp $(QEMU_SMP) \
@@ -223,7 +224,7 @@ endif
 check: $(CHECK_DEPS)
 	ln -sf $(ROOT)/out-br/images/rootfs.cpio.gz $(BINARIES_PATH)/
 	cd $(BINARIES_PATH) && \
-		export QEMU=$(QEMU_PATH)/aarch64-softmmu/qemu-system-aarch64 && \
+		export QEMU=$(QEMU_BUILD)/aarch64-softmmu/qemu-system-aarch64 && \
 		export QEMU_SMP=$(QEMU_SMP) && \
 		expect $(ROOT)/build/qemu-check.exp -- $(check-args) || \
 		(if [ "$(DUMP_LOGS_ON_ERROR)" ]; then \
