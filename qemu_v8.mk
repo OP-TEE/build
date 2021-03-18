@@ -29,7 +29,7 @@ DEBUG ?= 1
 TF_A_PATH		?= $(ROOT)/trusted-firmware-a
 BINARIES_PATH		?= $(ROOT)/out/bin
 EDK2_PATH		?= $(ROOT)/edk2
-EDK2_TOOLCHAIN		?= GCC49
+EDK2_TOOLCHAIN		?= GCC5
 EDK2_ARCH		?= AARCH64
 ifeq ($(DEBUG),1)
 EDK2_BUILD		?= DEBUG
