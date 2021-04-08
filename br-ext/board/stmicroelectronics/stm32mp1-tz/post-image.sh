@@ -28,8 +28,8 @@ GENIMAGE_TMP="${BUILD_DIR}/genimage.tmp"
 BOOTFS_DIR=${BASE_DIR}/target-bootfs
 rm -f ${BINARIES_DIR}/bootfs.ext2 || exit 1
 rm -rf ${BOOTFS_DIR} && mkdir -p ${BOOTFS_DIR}/boot || exit 1
-cp ${3}/uImage ${BOOTFS_DIR}/boot || exit 1
-cp ${3}/*.dtb ${BOOTFS_DIR}/boot || exit 1
+cp --dereference ${3}/uImage ${BOOTFS_DIR}/boot || exit 1
+cp --dereference ${3}/*.dtb ${BOOTFS_DIR}/boot || exit 1
 [ -z "${4}" ] || { cp -ar ${4}/* ${BOOTFS_DIR} || exit 1; }
 
 mkfs.ext2 -L bootfs -d ${BOOTFS_DIR} ${BINARIES_DIR}/bootfs.ext2 32M || exit 1
