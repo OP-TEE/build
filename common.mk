@@ -448,8 +448,5 @@ optee-os-common:
 	$(MAKE) -C $(OPTEE_OS_PATH) $(OPTEE_OS_COMMON_FLAGS)
 
 .PHONY: optee-os-clean-common
-ifeq ($(CFG_TEE_BENCHMARK),y)
-optee-os-clean-common: benchmark-app-clean-common
-endif
-optee-os-clean-common: xtest-clean-common optee-examples-clean-common
+optee-os-clean-common:
 	$(MAKE) -C $(OPTEE_OS_PATH) $(OPTEE_OS_COMMON_FLAGS) clean
