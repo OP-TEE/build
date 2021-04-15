@@ -40,17 +40,18 @@ aarch32:
 aarch64:
 	$(call dltc,$(AARCH64_PATH),$(SRC_AARCH64_GCC),$(AARCH64_GCC_VERSION))
 
-CLANG_PATH			?= $(ROOT)/clang-9.0.1
+CLANG_VER			?= 9.0.1
+CLANG_PATH			?= $(ROOT)/clang-$(CLANG_VER)
 
 # Download the Clang compiler with LLVM tools and compiler-rt libraries
 define dl-clang
-	@if [ ! -d "$(1)" ]; then \
-		./get_clang.sh $(1); \
+	@if [ ! -d "$(2)" ]; then \
+		./get_clang.sh $(1) $(2); \
 	else \
-		echo "$(1) already exists"; \
+		echo "$(2) already exists"; \
 	fi
 endef
 
 .PHONY: clang-toolchains
 clang-toolchains:
-	$(call dl-clang,$(CLANG_PATH))
+	$(call dl-clang,$(CLANG_VER),$(CLANG_PATH))
