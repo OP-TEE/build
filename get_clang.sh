@@ -11,9 +11,8 @@
 #
 # Usage: get_clang.sh [path]
 
-DEST=${1:-./clang-9.0.1}
-
-VER=9.0.1
+VER=12.0.0
+DEST=${1:-./clang-${VER}}
 X86_64=clang+llvm-${VER}-x86_64-linux-gnu-ubuntu-16.04
 AARCH64=clang+llvm-${VER}-aarch64-linux-gnu
 ARMV7A=clang+llvm-${VER}-armv7a-linux-gnueabihf
