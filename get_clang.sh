@@ -8,12 +8,11 @@
 # architectures by default (see <clang path>/bin/llc --version) which is great,
 # but compiler-rt is included only for the host architecture. Therefore we need
 # to combine several packages into one, which is the purpose of this script.
-#
-# Usage: get_clang.sh [path]
 
-DEST=${1:-./clang-9.0.1}
+[ "$1" ] || { echo "Usage: get_clang.sh version [path]"; exit 1; }
 
-VER=9.0.1
+VER=${1}
+DEST=${2:-./clang-${VER}}
 X86_64=clang+llvm-${VER}-x86_64-linux-gnu-ubuntu-16.04
 AARCH64=clang+llvm-${VER}-aarch64-linux-gnu
 ARMV7A=clang+llvm-${VER}-armv7a-linux-gnueabihf
