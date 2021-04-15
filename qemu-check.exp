@@ -71,7 +71,7 @@ send -- "$cmd\r"
 set casenum "none"
 expect {
 	# Exit with error status as soon as a test fails
-	-re {  regression_([^ ]+) FAIL} {
+	-re {  ([^ ]+) FAIL} {
 		info " $expect_out(1,string) FAIL\n"
 		exit 1
 	}
@@ -80,7 +80,7 @@ expect {
 		exit 1
 	}
 	# Crude progress indicator: print one # when each test [sub]case starts
-	-re {([\*o]) regression_([^ ]+) } {
+	-re {([\*o]) ([^ ]+) } {
 		set casenum $expect_out(2,string)
 		if {$expect_out(1,string) == "o"} {
 			if {$star == 1} {
