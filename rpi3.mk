@@ -38,7 +38,6 @@ U-BOOT_PATH		?= $(ROOT)/u-boot
 U-BOOT_BIN		?= $(U-BOOT_PATH)/u-boot.bin
 
 RPI3_FIRMWARE_PATH	?= $(BUILD_PATH)/rpi3/firmware
-RPI3_HEAD_BIN		?= $(ROOT)/out/head.bin
 RPI3_BOOT_CONFIG	?= $(RPI3_FIRMWARE_PATH)/config.txt
 RPI3_UBOOT_ENV		?= $(ROOT)/out/uboot.env
 RPI3_UBOOT_ENV_TXT	?= $(RPI3_FIRMWARE_PATH)/uboot.env.txt
