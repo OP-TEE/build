@@ -217,7 +217,7 @@ run-only:
 		-bios bl1.bin \
 		-initrd rootfs.cpio.gz \
 		-kernel Image -no-acpi \
-		-append 'console=ttyAMA0,38400 keep_bootcon root=/dev/vda2' \
+		-append 'console=ttyAMA0,38400 keep_bootcon root=/dev/vda2 $(QEMU_KERNEL_BOOTARGS)' \
 		$(QEMU_EXTRA_ARGS)
 
 ifneq ($(filter check,$(MAKECMDGOALS)),)
