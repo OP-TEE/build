@@ -179,7 +179,7 @@ run-only:
 		-serial tcp:localhost:54320 -serial tcp:localhost:54321 \
 		-smp $(QEMU_SMP) \
 		-s -S -machine virt,secure=on -cpu cortex-a15 \
-		-d unimp -semihosting-config enable,target=native \
+		-d unimp -semihosting-config enable=on,target=native \
 		-m 1057 \
 		-bios bl1.bin \
 		$(QEMU_EXTRA_ARGS)
