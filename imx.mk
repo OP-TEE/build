@@ -10,6 +10,8 @@ override COMPILE_S_KERNEL  := 64
 
 OPTEE_OS_PLATFORM = imx-mx8mqevk
 BR2_TARGET_GENERIC_GETTY_PORT = ttymxc0
+BR2_TARGET_ROOTFS_EXT2=y
+BR2_TARGET_ROOTFS_EXT2_4=y
 
 include common.mk
 
@@ -175,6 +177,42 @@ $(ROOT)/out/boot.scr: $(ROOT)/build/imx/u-boot_boot_script | $(ROOT)/out
 	$(U-BOOT_PATH)/tools/mkimage -T script -C none -n 'Boot script' \
 		-d $< $@
 
+################################################################################
+# Flash images
+################################################################################
+USE_PERSISTENT_ROOTFS ?= 0
+
+# Configuration of the BOOT partition
+FLASH_PARTITIONS_BLOCK_SIZE = 512
+FLASH_PARTITION_BOOT_START_BLOCK = 16384
+FLASH_PARTITION_BOOT_SIZE_IN_BYTES = \
+	$(shell echo $$(( 64 * 1024 * 1024 )))
+FLASH_PARTITION_BOOT_SIZE_IN_BLOCKS = \
+	$(shell echo $$(( $(FLASH_PARTITION_BOOT_SIZE_IN_BYTES) / $(FLASH_PARTITIONS_BLOCK_SIZE) )))
+FLASH_PARTITIONS_TABLE = "\
+	start=$(FLASH_PARTITION_BOOT_START_BLOCK) \
+	size=$(FLASH_PARTITION_BOOT_SIZE_IN_BLOCKS) \
+	type=7\n"
+FLASH_IMAGE_SIZE = \
+	$(shell echo $$(( $(FLASH_PARTITION_BOOT_START_BLOCK) * $(FLASH_PARTITIONS_BLOCK_SIZE) \
+	+ $(FLASH_PARTITION_BOOT_SIZE_IN_BYTES) )))
+
+# Configuration of the ROOTFS partition if enabled
+ifeq ($(USE_PERSISTENT_ROOTFS),1)
+FLASH_PARTITION_ROOTFS_IMAGE_PATH = $(ROOT)/out-br/images/rootfs.ext4
+FLASH_PARTITION_ROOTFS_START_BLOCK = \
+	$(shell echo $$(( $(FLASH_PARTITION_BOOT_START_BLOCK) + $(FLASH_PARTITION_BOOT_SIZE_IN_BLOCKS) )))
+FLASH_PARTITION_ROOTFS_SIZE_IN_BYTES = \
+	$(shell stat -L --printf="%s" $(FLASH_PARTITION_ROOTFS_IMAGE_PATH))
+FLASH_PARTITION_ROOTFS_SIZE_IN_BLOCKS = \
+	$(shell echo $$(( $(FLASH_PARTITION_ROOTFS_SIZE_IN_BYTES) / $(FLASH_PARTITIONS_BLOCK_SIZE) )))
+FLASH_PARTITIONS_TABLE += "\
+	start=$(FLASH_PARTITION_ROOTFS_START_BLOCK) \
+	size=$(FLASH_PARTITION_ROOTFS_SIZE_IN_BLOCKS) \
+	type=83\n"
+FLASH_IMAGE_SIZE := $(shell echo $$(( $(FLASH_IMAGE_SIZE) + $(FLASH_PARTITION_ROOTFS_SIZE_IN_BYTES) )))
+endif
+
 .PHONY: flash-image
 flash-image: buildroot mkimage
 	$(MAKE) flash-image-only
@@ -182,15 +220,22 @@ flash-image: buildroot mkimage
 .PHONY: flash-image-only
 flash-image-only: $(ROOT)/out-br/images/ramdisk.img $(ROOT)/out/boot.scr
 	rm -f $(BOOT_IMG)
-	truncate -s 128M ${BOOT_IMG}
-	echo -ne "16384 64M 7\n147456 + 83\n" | sfdisk ${BOOT_IMG}
-	mformat -i ${BOOT_IMG}.fat -n 64 -h 255 -T 131072 -v "BOOT IMG" -C ::
-	mcopy -i ${BOOT_IMG}.fat $(LINUX_PATH)/arch/arm64/boot/Image ::
-	mcopy -i ${BOOT_IMG}.fat \
+	truncate -s $(FLASH_IMAGE_SIZE) $(BOOT_IMG)
+	echo -ne $(FLASH_PARTITIONS_TABLE) | sfdisk $(BOOT_IMG)
+	mformat -i $(BOOT_IMG).fat -n 64 -h 255 -T 131072 -v "BOOT IMG" -C ::
+	mcopy -i $(BOOT_IMG).fat $(LINUX_PATH)/arch/arm64/boot/Image ::
+	mcopy -i $(BOOT_IMG).fat \
 		$(LINUX_PATH)/arch/arm64/boot/dts/freescale/imx8mq-evk.dtb ::
-	mcopy -i ${BOOT_IMG}.fat $(ROOT)/out-br/images/ramdisk.img ::
-	mcopy -i ${BOOT_IMG}.fat $(ROOT)/out/boot.scr ::
-	dd if=${BOOT_IMG}.fat of=${BOOT_IMG} bs=512 seek=16384 \
-		conv=fsync,notrunc
-	dd if=${ROOT}/imx-mkimage/iMX8M/flash.bin of=${BOOT_IMG} bs=1k seek=33 \
+	mcopy -i $(BOOT_IMG).fat $(ROOT)/out/boot.scr ::
+
+ifeq ($(USE_PERSISTENT_ROOTFS),1)
+	dd if=$(FLASH_PARTITION_ROOTFS_IMAGE_PATH) of=$(BOOT_IMG) bs=$(FLASH_PARTITIONS_BLOCK_SIZE) \
+		seek=$(FLASH_PARTITION_ROOTFS_START_BLOCK) conv=fsync,notrunc
+else
+	mcopy -i $(BOOT_IMG).fat $(ROOT)/out-br/images/ramdisk.img ::
+endif
+
+	dd if=$(BOOT_IMG).fat of=$(BOOT_IMG) bs=$(FLASH_PARTITIONS_BLOCK_SIZE) \
+		seek=$(FLASH_PARTITION_BOOT_START_BLOCK) conv=fsync,notrunc
+	dd if=$(ROOT)/imx-mkimage/iMX8M/flash.bin of=$(BOOT_IMG) bs=1k seek=33 \
 		conv=fsync,notrunc

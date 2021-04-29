@@ -13,5 +13,10 @@ else
 fi;
 fdt print /firmware/optee;
 run loadimage;
-fatload mmc ${mmcdev}:${mmcpart}  ${initrd_addr} ramdisk.img;
-booti ${loadaddr} ${initrd_addr} ${fdt_addr};
+if fatload mmc ${mmcdev}:${mmcpart}  ${initrd_addr} ramdisk.img; then
+	booti ${loadaddr} ${initrd_addr} ${fdt_addr};
+else
+	echo "Booting on the persistent file system ..."
+	run loadimage;run mmcargs;
+	booti ${loadaddr} - ${fdt_addr};
+fi;
