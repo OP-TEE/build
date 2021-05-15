@@ -4,15 +4,28 @@
 SHELL				= /bin/bash
 ROOT				?= $(CURDIR)/..
 TOOLCHAIN_ROOT 			?= $(ROOT)/toolchains
+UNAME_M				:= $(shell uname -m)
 
 AARCH32_PATH 			?= $(TOOLCHAIN_ROOT)/aarch32
 AARCH32_CROSS_COMPILE 		?= $(AARCH32_PATH)/bin/arm-linux-gnueabihf-
-AARCH32_GCC_VERSION 		?= gcc-arm-9.2-2019.12-x86_64-arm-none-linux-gnueabihf
-SRC_AARCH32_GCC 		?= https://developer.arm.com/-/media/Files/downloads/gnu-a/9.2-2019.12/binrel/$(AARCH32_GCC_VERSION).tar.xz
 
 AARCH64_PATH 			?= $(TOOLCHAIN_ROOT)/aarch64
 AARCH64_CROSS_COMPILE 		?= $(AARCH64_PATH)/bin/aarch64-linux-gnu-
-AARCH64_GCC_VERSION 		?= gcc-arm-9.2-2019.12-x86_64-aarch64-none-linux-gnu
+
+ifeq ($(UNAME_M),x86_64)
+AARCH32_GCC_VERSION		?= gcc-arm-9.2-2019.12-x86_64-arm-none-linux-gnueabihf
+AARCH64_GCC_VERSION		?= gcc-arm-9.2-2019.12-x86_64-aarch64-none-linux-gnu
+endif
+
+ifeq ($(AARCH32_GCC_VERSION),)
+$(error Host architecture $(UNAME_M) is not officially supported, and custom 32-bit toolchain was not defined)
+endif
+
+ifeq ($(AARCH64_GCC_VERSION),)
+$(error Host architecture $(UNAME_M) is not officially supported, and custom 64-bit toolchain was not defined)
+endif
+
+SRC_AARCH32_GCC 		?= https://developer.arm.com/-/media/Files/downloads/gnu-a/9.2-2019.12/binrel/$(AARCH32_GCC_VERSION).tar.xz
 SRC_AARCH64_GCC 		?= https://developer.arm.com/-/media/Files/downloads/gnu-a/9.2-2019.12/binrel/$(AARCH64_GCC_VERSION).tar.xz
 
 # Download toolchain macro for saving some repetition
