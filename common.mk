@@ -26,6 +26,7 @@ SHELL := bash
 BASH ?= bash
 ROOT ?= $(shell pwd)/..
 
+UNAME_M				:= $(shell uname -m)
 BUILD_PATH			?= $(ROOT)/build
 LINUX_PATH			?= $(ROOT)/linux
 OPTEE_OS_PATH			?= $(ROOT)/optee_os
@@ -103,9 +104,17 @@ QEMU_VIRTFS_MOUNTPOINT	?= /mnt/host
 # Mandatory for autotools (for specifying --host)
 ################################################################################
 ifeq ($(COMPILE_NS_USER),64)
+ifeq ($(UNAME_M),x86_64)
 MULTIARCH			:= aarch64-linux-gnu
 else
+MULTIARCH			:= aarch64-linux
+endif
+else
+ifeq ($(UNAME_M),x86_64)
 MULTIARCH			:= arm-linux-gnueabihf
+else
+MULTIARCH			:= arm-linux
+endif
 endif
 
 ################################################################################
@@ -240,10 +249,14 @@ BUILDROOT_TOOLCHAIN=toolchain-br # Use toolchain supplied by buildroot
 DEFCONFIG_GDBSERVER=--br-defconfig build/br-ext/configs/gdbserver.conf
 else
 # Local toolchains (downloaded by "make toolchains")
+ifeq ($(UNAME_M),x86_64)
 ifeq ($(COMPILE_LEGACY),)
 BUILDROOT_TOOLCHAIN=toolchain-aarch$(COMPILE_NS_USER)
 else
 BUILDROOT_TOOLCHAIN=toolchain-aarch$(COMPILE_NS_USER)-legacy
+endif
+else
+BUILDROOT_TOOLCHAIN=toolchain-aarch$(COMPILE_NS_USER)-sdk
 endif
 endif
 
