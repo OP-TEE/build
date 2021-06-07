@@ -4,7 +4,9 @@
 SHELL				= /bin/bash
 ROOT				?= $(CURDIR)/..
 TOOLCHAIN_ROOT 			?= $(ROOT)/toolchains
+UNAME_M				:= $(shell uname -m)
 
+ifeq ($(UNAME_M),x86_64)
 AARCH32_PATH 			?= $(TOOLCHAIN_ROOT)/aarch32
 AARCH32_CROSS_COMPILE 		?= $(AARCH32_PATH)/bin/arm-linux-gnueabihf-
 AARCH32_GCC_VERSION 		?= gcc-arm-10.2-2020.11-x86_64-arm-none-linux-gnueabihf
@@ -55,3 +57,35 @@ endef
 .PHONY: clang-toolchains
 clang-toolchains:
 	$(call dl-clang,$(CLANG_VER),$(CLANG_PATH))
+
+else # $(UNAME_M) != x86_64
+AARCH32_PATH 			:= $(TOOLCHAIN_ROOT)/aarch32
+AARCH32_CROSS_COMPILE 		:= $(AARCH32_PATH)/bin/arm-linux-
+AARCH64_PATH 			:= $(TOOLCHAIN_ROOT)/aarch64
+AARCH64_CROSS_COMPILE 		:= $(AARCH64_PATH)/bin/aarch64-linux-
+
+.PHONY: toolchains
+toolchains: $(AARCH64_PATH)/.done $(AARCH32_PATH)/.done
+
+define build_toolchain
+	@echo Building $1 toolchain
+	@mkdir -p ../out-$1-sdk $2
+	@(cd .. && python build/br-ext/scripts/make_def_config.py \
+		--br buildroot --out out-$1-sdk --br-ext build/br-ext \
+		--top-dir "$(ROOT)" \
+		--br-defconfig build/br-ext/configs/sdk-$1 \
+		--br-defconfig build/br-ext/configs/sdk-common \
+		--make-cmd $(MAKE))
+	@$(MAKE) -C ../out-$1-sdk clean
+	@$(MAKE) -C ../out-$1-sdk sdk
+	@tar xf ../out-$1-sdk/images/$3-buildroot-linux-$4_sdk-buildroot.tar.gz \
+		-C $2 --strip-components=1
+	@touch $2/.done
+endef
+
+$(AARCH64_PATH)/.done:
+	$(call build_toolchain,aarch64,$(AARCH64_PATH),aarch64,gnu)
+
+$(AARCH32_PATH)/.done:
+	$(call build_toolchain,aarch32,$(AARCH32_PATH),arm,gnueabihf)
+endif
