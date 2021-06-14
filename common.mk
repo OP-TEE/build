@@ -29,6 +29,7 @@ ROOT ?= $(shell pwd)/..
 UNAME_M				:= $(shell uname -m)
 BUILD_PATH			?= $(ROOT)/build
 LINUX_PATH			?= $(ROOT)/linux
+UBOOT_PATH			?= $(ROOT)/u-boot
 OPTEE_OS_PATH			?= $(ROOT)/optee_os
 OPTEE_CLIENT_PATH		?= $(ROOT)/optee_client
 OPTEE_TEST_PATH			?= $(ROOT)/optee_test
