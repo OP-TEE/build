@@ -23,6 +23,9 @@ include common.mk
 
 DEBUG ?= 1
 
+# Option to use U-Boot in the boot flow instead of EDK2
+UBOOT ?= n
+
 ################################################################################
 # Paths to git projects and various binaries
 ################################################################################
@@ -41,14 +44,53 @@ QEMU_PATH		?= $(ROOT)/qemu
 QEMU_BUILD		?= $(QEMU_PATH)/build
 SOC_TERM_PATH		?= $(ROOT)/soc_term
 MODULE_OUTPUT		?= $(ROOT)/out/kernel_modules
+UBOOT_PATH		?= $(ROOT)/u-boot
+UBOOT_BIN		?= $(UBOOT_PATH)/u-boot.bin
+MKIMAGE_PATH		?= $(UBOOT_PATH)/tools
 
+ROOTFS_GZ		?= $(BINARIES_PATH)/rootfs.cpio.gz
+ROOTFS_UGZ		?= $(BINARIES_PATH)/rootfs.cpio.uboot
+
+KERNEL_IMAGE		?= $(LINUX_PATH)/arch/arm64/boot/Image
+KERNEL_IMAGEGZ		?= $(LINUX_PATH)/arch/arm64/boot/Image.gz
+KERNEL_UIMAGE		?= $(BINARIES_PATH)/uImage
+
+# Load and entry addresses
+KERNEL_ENTRY		?= 0x40400000
+KERNEL_LOADADDR		?= 0x40400000
+ROOTFS_ENTRY		?= 0x44000000
+ROOTFS_LOADADDR		?= 0x44000000
+
+ifeq ($(UBOOT),y)
+BL33_BIN		?= $(UBOOT_BIN)
+BL33_DEPS		?= u-boot
+else
+BL33_BIN		?= $(EDK2_BIN)
+BL33_DEPS		?= edk2
+endif
 
 ################################################################################
 # Targets
 ################################################################################
-all: arm-tf buildroot edk2 linux optee-os qemu soc-term
-clean: arm-tf-clean buildroot-clean edk2-clean linux-clean optee-os-clean \
+TARGET_DEPS := arm-tf buildroot linux optee-os qemu soc-term
+TARGET_CLEAN := arm-tf-clean buildroot-clean linux-clean optee-os-clean \
 	qemu-clean soc-term-clean check-clean
+
+TARGET_DEPS 		+= $(BL33_DEPS)
+
+ifeq ($(UBOOT),y)
+TARGET_DEPS		+= $(KERNEL_UIMAGE) $(ROOTFS_UGZ)
+TARGET_CLEAN		+= u-boot-clean
+else
+TARGET_CLEAN		+= edk2-clean
+endif
+
+all: $(TARGET_DEPS)
+
+clean: $(TARGET_CLEAN)
+
+$(BINARIES_PATH):
+	mkdir -p $@
 
 include toolchain.mk
 
@@ -71,7 +113,7 @@ TF_A_FLAGS ?= \
 	BL32=$(OPTEE_OS_HEADER_V2_BIN) \
 	BL32_EXTRA1=$(OPTEE_OS_PAGER_V2_BIN) \
 	BL32_EXTRA2=$(OPTEE_OS_PAGEABLE_V2_BIN) \
-	BL33=$(EDK2_BIN) \
+	BL33=$(BL33_BIN) \
 	PLAT=qemu \
 	ARM_TSP_RAM_LOCATION=tdram \
 	BL32_RAM_LOCATION=tdram \
@@ -86,7 +128,7 @@ TF_A_FLAGS += \
 	GENERATE_COT=1
 endif
 
-arm-tf: optee-os edk2
+arm-tf: optee-os $(BL33_DEPS)
 	$(TF_A_EXPORTS) $(MAKE) -C $(TF_A_PATH) $(TF_A_FLAGS) all fip
 	mkdir -p $(BINARIES_PATH)
 	ln -sf $(TF_A_OUT)/bl1.bin $(BINARIES_PATH)
@@ -105,7 +147,7 @@ endif
 	ln -sf $(OPTEE_OS_HEADER_V2_BIN) $(BINARIES_PATH)/bl32.bin
 	ln -sf $(OPTEE_OS_PAGER_V2_BIN) $(BINARIES_PATH)/bl32_extra1.bin
 	ln -sf $(OPTEE_OS_PAGEABLE_V2_BIN) $(BINARIES_PATH)/bl32_extra2.bin
-	ln -sf $(EDK2_BIN) $(BINARIES_PATH)/bl33.bin
+	ln -sf $(BL33_BIN) $(BINARIES_PATH)/bl33.bin
 
 arm-tf-clean:
 	$(TF_A_EXPORTS) $(MAKE) -C $(TF_A_PATH) $(TF_A_FLAGS) clean
@@ -140,6 +182,31 @@ endef
 edk2: edk2-common
 
 edk2-clean: edk2-clean-common
+
+################################################################################
+# U-Boot
+################################################################################
+UBOOT_DEFCONFIG_FILES := $(UBOOT_PATH)/configs/qemu_arm64_defconfig		\
+			 $(ROOT)/build/kconfigs/u-boot_qemu_v8.conf
+
+UBOOT_COMMON_FLAGS ?= CROSS_COMPILE=$(CROSS_COMPILE_NS_KERNEL)
+
+$(UBOOT_PATH)/.config: $(UBOOT_DEFCONFIG_FILES)
+	cd $(UBOOT_PATH) && \
+                scripts/kconfig/merge_config.sh $(UBOOT_DEFCONFIG_FILES)
+
+.PHONY: u-boot-defconfig
+u-boot-defconfig: $(UBOOT_PATH)/.config
+
+.PHONY: u-boot
+u-boot: u-boot-defconfig
+	$(MAKE) -C $(UBOOT_PATH) $(UBOOT_COMMON_FLAGS)
+
+.PHONY: u-boot-clean
+u-boot-clean:
+	$(MAKE) -C $(UBOOT_PATH) $(UBOOT_COMMON_FLAGS) distclean
+
+################################################################################
 
 ################################################################################
 # Linux kernel
@@ -188,6 +255,35 @@ soc-term:
 
 soc-term-clean:
 	$(MAKE) -C $(SOC_TERM_PATH) clean
+
+################################################################################
+# mkimage - create images to be loaded by U-Boot
+################################################################################
+# Without the objcopy, the uImage will be 10x bigger.
+$(KERNEL_UIMAGE): u-boot linux | $(BINARIES_PATH)
+	${AARCH64_CROSS_COMPILE}objcopy -O binary \
+					-R .note \
+					-R .comment \
+					-S $(LINUX_PATH)/vmlinux \
+					$(BINARIES_PATH)/linux.bin
+	$(MKIMAGE_PATH)/mkimage -A arm64 \
+				-O linux \
+				-T kernel \
+				-C none \
+				-a $(KERNEL_LOADADDR) \
+				-e $(KERNEL_ENTRY) \
+				-n "Linux kernel" \
+				-d $(BINARIES_PATH)/linux.bin $(KERNEL_UIMAGE)
+
+$(ROOTFS_UGZ): u-boot buildroot | $(BINARIES_PATH)
+	ln -sf $(ROOT)/out-br/images/rootfs.cpio.gz $(BINARIES_PATH)
+	$(MKIMAGE_PATH)/mkimage -A arm64 \
+				-T ramdisk \
+				-C gzip \
+				-a $(ROOTFS_LOADADDR) \
+				-e $(ROOTFS_ENTRY) \
+				-n "Root file system" \
+				-d $(ROOTFS_GZ) $(ROOTFS_UGZ)
 
 ################################################################################
 # Run targets
