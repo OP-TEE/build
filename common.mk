@@ -261,6 +261,10 @@ BUILDROOT_TOOLCHAIN=toolchain-aarch$(COMPILE_NS_USER)-sdk
 endif
 endif
 
+ifeq ($(XEN_BOOT),y)
+DEFCONFIG_XEN_TOOLS=--br-defconfig build/br-ext/configs/xen_tools.conf
+endif
+
 BR2_PACKAGE_LIBOPENSSL ?= y
 BR2_PACKAGE_MMC_UTILS ?= y
 BR2_PACKAGE_OPENSSL ?= y
@@ -315,6 +319,7 @@ buildroot: optee-os
 		--br-defconfig build/br-ext/configs/optee_generic \
 		--br-defconfig build/br-ext/configs/$(BUILDROOT_TOOLCHAIN) \
 		$(DEFCONFIG_GDBSERVER) \
+		$(DEFCONFIG_XEN_TOOLS) \
 		--br-defconfig out-br/extra.conf \
 		--make-cmd $(MAKE))
 	@$(MAKE) -C ../out-br all
@@ -326,6 +331,31 @@ buildroot-clean:
 .PHONY: buildroot-cleaner
 buildroot-cleaner:
 	@rm -rf $(ROOT)/out-br
+
+.PHONY: buildroot-domu
+buildroot-domu: optee-os
+	@mkdir -p ../out-br-domu
+	@rm -f ../out-br-domu/build/optee_*/.stamp_*
+	@rm -f ../out-br-domu/extra.conf
+	@$(call append-br2-vars,../out-br-domu/extra.conf)
+	@(cd .. && python build/br-ext/scripts/make_def_config.py \
+		--br buildroot --out out-br-domu --br-ext build/br-ext \
+		--top-dir "$(ROOT)" \
+		--br-defconfig build/br-ext/configs/optee_$(BUILDROOT_ARCH) \
+		--br-defconfig build/br-ext/configs/optee_generic \
+		--br-defconfig build/br-ext/configs/$(BUILDROOT_TOOLCHAIN) \
+		$(DEFCONFIG_GDBSERVER) \
+		--br-defconfig out-br-domu/extra.conf \
+		--make-cmd $(MAKE))
+	@$(MAKE) -C ../out-br-domu all
+
+.PHONY: buildroot-domu-clean
+buildroot-domu-clean:
+	@test ! -d $(ROOT)/out-br-domu || $(MAKE) -C $(ROOT)/out-br-domu clean
+
+.PHONY: buildroot-domu-cleaner
+buildroot-domu-cleaner:
+	@rm -rf $(ROOT)/out-br-domu
 
 ################################################################################
 # Linux
