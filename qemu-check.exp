@@ -10,6 +10,9 @@
 
 set bios "../out/bios-qemu/bios.bin"
 set cmd "xtest"
+set cmd1 "cd /mnt/host/build/qemu_v8/xen"
+set cmd2 "xl create guest.cfg"
+set cmd3 "xl console domu"
 set quiet 0
 
 # The time required to run some tests (e.g., key generation tests [4007.*])
@@ -34,6 +37,52 @@ proc info arg {
 	if {$::quiet==1} { return }
 	puts -nonewline $arg
 	flush stdout
+}
+
+proc check_test_result arg {
+	set casenum "none"
+	expect {
+		# Exit with error status as soon as a test fails
+		-re {  ([^ ]+) FAIL} {
+			info " $expect_out(1,string) FAIL\n"
+			exit 1
+		}
+		-re {rcu_sched detected stalls} {
+			info " Kernel error: '$expect_out(0,string)'\n"
+			exit 1
+		}
+		# Crude progress indicator: print one # when each test [sub]case starts
+		-re {([\*o]) ([^ ]+) } {
+			set casenum $expect_out(2,string)
+			if {$expect_out(1,string) == "o"} {
+				if {$star == 1} {
+					# Do not count first subcase ('o') since start
+					# of test ('*') was counted already
+					set star 0
+					exp_continue
+				}
+			} else {
+				set star 1
+			}
+			info "#"
+			incr ncases
+			if {$ncases % 50 == 0} { info "\n" }
+			exp_continue
+		}
+		# Exit when result separator is seen
+		"+-----------------------------------------------------\r\r" {}
+		# Handle errors in TEE core output
+		-i $arg -re {(assertion.*failed at.*)\n} {
+			info "!!! $expect_out(1,string)\n"
+			exit 1
+		}
+		timeout {
+			info "!!! Timeout\n"
+			info "TIMEOUT - test case too long or hung? (last test started: $casenum)\n"
+			exit 2
+		}
+	}
+	info "\nStatus: PASS ($ncases test cases)\n"
 }
 
 # Disable echoing of guest output
@@ -76,47 +125,36 @@ send -- "export LD_LIBRARY_PATH=/lib:/lib/arm-linux-gnueabihf\r"
 expect "# "
 info "Running: $cmd...\n"
 send -- "$cmd\r"
-set casenum "none"
-expect {
-	# Exit with error status as soon as a test fails
-	-re {  ([^ ]+) FAIL} {
-		info " $expect_out(1,string) FAIL\n"
-		exit 1
-	}
-	-re {rcu_sched detected stalls} {
-		info " Kernel error: '$expect_out(0,string)'\n"
-		exit 1
-	}
-	# Crude progress indicator: print one # when each test [sub]case starts
-	-re {([\*o]) ([^ ]+) } {
-		set casenum $expect_out(2,string)
-		if {$expect_out(1,string) == "o"} {
-			if {$star == 1} {
-				# Do not count first subcase ('o') since start
-				# of test ('*') was counted already
-				set star 0
-				exp_continue
-			}
-		} else {
-			set star 1
+check_test_result $teecore
+if {$::env(XEN_BOOT) == "y"} {
+	info " Booting DomU.\n"
+	expect "# "
+	info "Running: $cmd1...\n"
+	send -- "$cmd1\r"
+	expect "# "
+	info "Running: $cmd2...\n"
+	send -- "$cmd2\r"
+	expect "# "
+	info "Running: $cmd3...\n"
+	send -- "$cmd3\r"
+	expect {
+		"Kernel panic" {
+			info "!!! Kernel panic\n"
+			exit 1
 		}
-		info "#"
-		incr ncases
-		if {$ncases % 50 == 0} { info "\n" }
-		exp_continue
+		timeout {
+			info "!!! Timeout\n"
+			exit 1
+		}
+		"login:"
 	}
-	# Exit when result separator is seen
-	"+-----------------------------------------------------\r\r" {}
-	# Handle errors in TEE core output
-	-i $teecore -re {(assertion.*failed at.*)\n} {
-		info "!!! $expect_out(1,string)\n"
-		exit 1
-	}
-	timeout {
-		info "!!! Timeout\n"
-		info "TIMEOUT - test case too long or hung? (last test started: $casenum)\n"
-		exit 2
-	}
+	send -- "root\r\r"
+	expect "# "
+	info " done, DomU is booted.\n"
+	# Toolchain libraries might be here or there
+	send -- "export LD_LIBRARY_PATH=/lib:/lib/arm-linux-gnueabihf\r"
+	expect "# "
+	info "Running: $cmd...\n"
+	send -- "$cmd\r"
+	check_test_result $teecore
 }
-info "\nStatus: PASS ($ncases test cases)\n"
-

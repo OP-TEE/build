@@ -26,6 +26,8 @@ XEN_BOOT ?= n
 ifeq ($(XEN_BOOT),y)
 GICV3 = y
 UBOOT = y
+# For DomU, guest.cfg and other images can be picked up from mounted folder
+QEMU_VIRTFS_AUTOMOUNT = y
 endif
 
 include common.mk
@@ -112,8 +114,8 @@ TARGET_CLEAN		+= edk2-clean
 endif
 
 ifeq ($(XEN_BOOT),y)
-TARGET_DEPS		+= xen xen-create-image
-TARGET_CLEAN		+= xen-clean
+TARGET_DEPS		+= xen xen-create-image buildroot-domu
+TARGET_CLEAN		+= xen-clean buildroot-domu-clean
 endif
 
 all: $(TARGET_DEPS)
