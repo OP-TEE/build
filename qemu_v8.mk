@@ -19,6 +19,15 @@ BR2_ROOTFS_POST_SCRIPT_ARGS = "$(QEMU_VIRTFS_AUTOMOUNT) $(QEMU_VIRTFS_MOUNTPOINT
 
 OPTEE_OS_PLATFORM = vexpress-qemu_armv8a
 
+########################################################################################
+# If you change this, you MUST run `make arm-tf-clean optee-os-clean` before rebuilding
+########################################################################################
+XEN_BOOT ?= n
+ifeq ($(XEN_BOOT),y)
+GICV3 = y
+UBOOT = y
+endif
+
 include common.mk
 
 DEBUG ?= 1
@@ -72,6 +81,12 @@ BL33_BIN		?= $(EDK2_BIN)
 BL33_DEPS		?= edk2
 endif
 
+XEN_PATH		?= $(ROOT)/xen
+XEN_IMAGE		?= $(XEN_PATH)/xen/xen.efi
+XEN_GZ			?= $(XEN_PATH)/xen/xen.gz
+XEN_EXT4		?= $(BINARIES_PATH)/xen.ext4
+XEN_CFG			?= $(ROOT)/build/qemu_v8/xen/xen.cfg
+
 ifeq ($(GICV3),y)
 	TFA_GIC_DRIVER	?= QEMU_GICV3
 	QEMU_GIC_VERSION = 3
@@ -94,6 +109,11 @@ TARGET_DEPS		+= $(KERNEL_UIMAGE) $(ROOTFS_UGZ)
 TARGET_CLEAN		+= u-boot-clean
 else
 TARGET_CLEAN		+= edk2-clean
+endif
+
+ifeq ($(XEN_BOOT),y)
+TARGET_DEPS		+= xen xen-create-image
+TARGET_CLEAN		+= xen-clean
 endif
 
 all: $(TARGET_DEPS)
@@ -198,8 +218,13 @@ edk2-clean: edk2-clean-common
 ################################################################################
 # U-Boot
 ################################################################################
+ifeq ($(XEN_BOOT),y)
+UBOOT_DEFCONFIG_FILES := $(UBOOT_PATH)/configs/qemu_arm64_defconfig		\
+			 $(ROOT)/build/kconfigs/u-boot_xen_qemu_v8.conf
+else
 UBOOT_DEFCONFIG_FILES := $(UBOOT_PATH)/configs/qemu_arm64_defconfig		\
 			 $(ROOT)/build/kconfigs/u-boot_qemu_v8.conf
+endif
 
 UBOOT_COMMON_FLAGS ?= CROSS_COMPILE=$(CROSS_COMPILE_NS_KERNEL)
 
@@ -255,6 +280,9 @@ linux-cleaner: linux-cleaner-common
 # OP-TEE
 ################################################################################
 OPTEE_OS_COMMON_FLAGS += DEBUG=$(DEBUG) CFG_ARM_GICV3=$(GICV3)
+ifeq ($(XEN_BOOT),y)
+OPTEE_OS_COMMON_FLAGS += CFG_VIRTUALIZATION=y
+endif
 optee-os: optee-os-common
 
 optee-os-clean: optee-os-clean-common
@@ -298,6 +326,42 @@ $(ROOTFS_UGZ): u-boot buildroot | $(BINARIES_PATH)
 				-d $(ROOTFS_GZ) $(ROOTFS_UGZ)
 
 ################################################################################
+# XEN
+################################################################################
+.PHONY: xen
+$(XEN_PATH)/xen/.config:
+	$(MAKE) -C $(XEN_PATH)/xen XEN_TARGET_ARCH=arm64 defconfig
+	cd $(XEN_PATH)/xen && \
+	tools/kconfig/merge_config.sh -m .config $(ROOT)/build/kconfigs/xen.conf
+
+xen: $(XEN_PATH)/xen/.config
+	$(MAKE) -C $(XEN_PATH) dist-xen \
+	XEN_TARGET_ARCH=arm64 \
+	CONFIG_XEN_INSTALL_SUFFIX=.gz	\
+	CROSS_COMPILE="$(CCACHE)$(AARCH64_CROSS_COMPILE)"
+
+XEN_TMP ?= $(BINARIES_PATH)/xen_files
+
+$(XEN_TMP):
+	mkdir -p $@
+
+# virt-make-fs needs to be able to read the local kernel
+# See https://bugs.launchpad.net/ubuntu/+source/linux/+bug/759725
+build-host-vmlinuz := $(shell echo /boot/vmlinuz-`uname -r`)
+$(if $(shell [ -r $(build-host-vmlinuz) ] || echo No), \
+  $(error $(build-host-vmlinuz) is unreadable. Please run: sudo chmod a+r $(build-host-vmlinuz) and try again))
+
+xen-create-image: xen linux buildroot | $(XEN_TMP)
+	cp $(KERNEL_IMAGE) $(XEN_TMP)
+	cp $(XEN_IMAGE) $(XEN_TMP)
+	cp $(XEN_CFG) $(XEN_TMP)
+	cp $(ROOT)/out-br/images/rootfs.cpio.gz $(XEN_TMP)
+	virt-make-fs -t vfat $(XEN_TMP) $(XEN_EXT4)
+
+xen-clean:
+	$(MAKE) -C $(XEN_PATH) clean
+
+################################################################################
 # Run targets
 ################################################################################
 .PHONY: run
@@ -305,7 +369,18 @@ $(ROOTFS_UGZ): u-boot buildroot | $(BINARIES_PATH)
 run: all
 	$(MAKE) run-only
 
-QEMU_SMP ?= 2
+
+ifeq ($(XEN_BOOT),y)
+QEMU_MEM 	?= 2048
+QEMU_SMP	?= 4
+QEMU_VIRT	= true
+QEMU_XEN	?= -drive if=none,file=$(XEN_EXT4),format=raw,id=hd1 \
+		   -device virtio-blk-device,drive=hd1
+else
+QEMU_SMP 	?= 2
+QEMU_MEM 	?= 1057
+QEMU_VIRT	= false
+endif
 
 .PHONY: run-only
 run-only:
@@ -319,14 +394,15 @@ run-only:
 		-nographic \
 		-serial tcp:localhost:54320 -serial tcp:localhost:54321 \
 		-smp $(QEMU_SMP) \
-		-s -S -machine virt,secure=on,gic-version=$(QEMU_GIC_VERSION) \
+		-s -S -machine virt,secure=on,gic-version=$(QEMU_GIC_VERSION),virtualization=$(QEMU_VIRT) \
 		-cpu cortex-a57 \
 		-d unimp -semihosting-config enable=on,target=native \
-		-m 1057 \
-		-bios bl1.bin \
+		-m $(QEMU_MEM) \
+		-bios bl1.bin		\
 		-initrd rootfs.cpio.gz \
 		-kernel Image -no-acpi \
 		-append 'console=ttyAMA0,38400 keep_bootcon root=/dev/vda2 $(QEMU_KERNEL_BOOTARGS)' \
+		$(QEMU_XEN) \
 		$(QEMU_EXTRA_ARGS)
 
 ifneq ($(filter check,$(MAKECMDGOALS)),)
@@ -343,6 +419,8 @@ check: $(CHECK_DEPS)
 		export QEMU=$(QEMU_BUILD)/aarch64-softmmu/qemu-system-aarch64 && \
 		export QEMU_SMP=$(QEMU_SMP) && \
 		export QEMU_GIC=$(QEMU_GIC_VERSION) && \
+		export QEMU_MEM=$(QEMU_MEM) && \
+		export XEN_BOOT=$(XEN_BOOT) && \
 		expect $(ROOT)/build/qemu-check.exp -- $(check-args) || \
 		(if [ "$(DUMP_LOGS_ON_ERROR)" ]; then \
 			echo "== $$PWD/serial0.log:"; \
