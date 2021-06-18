@@ -45,7 +45,7 @@ open "serial1.log" "w+"
 spawn -open [open "|tail -f serial1.log"]
 set teecore $spawn_id
 if {[string first "aarch64" $::env(QEMU)] != -1} {
-	spawn $::env(QEMU) -nographic -serial mon:stdio -serial file:serial1.log -smp $::env(QEMU_SMP) -machine virt,secure=on -cpu cortex-a57 -d unimp -semihosting-config enable=on,target=native -m 1057 -bios bl1.bin -initrd rootfs.cpio.gz -kernel Image -no-acpi -append "console=ttyAMA0,38400 keep_bootcon root=/dev/vda2"
+	spawn $::env(QEMU) -nographic -serial mon:stdio -serial file:serial1.log -smp $::env(QEMU_SMP) -machine virt,secure=on,gic-version=$::env(QEMU_GIC) -cpu cortex-a57 -d unimp -semihosting-config enable=on,target=native -m 1057 -bios bl1.bin -initrd rootfs.cpio.gz -kernel Image -no-acpi -append "console=ttyAMA0,38400 keep_bootcon root=/dev/vda2"
 } else {
 	spawn $::env(QEMU) -nographic -monitor none -machine virt -machine secure=on -cpu cortex-a15 -smp $::env(QEMU_SMP) -d unimp -semihosting-config enable=on,target=native -m 1057 -serial stdio -serial file:serial1.log -bios $bios
 }
