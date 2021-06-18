@@ -26,6 +26,9 @@ DEBUG ?= 1
 # Option to use U-Boot in the boot flow instead of EDK2
 UBOOT ?= n
 
+# Option to build with GICV3 enabled
+GICV3 ?= n
+
 ################################################################################
 # Paths to git projects and various binaries
 ################################################################################
@@ -67,6 +70,14 @@ BL33_DEPS		?= u-boot
 else
 BL33_BIN		?= $(EDK2_BIN)
 BL33_DEPS		?= edk2
+endif
+
+ifeq ($(GICV3),y)
+	TFA_GIC_DRIVER	?= QEMU_GICV3
+	QEMU_GIC_VERSION = 3
+else
+	TFA_GIC_DRIVER	?= QEMU_GICV2
+	QEMU_GIC_VERSION = 2
 endif
 
 ################################################################################
@@ -115,6 +126,7 @@ TF_A_FLAGS ?= \
 	BL32_EXTRA2=$(OPTEE_OS_PAGEABLE_V2_BIN) \
 	BL33=$(BL33_BIN) \
 	PLAT=qemu \
+	QEMU_USE_GIC_DRIVER=$(TFA_GIC_DRIVER) \
 	ARM_TSP_RAM_LOCATION=tdram \
 	BL32_RAM_LOCATION=tdram \
 	SPD=opteed \
@@ -242,7 +254,7 @@ linux-cleaner: linux-cleaner-common
 ################################################################################
 # OP-TEE
 ################################################################################
-OPTEE_OS_COMMON_FLAGS += DEBUG=$(DEBUG)
+OPTEE_OS_COMMON_FLAGS += DEBUG=$(DEBUG) CFG_ARM_GICV3=$(GICV3)
 optee-os: optee-os-common
 
 optee-os-clean: optee-os-clean-common
@@ -307,7 +319,8 @@ run-only:
 		-nographic \
 		-serial tcp:localhost:54320 -serial tcp:localhost:54321 \
 		-smp $(QEMU_SMP) \
-		-s -S -machine virt,secure=on -cpu cortex-a57 \
+		-s -S -machine virt,secure=on,gic-version=$(QEMU_GIC_VERSION) \
+		-cpu cortex-a57 \
 		-d unimp -semihosting-config enable=on,target=native \
 		-m 1057 \
 		-bios bl1.bin \
@@ -329,6 +342,7 @@ check: $(CHECK_DEPS)
 	cd $(BINARIES_PATH) && \
 		export QEMU=$(QEMU_BUILD)/aarch64-softmmu/qemu-system-aarch64 && \
 		export QEMU_SMP=$(QEMU_SMP) && \
+		export QEMU_GIC=$(QEMU_GIC_VERSION) && \
 		expect $(ROOT)/build/qemu-check.exp -- $(check-args) || \
 		(if [ "$(DUMP_LOGS_ON_ERROR)" ]; then \
 			echo "== $$PWD/serial0.log:"; \
