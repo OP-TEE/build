@@ -218,10 +218,9 @@ LINUX_DEFCONFIG_COMMON_FILES := \
 
 linux-defconfig: $(LINUX_PATH)/.config
 
-LINUX_COMMON_FLAGS += ARCH=arm64 Image
+LINUX_COMMON_FLAGS += ARCH=arm64 Image scripts_gdb
 
 linux: linux-common
-	$(MAKE) -C $(LINUX_PATH) $(LINUX_COMMON_FLAGS) scripts_gdb
 	mkdir -p $(BINARIES_PATH)
 	ln -sf $(LINUX_PATH)/arch/arm64/boot/Image $(BINARIES_PATH)
 
