@@ -346,11 +346,13 @@ XEN_TMP ?= $(BINARIES_PATH)/xen_files
 $(XEN_TMP):
 	mkdir -p $@
 
+ifeq ($(XEN_BOOT),y)
 # virt-make-fs needs to be able to read the local kernel
 # See https://bugs.launchpad.net/ubuntu/+source/linux/+bug/759725
 build-host-vmlinuz := $(shell echo /boot/vmlinuz-`uname -r`)
 $(if $(shell [ -r $(build-host-vmlinuz) ] || echo No), \
   $(error $(build-host-vmlinuz) is unreadable. Please run: sudo chmod a+r $(build-host-vmlinuz) and try again))
+endif
 
 xen-create-image: xen linux buildroot | $(XEN_TMP)
 	cp $(KERNEL_IMAGE) $(XEN_TMP)
