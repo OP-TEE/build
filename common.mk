@@ -425,7 +425,7 @@ QEMU_EXTRA_ARGS +=\
 	-device virtio-9p-device,fsdev=fsdev0,mount_tag=host
 ifeq ($(QEMU_PSS_ENABLE),y)
 QEMU_EXTRA_ARGS +=\
-	  -fsdev local,id=fsdev1,path=$(QEMU_PSS_HOST_DIR),security_model=none \
+	  -fsdev local,id=fsdev1,path=$(QEMU_PSS_HOST_DIR),security_model=mapped-xattr \
 	  -device virtio-9p-device,fsdev=fsdev1,mount_tag=secure
 endif
 endif
