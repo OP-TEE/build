@@ -359,7 +359,7 @@ xen-create-image: xen linux buildroot | $(XEN_TMP)
 	cp $(XEN_IMAGE) $(XEN_TMP)
 	cp $(XEN_CFG) $(XEN_TMP)
 	cp $(ROOT)/out-br/images/rootfs.cpio.gz $(XEN_TMP)
-	virt-make-fs -t vfat $(XEN_TMP) $(XEN_EXT4)
+	virt-make-fs -t ext4 $(XEN_TMP) $(XEN_EXT4)
 
 xen-clean:
 	$(MAKE) -C $(XEN_PATH) clean
