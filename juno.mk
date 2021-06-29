@@ -20,13 +20,43 @@ TF_A_PATH		?= $(ROOT)/trusted-firmware-a
 U-BOOT_PATH		?= $(ROOT)/u-boot
 U-BOOT_BIN		?= $(U-BOOT_PATH)/u-boot.bin
 
+SCP_BLX_URL		?= https://downloads.trustedfirmware.org/tf-a/css_scp_2.8.0/juno
+
 ################################################################################
 # Targets
 ################################################################################
-all: arm-tf u-boot linux optee-os buildroot
-clean: arm-tf-clean buildroot-clean u-boot-clean optee-os-clean
+all: scp-blx arm-tf u-boot linux optee-os buildroot
+clean: scp-blx-clean arm-tf-clean buildroot-clean u-boot-clean optee-os-clean
 
 include toolchain.mk
+
+################################################################################
+# SCP BL1 and BL2
+################################################################################
+.PHONY: scp-blx
+scp-blx: $(ROOT)/out-firmware/scp_bl1.bin $(ROOT)/out-firmware/scp_bl2.bin
+
+.PHONY: scp-blx
+scp-blx-clean:
+	@rm -f $(ROOT)/out-firmware/scp_bl1.bin
+	@rm -f $(ROOT)/out-firmware/scp_bl2.bin
+	@rm -f $(ROOT)/out-firmware/tmp/scp_bl1.bin
+	@rm -f $(ROOT)/out-firmware/tmp/scp_bl2.bin
+
+define dlscp
+	@mkdir -p $(ROOT)/out-firmware/tmp
+	@rm -f $(ROOT)/out-firmware/tmp/$1
+	@rm -f $(ROOT)/out-firmware/$1
+	@(cd $(ROOT)/out-firmware/tmp/ && wget $(SCP_BLX_URL)/$1)
+	@(echo $2 $(ROOT)/out-firmware/tmp/$1 | sha256sum -c)
+	@(mv $(ROOT)/out-firmware/tmp/$1 $(ROOT)/out-firmware/$1)
+endef
+
+$(ROOT)/out-firmware/scp_bl1.bin:
+	$(call dlscp,scp_bl1.bin,1c690a7d93c82d39d18b720920ced7a712fdcfc744224b4f067e56013522fece)
+
+$(ROOT)/out-firmware/scp_bl2.bin:
+	$(call dlscp,scp_bl2.bin,533eb4a3f9d91e759b98288edf4c1441abe6f7fbc5da87825a8f1bb1b7942aa5)
 
 ################################################################################
 # ARM Trusted Firmware
@@ -35,7 +65,7 @@ TF_A_EXPORTS ?= \
 	CROSS_COMPILE="$(CCACHE)$(AARCH64_CROSS_COMPILE)"
 
 TF_A_FLAGS ?= \
-	SCP_BL2=$(ROOT)/vexpress-firmware/SOFTWARE/scp_bl2.bin \
+	SCP_BL2=$(ROOT)/out-firmware/scp_bl2.bin \
 	BL32=$(OPTEE_OS_HEADER_V2_BIN) \
 	BL32_EXTRA1=$(OPTEE_OS_PAGER_V2_BIN) \
 	BL32_EXTRA2=$(OPTEE_OS_PAGEABLE_V2_BIN) \
@@ -45,7 +75,7 @@ TF_A_FLAGS ?= \
 	PLAT=juno \
 	SPD=opteed
 
-arm-tf: optee-os u-boot
+arm-tf: scp-blx optee-os u-boot
 	$(TF_A_EXPORTS) $(MAKE) -C $(TF_A_PATH) $(TF_A_FLAGS) all fip
 
 arm-tf-clean:
@@ -111,7 +141,7 @@ FTP-UPLOAD = ftp-upload -v --host $(JUNO_IP) --dir SOFTWARE
 flash: $(ROOT)/out-br/images/ramdisk.img
 	@test -n "$(JUNO_IP)" || \
 		(echo "JUNO_IP not set" ; exit 1)
-	$(FTP-UPLOAD) $(ROOT)/vexpress-firmware/SOFTWARE/scp_bl1.bin
+	$(FTP-UPLOAD) $(ROOT)/out-firmware/scp_bl1.bin
 	$(FTP-UPLOAD) $(TF_A_PATH)/build/juno/release/bl1.bin
 	$(FTP-UPLOAD) $(TF_A_PATH)/build/juno/release/fip.bin
 	$(FTP-UPLOAD) $(ROOT)/linux/arch/arm64/boot/Image
