@@ -348,6 +348,7 @@ recovery:
 	$(call flash_help)
 	@echo
 	$(ROOT)/burn-boot/hisi-idt.py --img1=$(LLOADER_PATH)/recovery.bin
+	fastboot getvar partition-size:ptable
 	fastboot flash loader $(LLOADER_PATH)/l-loader.bin
 	@echo
 	@echo "3. Wait until you see the (UART) message"
