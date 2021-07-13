@@ -1,6 +1,5 @@
 config BR2_PACKAGE_FTPM_OPTEE_EXT
        bool "Enable fTPM based on OPTEE"
-       depends on BR2_PACKAGE_OPTEE_OS_EXT
        select BR2_PACKAGE_OPTEE_OS_EXT
        help
          fTPM, http://github.com/microsoft/ms-tpm-20-ref.
