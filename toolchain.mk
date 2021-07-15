@@ -23,10 +23,13 @@ SRC_AARCH64_GCC 		?= https://developer.arm.com/-/media/Files/downloads/gnu-a/10.
 # $(3) is $.._GCC_VERSION	: the name of the file to download
 define dltc
 	@if [ ! -d "$(1)" ]; then \
-		mkdir -p $(1); \
 		echo "Downloading $(3) ..."; \
-		curl -s -L $(2) -o $(TOOLCHAIN_ROOT)/$(3).tar.xz; \
-		tar xf $(TOOLCHAIN_ROOT)/$(3).tar.xz -C $(1) --strip-components=1; \
+		mkdir -p $(1); \
+		curl --retry 5 -s -S -L $(2) -o $(TOOLCHAIN_ROOT)/$(3).tar.xz || \
+			{ rm -f $(TOOLCHAIN_ROOT)/$(3).tar.xz; cd $(TOOLCHAIN_ROOT) && rmdir $(1); echo Download failed; exit 1; }; \
+		tar xf $(TOOLCHAIN_ROOT)/$(3).tar.xz -C $(1) --strip-components=1 || \
+			{ rm $(TOOLCHAIN_ROOT)/$(3).tar.xz; echo Downloaded file is damaged; \
+			cd $(TOOLCHAIN_ROOT) && rm -rf $(1); exit 1; }; \
 		(cd $(1)/bin && for f in *-none-linux*; do ln -s $$f $${f//-none} ; done;) \
 	fi
 endef
