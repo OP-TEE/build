@@ -27,9 +27,8 @@ if [ -e ${TMPDEST} ]; then
 fi
 
 function cleanup() {
-  # rm -f ${X86_64}.tar.xz ${AARCH64}.tar.xz ${ARMV7A}.tar.xz
-  # rm -rf ${AARCH64} ${ARMV7A} ${X86_64}
-  echo "clean up"
+  rm -f ${X86_64}.tar.xz ${AARCH64}.tar.xz ${ARMV7A}.tar.xz
+  rm -rf ${AARCH64} ${ARMV7A}
 }
 
 trap "{ exit 2; }" INT
