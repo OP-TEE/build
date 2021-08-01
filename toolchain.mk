@@ -25,8 +25,7 @@ define dltc
 	@if [ ! -d "$(1)" ]; then \
 		mkdir -p $(1); \
 		echo "Downloading $(3) ..."; \
-		#curl -s -L $(2) -o $(TOOLCHAIN_ROOT)/$(3).tar.xz; \
-		wget -O $(TOOLCHAIN_ROOT)/$(3).tar.xz $(2);\
+		wget -O $(TOOLCHAIN_ROOT)/$(3).tar.xz $(2); \
 		tar xf $(TOOLCHAIN_ROOT)/$(3).tar.xz -C $(1) --strip-components=1; \
 		(cd $(1)/bin && for f in *-none-linux*; do ln -s $$f $${f//-none} ; done;) \
 	fi
