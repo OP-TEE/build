@@ -27,14 +27,15 @@ if [ -e ${TMPDEST} ]; then
 fi
 
 function cleanup() {
-  rm -f ${X86_64}.tar.xz ${AARCH64}.tar.xz ${ARMV7A}.tar.xz
-  rm -rf ${AARCH64} ${ARMV7A}
+  # rm -f ${X86_64}.tar.xz ${AARCH64}.tar.xz ${ARMV7A}.tar.xz
+  # rm -rf ${AARCH64} ${ARMV7A} ${X86_64}
+  echo "clean up"
 }
 
 trap "{ exit 2; }" INT
 trap cleanup EXIT
 
-(wget -nv https://github.com/llvm/llvm-project/releases/download/llvmorg-${VER}/${X86_64}.tar.xz && tar xf ${X86_64}.tar.xz) &
+(wget -nv https://github.com/llvm/llvm-project/releases/download/llvmorg-${VER}/${X86_64}.tar.xz && mkdir ${X86_64} && tar xf ${X86_64}.tar.xz --strip-components 1 -C ${X86_64}) &
 pids=$!
 (wget -nv https://github.com/llvm/llvm-project/releases/download/llvmorg-${VER}/${AARCH64}.tar.xz && tar xf ${AARCH64}.tar.xz) &
 pids="$pids $!"
