@@ -453,22 +453,19 @@ endef
 
 ifneq (, $(LAUNCH_TERMINAL))
 define launch-terminal
-	@nc -z  127.0.0.1 $(1) || \
-		$(LAUNCH_TERMINAL) "$(SOC_TERM_PATH)/soc_term $(1)" &
+	$(LAUNCH_TERMINAL) "telnet localhost $(1)"
 endef
 else
 gnome-terminal := $(shell command -v gnome-terminal 2>/dev/null)
 xterm := $(shell command -v xterm 2>/dev/null)
 ifdef gnome-terminal
 define launch-terminal
-	@nc -z  127.0.0.1 $(1) || \
-	$(gnome-terminal) -x $(SOC_TERM_PATH)/soc_term $(1) &
+	$(gnome-terminal) -- telnet localhost $(1)
 endef
 else
 ifdef xterm
 define launch-terminal
-	@nc -z  127.0.0.1 $(1) || \
-	$(xterm) -title $(2) -e $(BASH) -c "$(SOC_TERM_PATH)/soc_term $(1)" &
+	$(xterm) -title $(2) -e $(BASH) -c "telnet localhost $(1)"
 endef
 else
 check-terminal := @echo "Error: could not find gnome-terminal nor xterm" ; false
@@ -476,8 +473,9 @@ endif
 endif
 endif
 
-define wait-for-ports
-	@while ! nc -z 127.0.0.1 $(1) || ! nc -z 127.0.0.1 $(2); do sleep 1; done
+define launch-terminal-wait
+	@while ! nc -z localhost $(1); do sleep 1; done && \
+	$(call launch-terminal,$(1),$(2)) &
 endef
 
 ################################################################################

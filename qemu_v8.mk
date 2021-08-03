@@ -56,7 +56,6 @@ endif
 EDK2_BIN		?= $(EDK2_PATH)/Build/ArmVirtQemuKernel-$(EDK2_ARCH)/$(EDK2_BUILD)_$(EDK2_TOOLCHAIN)/FV/QEMU_EFI.fd
 QEMU_PATH		?= $(ROOT)/qemu
 QEMU_BUILD		?= $(QEMU_PATH)/build
-SOC_TERM_PATH		?= $(ROOT)/soc_term
 MODULE_OUTPUT		?= $(ROOT)/out/kernel_modules
 UBOOT_PATH		?= $(ROOT)/u-boot
 UBOOT_BIN		?= $(UBOOT_PATH)/u-boot.bin
@@ -100,9 +99,9 @@ endif
 ################################################################################
 # Targets
 ################################################################################
-TARGET_DEPS := arm-tf buildroot linux optee-os qemu soc-term
+TARGET_DEPS := arm-tf buildroot linux optee-os qemu
 TARGET_CLEAN := arm-tf-clean buildroot-clean linux-clean optee-os-clean \
-	qemu-clean soc-term-clean check-clean
+	qemu-clean check-clean
 
 TARGET_DEPS 		+= $(BL33_DEPS)
 
@@ -289,15 +288,6 @@ optee-os: optee-os-common
 optee-os-clean: optee-os-clean-common
 
 ################################################################################
-# Soc-term
-################################################################################
-soc-term:
-	$(MAKE) -C $(SOC_TERM_PATH)
-
-soc-term-clean:
-	$(MAKE) -C $(SOC_TERM_PATH) clean
-
-################################################################################
 # mkimage - create images to be loaded by U-Boot
 ################################################################################
 # Without the objcopy, the uImage will be 10x bigger.
@@ -383,12 +373,12 @@ run-only:
 	ln -sf $(ROOT)/out-br/images/rootfs.cpio.gz $(BINARIES_PATH)/
 	$(call check-terminal)
 	$(call run-help)
-	$(call launch-terminal,54320,"Normal World")
-	$(call launch-terminal,54321,"Secure World")
-	$(call wait-for-ports,54320,54321)
+	$(call launch-terminal-wait,54320,"Normal World")
+	$(call launch-terminal-wait,54321,"Secure World")
 	cd $(BINARIES_PATH) && $(QEMU_BUILD)/aarch64-softmmu/qemu-system-aarch64 \
 		-nographic \
-		-serial tcp:localhost:54320 -serial tcp:localhost:54321 \
+		-serial telnet:localhost:54320,server,nowait \
+		-serial telnet:localhost:54321,server,nowait \
 		-smp $(QEMU_SMP) \
 		-s -S -machine virt,secure=on,gic-version=$(QEMU_GIC_VERSION),virtualization=$(QEMU_VIRT) \
 		-cpu cortex-a57 \
