@@ -24,16 +24,15 @@ BINARIES_PATH			?= $(ROOT)/out/bin
 U-BOOT_PATH			?= $(ROOT)/u-boot
 QEMU_PATH			?= $(ROOT)/qemu
 QEMU_BUILD			?= $(QEMU_PATH)/build
-SOC_TERM_PATH			?= $(ROOT)/soc_term
 
 DEBUG = 1
 
 ################################################################################
 # Targets
 ################################################################################
-all: arm-tf u-boot buildroot linux optee-os qemu soc-term
+all: arm-tf u-boot buildroot linux optee-os qemu
 clean: arm-tf-clean u-boot-clean buildroot-clean linux-clean optee-os-clean \
-	qemu-clean soc-term-clean check-clean
+	qemu-clean check-clean
 
 include toolchain.mk
 
@@ -146,15 +145,6 @@ linux-cleaner: linux-cleaner-common
 ################################################################################
 optee-os: optee-os-common
 optee-os-clean: optee-os-clean-common
-
-################################################################################
-# Soc-term
-################################################################################
-soc-term:
-	$(MAKE) -C $(SOC_TERM_PATH)
-
-soc-term-clean:
-	$(MAKE) -C $(SOC_TERM_PATH) clean
 
 ################################################################################
 # Run targets

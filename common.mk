@@ -454,7 +454,7 @@ endef
 ifneq (, $(LAUNCH_TERMINAL))
 define launch-terminal
 	@nc -z  127.0.0.1 $(1) || \
-		$(LAUNCH_TERMINAL) "$(SOC_TERM_PATH)/soc_term $(1)" &
+		$(LAUNCH_TERMINAL) "$(BUILD_PATH)/soc_term.py $(1)" &
 endef
 else
 gnome-terminal := $(shell command -v gnome-terminal 2>/dev/null)
@@ -462,13 +462,13 @@ xterm := $(shell command -v xterm 2>/dev/null)
 ifdef gnome-terminal
 define launch-terminal
 	@nc -z  127.0.0.1 $(1) || \
-	$(gnome-terminal) -x $(SOC_TERM_PATH)/soc_term $(1) &
+	$(gnome-terminal) -x $(BUILD_PATH)/soc_term.py $(1) &
 endef
 else
 ifdef xterm
 define launch-terminal
 	@nc -z  127.0.0.1 $(1) || \
-	$(xterm) -title $(2) -e $(BASH) -c "$(SOC_TERM_PATH)/soc_term $(1)" &
+	$(xterm) -title $(2) -e $(BASH) -c "$(BUILD_PATH)/soc_term.py $(1)" &
 endef
 else
 check-terminal := @echo "Error: could not find gnome-terminal nor xterm" ; false
