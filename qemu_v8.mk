@@ -56,7 +56,6 @@ endif
 EDK2_BIN		?= $(EDK2_PATH)/Build/ArmVirtQemuKernel-$(EDK2_ARCH)/$(EDK2_BUILD)_$(EDK2_TOOLCHAIN)/FV/QEMU_EFI.fd
 QEMU_PATH		?= $(ROOT)/qemu
 QEMU_BUILD		?= $(QEMU_PATH)/build
-SOC_TERM_PATH		?= $(ROOT)/soc_term
 MODULE_OUTPUT		?= $(ROOT)/out/kernel_modules
 UBOOT_PATH		?= $(ROOT)/u-boot
 UBOOT_BIN		?= $(UBOOT_PATH)/u-boot.bin
@@ -100,9 +99,9 @@ endif
 ################################################################################
 # Targets
 ################################################################################
-TARGET_DEPS := arm-tf buildroot linux optee-os qemu soc-term
+TARGET_DEPS := arm-tf buildroot linux optee-os qemu
 TARGET_CLEAN := arm-tf-clean buildroot-clean linux-clean optee-os-clean \
-	qemu-clean soc-term-clean check-clean
+	qemu-clean check-clean
 
 TARGET_DEPS 		+= $(BL33_DEPS)
 
@@ -287,15 +286,6 @@ endif
 optee-os: optee-os-common
 
 optee-os-clean: optee-os-clean-common
-
-################################################################################
-# Soc-term
-################################################################################
-soc-term:
-	$(MAKE) -C $(SOC_TERM_PATH)
-
-soc-term-clean:
-	$(MAKE) -C $(SOC_TERM_PATH) clean
 
 ################################################################################
 # mkimage - create images to be loaded by U-Boot
