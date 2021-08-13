@@ -84,7 +84,6 @@ endif
 
 XEN_PATH		?= $(ROOT)/xen
 XEN_IMAGE		?= $(XEN_PATH)/xen/xen.efi
-XEN_GZ			?= $(XEN_PATH)/xen/xen.gz
 XEN_EXT4		?= $(BINARIES_PATH)/xen.ext4
 XEN_CFG			?= $(ROOT)/build/qemu_v8/xen/xen.cfg
 
