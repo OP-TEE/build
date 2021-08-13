@@ -346,6 +346,19 @@ xen-create-image: xen linux buildroot | $(XEN_TMP)
 xen-clean:
 	$(MAKE) -C $(XEN_PATH) clean
 
+# Make sure Xen and Xen tools have the same major.minor version or things are likely to break
+ifeq ($(XEN_BOOT),y)
+xen-br = $(ROOT)/buildroot/package/xen/xen.mk
+xen-xen = $(ROOT)/xen/xen/Makefile
+xen-version-br = $(shell sed -E -n 's/^XEN_VERSION = ([0-9]+.[0-9]+).*/\1/p' $(xen-br))
+xen-version-major-xen = $(shell sed -E -n 's/export XEN_VERSION *= ([0-9]+).*/\1/p' $(xen-xen))
+xen-version-minor-xen = $(shell sed -E -n 's/export XEN_SUBVERSION *= ([0-9]+).*/\1/p' $(xen-xen))
+xen-version-xen = $(xen-version-major-xen).$(xen-version-minor-xen)
+ifneq ($(xen-version-br),$(xen-version-xen))
+$(error Xen version mismatch: $(xen-version-br) [in $(xen-br)] != $(xen-version-xen) [in $(xen-xen)])
+endif
+endif
+
 ################################################################################
 # Run targets
 ################################################################################
