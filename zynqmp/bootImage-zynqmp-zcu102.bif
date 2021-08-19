@@ -1,0 +1,8 @@
+all:
+{
+	[pmufw_image] ../zynqmp-zcu102-release/pmufw.elf
+	[bootloader, destination_cpu = a53-0] ../zynqmp-zcu102-release/zynqmp_fsbl.elf
+	[destination_cpu = a53-0, exception_level = el-3, trustzone] ../arm-trusted-firmware/build/zynqmp/release/bl31/bl31.elf
+	[destination_cpu = a53-0, exception_level = el-2] ../u-boot-xlnx/u-boot.elf
+	[destination_cpu = a53-0, load=0x60000000, startup=0x60000000, exception_level = el-1, trustzone] ../optee_os/out/arm/core/tee_raw.bin
+}
