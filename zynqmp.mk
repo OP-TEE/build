@@ -1,88 +1,179 @@
-PLATFORM		?= zcu102
-BSP_PATH		?= ../xilinx-${PLATFORM}-v$(PETALINUX_VER)-final.bsp
-PRJ_PATH		?= ../petalinux-optee-$(PLATFORM)
-OPTEE_VER		?= latest
+################################################################################
+# Following variables defines how the NS_USER (Non Secure User - Client
+# Application), NS_KERNEL (Non Secure Kernel), S_KERNEL (Secure Kernel) and
+# S_USER (Secure User - TA) are compiled
+################################################################################
+override COMPILE_NS_USER   := 64
+override COMPILE_NS_KERNEL := 64
+override COMPILE_S_USER    := 64
+override COMPILE_S_KERNEL  := 64
 
-PYTHON_PATH	?= ${PRJ_PATH}/project-spec/meta-user/recipes-devtools/python
+PLATFORM = zynqmp-zcu102
+OPTEE_OS_PLATFORM = zynqmp-zcu102
 
-define set_cfg
-	@sed -i 's/$(1)=.*/$(1)=$(2)/' $(3)
-endef
+################################################################################
+# Paths to git projects and various binaries
+################################################################################
+TF_A_PATH		?= $(ROOT)/arm-trusted-firmware
+U-BOOT_PATH		?= $(ROOT)/u-boot-xlnx
+BOOTGEN_PATH		?= $(ROOT)/bootgen
+LINUX_PATH		?= $(ROOT)/linux-xlnx
 
-define set_optee_version
-	@if [ "$(1)" != "latest" ]; then \
-		echo 'OPTEE_VERSION ?= "$(1)"' > $(2); \
-		echo 'SRCREV ?= "$(1)"' >> $(2); \
-	else \
-		echo 'OPTEE_VERSION ?= "latest"' > $(2); \
-		echo 'SRCREV ?= "$${AUTOREV}"' >> $(2); \
-	fi
-endef
+include common.mk
 
-ifeq ($(PLATFORM),ultra96-reva)
-	ZYNQMP_CONSOLE=cadence1
+################################################################################
+# Targets
+################################################################################
+
+all: tfa optee-os u-boot linux dtbo buildroot
+clean: tfa-clean optee-os-clean u-boot-clean linux-clean dtbo-clean buildroot-clean
+
+include toolchain.mk
+
+################################################################################
+# ARM Trusted Firmware
+################################################################################
+
+TF_A_EXPORTS = CROSS_COMPILE="$(CCACHE)$(AARCH64_CROSS_COMPILE)"
+TF_A_FLAGS  = PLAT=zynqmp RESET_TO_BL31=1 NEED_BL32=yes SPD=opteed LOG_LEVEL=LOG_LEVEL_INFO
+
+
+tfa:
+	$(TF_A_EXPORTS) $(MAKE) -C $(TF_A_PATH) $(TF_A_FLAGS) bl31
+
+tfa-clean:
+	$(TF_A_EXPORTS) $(MAKE) -C $(TF_A_PATH) $(TF_A_FLAGS) clean
+
+################################################################################
+# OP-TEE
+#################################################################################
+
+optee-os: optee-os-common
+	${OPTEE_OS_PATH}/scripts/gen_tee_bin.py --input ${OPTEE_OS_PATH}/out/arm/core/tee.elf --out_tee_raw_bin ${OPTEE_OS_PATH}/out/arm/core/tee_raw.bin
+
+optee-os-clean: optee-os-clean-common
+	rm -f ${OPTEE_OS_PATH}/out/arm/core/tee_raw.bin
+
+################################################################################
+# U-Boot
+################################################################################
+
+U-BOOT_EXPORTS = CROSS_COMPILE="$(CCACHE)$(AARCH64_CROSS_COMPILE)"
+U-BOOT_CONFIG = xilinx_zynqmp_virt_defconfig
+U-BOOT_DTS = zynqmp-zcu102-rev1.0
+
+u-boot:
+	$(U-BOOT_EXPORTS) $(MAKE) -C $(U-BOOT_PATH) $(U-BOOT_CONFIG)
+	$(U-BOOT_EXPORTS) $(MAKE) -C $(U-BOOT_PATH) DEVICE_TREE=$(U-BOOT_DTS) DTC_FLAGS="-@"
+
+u-boot-clean:
+	$(U-BOOT_EXPORTS) $(MAKE) -C $(U-BOOT_PATH) clean
+
+###############################################################################
+# Device-Tree
+###############################################################################
+dtbo: linux
+	${LINUX_PATH}/scripts/dtc/dtc -@ -I dts -O dtb -o zynqmp/zynqmp-optee.dtbo zynqmp/zynqmp-optee.dtso
+
+dtbo-clean:
+	rm -f zynqmp/zynqmp-optee.dtbo
+
+################################################################################
+# Linux kernel
+################################################################################
+
+LINUX_DEFCONFIG_COMMON_ARCH := arm64
+LINUX_DEFCONFIG_COMMON_FILES := \
+		$(LINUX_PATH)/arch/arm64/configs/xilinx_zynqmp_defconfig \
+		$(CURDIR)/kconfigs/zynqmp.conf
+
+linux-defconfig: $(LINUX_PATH)/.config
+
+LINUX_COMMON_FLAGS += ARCH=arm64
+
+linux: linux-common
+
+linux-defconfig-clean: linux-defconfig-clean-common
+
+LINUX_CLEAN_COMMON_FLAGS += ARCH=arm64
+
+linux-clean: linux-clean-common
+
+LINUX_CLEANER_COMMON_FLAGS += ARCH=arm64
+
+linux-cleaner: linux-cleaner-common
+
+###############################################################################
+# Bouildroot
+###############################################################################
+
+BR2_TARGET_GENERIC_ISSUE="OP-TEE embedded distrib for $(PLATFORM)"
+BR2_TARGET_ROOTFS_EXT2=y
+BR2_PACKAGE_BUSYBOX_WATCHDOG=y
+BR2_TARGET_GENERIC_GETTY_PORT=ttyPS0
+
+# TF-A, Linux kernel, U-Boot and OP-TEE OS/Client/... are not built from their
+# related Buildroot native package.
+BR2_TARGET_ARM_TRUSTED_FIRMWARE=n
+BR2_LINUX_KERNEL=n
+BR2_TARGET_OPTEE_OS=n
+BR2_TARGET_UBOOT=n
+BR2_PACKAGE_OPTEE_CLIENT=n
+BR2_PACKAGE_OPTEE_TEST=n
+BR2_PACKAGE_OPTEE_EXAMPLES=n
+BR2_PACKAGE_OPTEE_BENCHMARK=n
+
+
+###############################################################################
+# Images
+###############################################################################
+image: bootimage fitimage
+image-clean: bootimage-clean fitimage-clean
+
+###############################################################################
+# Boot Image
+###############################################################################
+FIRMWARE_TARBALL = $(subst zynqmp-,2021.1-,$(PLATFORM))-release.tar.xz
+
+bootimage: bootgen firmware tfa optee-os u-boot
+	$(BOOTGEN_PATH)/bootgen -arch zynqmp -image zynqmp/bootImage-${PLATFORM}.bif -w -o zynqmp/BOOT.bin
+
+bootimage-clean: bootgen-clean firmware-clean tfa-clean optee-os-clean u-boot-clean
+	rm -f zynqmp/BOOT.bin
+
+
+###############################################################################
+# Bootgen
+###############################################################################
+
+bootgen:
+	make -C $(BOOTGEN_PATH)
+
+bootgen-clean:
+	make -C $(BOOTGEN_PATH) clean
+
+
+################################################################################
+# ZynqMPSoC Firmware mandatory for the boot
+################################################################################
+
+firmware:
+ifeq ("$(wildcard ../$(FIRMWARE_TARBALL))","")
+	$(error Release image tarball not present ../$(FIRMWARE_TARBALL))
 else
-	ZYNQMP_CONSOLE=cadence0
+	mkdir -p ../$(PLATFORM)-release && tar -xvf ../$(FIRMWARE_TARBALL) -C ../$(PLATFORM)-release --strip-components=1
 endif
 
-.PHONY: all
-all: create build package
+firmware-clean:
+	rm -rf ../zcu102-release
 
-.PHONY: check
-check:
-ifndef PETALINUX_VER
-	$(error You have to source Petalinux settings)
-endif
-ifneq ($(PETALINUX_VER),2020.2)
-	$(error This makefile only support Petalinux 2020.2)
-endif
+###############################################################################
+# FIT Image
+###############################################################################
 
-create: check
-	@# Create TMP directory to avoid issues with .. in the path name
-	@mkdir -p /tmp/petalinux-optee-${PLATFORM}
-	@petalinux-create -n $(PRJ_PATH) -t project -s $(BSP_PATH) --tmpdir /tmp/petalinux-optee-${PLATFORM}
-	@#
-	@# Append the ATF recipe to include opteed as SPD
-	@mkdir -p ${PRJ_PATH}/project-spec/meta-user/recipes-bsp/arm-trusted-firmware
-	@cp zynqmp/arm-trusted-firmware/*.bbappend ${PRJ_PATH}/project-spec/meta-user/recipes-bsp/arm-trusted-firmware/.
-	@#
-	@# Download optee package  recipes from meta-arm layer using gatesgarth branch as there were not available for zeus
-	@curl -s https://git.yoctoproject.org/cgit/cgit.cgi/meta-arm/snapshot/meta-arm-3.2.tar.gz -o ../meta-arm-3.2.tar.gz
-	@tar -C ${PRJ_PATH}/project-spec/meta-user --strip-components=2 -xvf ../meta-arm-3.2.tar.gz meta-arm-3.2/meta-arm/recipes-security > /dev/null
-	@#
-	@# Copy the bbapend files for our target
-	@cp zynqmp/optee/* ${PRJ_PATH}/project-spec/meta-user/recipes-security/optee/.
-	@#
-	@# Download python package dependencies from meta-core layer using gatesgarth branch as there were not available for zeus
-	@mkdir -p ${PYTHON_PATH}
-	@curl -s http://cgit.openembedded.org/openembedded-core/plain/meta/recipes-devtools/python/python3-pycryptodome_3.9.8.bb?h=gatesgarth \
-	-o ${PYTHON_PATH}/python3-pycryptodome_3.9.8.bb
-	@curl -s http://cgit.openembedded.org/openembedded-core/plain/meta/recipes-devtools/python/python3-pycryptodomex_3.9.8.bb?h=gatesgarth \
-	 -o ${PYTHON_PATH}/python3-pycryptodomex_3.9.8.bb
-	@curl -s http://cgit.openembedded.org/openembedded-core/plain/meta/recipes-devtools/python/python3-pyelftools_0.26.bb?h=gatesgarth  \
-	-o ${PYTHON_PATH}/python3-pyelftools_0.26.bb
-	@curl -s http://cgit.openembedded.org/openembedded-core/plain/meta/recipes-devtools/python/python-pycryptodome.inc?h=gatesgarth \
-	-o ${PYTHON_PATH}/python-pycryptodome.inc
-	@#
-	@# Add packages to the image
-	@echo IMAGE_INSTALL_append = \" optee-os optee-client optee-test\" >> ${PRJ_PATH}/project-spec/meta-user/conf/petalinuxbsp.conf
-	@#
-	@# Add optee kernel options to the exisiting kernel append recipe
-	@echo SRC_URI_append += \"file://kernel_optee.cfg\" >> ${PRJ_PATH}/project-spec/meta-user/recipes-kernel/linux/linux-xlnx_%.bbappend
-	@cp zynqmp/kernel/kernel_optee.cfg ${PRJ_PATH}/project-spec/meta-user/recipes-kernel/linux/linux-xlnx/kernel_optee.cfg
-	@#
-	@# Replace exisiting user configued dts file to add optee node
-	@cp zynqmp/device-tree/system-user.dtsi ${PRJ_PATH}/project-spec/meta-user/recipes-bsp/device-tree/files/system-user.dtsi
+fitimage: linux dtbo buildroot
+	${U-BOOT_PATH}/tools/mkimage -f zynqmp/fitImage-${PLATFORM}.its zynqmp/${PLATFORM}.ub
 
+fitimage-clean: linux-clean dtbo-clean buildroot-clean
+	rm -f zynqmp/${PLATFORM}.ub
 
-build: create
-	@petalinux-build -p $(PRJ_PATH)
-	
-qemu: check
-	@cd $(PRJ_PATH) && petalinux-boot --qemu \
-	    --qemu-args "-device loader,file=${PRJ_PATH}/images/linux/bl32.elf" \
-	    --kernel
-
-package: check
-	@petalinux-package --boot --pmufw --fpga --u-boot --add ${PRJ_PATH}/images/linux/tee_raw.bin --cpu a53-0 \
-	    --file-attribute "load=0x60000000, startup=0x60000000, exception_level=el-1, trustzone" --force -p ${PRJ_PATH}
