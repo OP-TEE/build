@@ -376,6 +376,7 @@ linux-common: linux-defconfig
 $(LINUX_PATH)/.config: $(LINUX_DEFCONFIG_COMMON_FILES)
 	cd $(LINUX_PATH) && \
 		ARCH=$(LINUX_DEFCONFIG_COMMON_ARCH) \
+		CROSS_COMPILE=$(CROSS_COMPILE_NS_KERNEL) \
 		scripts/kconfig/merge_config.sh $(LINUX_DEFCONFIG_COMMON_FILES) \
 			$(LINUX_DEFCONFIG_BENCH)
 
