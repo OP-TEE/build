@@ -34,6 +34,7 @@ OPTEE_OS_PATH			?= $(ROOT)/optee_os
 OPTEE_CLIENT_PATH		?= $(ROOT)/optee_client
 OPTEE_TEST_PATH			?= $(ROOT)/optee_test
 OPTEE_EXAMPLES_PATH		?= $(ROOT)/optee_examples
+OPTEE_RUST_PATH			?= $(ROOT)/optee_rust
 BUILDROOT_TARGET_ROOT		?= $(ROOT)/out-br/target
 
 # default high verbosity. slow uarts shall specify lower if prefered
@@ -275,6 +276,12 @@ BR2_PACKAGE_OPTEE_EXAMPLES_EXT ?= y
 BR2_PACKAGE_OPTEE_EXAMPLES_EXT_CROSS_COMPILE ?= $(CROSS_COMPILE_S_USER)
 BR2_PACKAGE_OPTEE_EXAMPLES_EXT_SDK ?= $(OPTEE_OS_TA_DEV_KIT_DIR)
 BR2_PACKAGE_OPTEE_EXAMPLES_EXT_SITE ?= $(OPTEE_EXAMPLES_PATH)
+OPTEE_RUST_ENABLE ?= n
+ifeq ($(OPTEE_RUST_ENABLE),y)
+BR2_PACKAGE_OPTEE_RUST_EXAMPLES_EXT ?= y
+BR2_PACKAGE_OPTEE_RUST_EXAMPLES_EXT_CROSS_COMPILE ?= $(CROSS_COMPILE_S_USER)
+BR2_PACKAGE_OPTEE_RUST_EXAMPLES_EXT_SITE ?= $(OPTEE_RUST_PATH)
+endif
 # The OPTEE_OS package builds nothing, it just installs files into the
 # root FS when applicable (for example: shared libraries)
 BR2_PACKAGE_OPTEE_OS_EXT ?= y
@@ -307,7 +314,7 @@ append-var = $(call append-var_,$(1),$(2),$(if $(call y-or-n,$($(1))),,$(double-
 append-br2-vars = $(foreach var,$(filter BR2_%,$(.VARIABLES)),$(call append-var,$(var),$(1)))
 
 .PHONY: buildroot
-buildroot: optee-os
+buildroot: optee-os optee-rust
 	@mkdir -p ../out-br
 	@rm -f ../out-br/build/optee_*/.stamp_*
 	@rm -f ../out-br/extra.conf
@@ -325,7 +332,7 @@ buildroot: optee-os
 		$(DEFCONFIG_FTPM) \
 		--br-defconfig out-br/extra.conf \
 		--make-cmd $(MAKE))
-	@$(MAKE) -C ../out-br all
+	@$(OPTEE_RUST_SET_ENV) $(MAKE) -C ../out-br all
 
 .PHONY: buildroot-clean
 buildroot-clean:
@@ -502,6 +509,16 @@ optee-os-common:
 .PHONY: optee-os-clean-common
 optee-os-clean-common:
 	$(MAKE) -C $(OPTEE_OS_PATH) $(OPTEE_OS_COMMON_FLAGS) clean
+
+################################################################################
+# OP-TEE Rust
+################################################################################
+.PHONY: optee-rust
+optee-rust:
+ifeq ($(OPTEE_RUST_ENABLE),y)
+	@(cd $(OPTEE_RUST_PATH) && ./setup.sh)
+OPTEE_RUST_SET_ENV = source ~/.cargo/env &&
+endif
 
 ################################################################################
 # fTPM Rules
