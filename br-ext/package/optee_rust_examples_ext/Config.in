@@ -1,0 +1,20 @@
+config BR2_PACKAGE_OPTEE_RUST_EXAMPLES_EXT
+	bool "optee_rust_examples"
+	help
+	  https://github.com/apache/incubator-teaclave-trustzone-sdk
+
+config BR2_PACKAGE_OPTEE_RUST_EXAMPLES_EXT_SITE
+	string "OP-TEE Rust examples path"
+	default ""
+	help
+	  The path to the source directory of OP-TEE Rust SDK
+
+if BR2_PACKAGE_OPTEE_RUST_EXAMPLES_EXT
+
+config BR2_PACKAGE_OPTEE_RUST_EXAMPLES_EXT_CROSS_COMPILE
+	string "OP-TEE Rust examples cross compiler"
+	default ""
+	help
+	  some help
+
+endif
