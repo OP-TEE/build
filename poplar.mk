@@ -160,7 +160,7 @@ prepare-images: linux l-loader buildroot
 	@cp $(LINUX_PATH)/arch/arm64/boot/Image $(OUT_PATH)
 	@cp $(LINUX_DTB) $(OUT_PATH)
 	@cd $(OUT_PATH) && PATH=$(UBOOT_PATH)/tools:$$PATH \
-	       EMMC_DEV=/dev/mmcblk1 ./poplar_recovery_builder.sh \
+	       EMMC_DEV=/dev/mmcblk0 ./poplar_recovery_builder.sh \
 	       all "$(ROOTFS_BIN)"
 
 ################################################################################
