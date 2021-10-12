@@ -38,7 +38,7 @@ DEBUG ?= 1
 UBOOT ?= n
 
 # Option to build with GICV3 enabled
-GICV3 ?= n
+GICV3 ?= y
 
 ################################################################################
 # Paths to git projects and various binaries
