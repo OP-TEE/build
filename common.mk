@@ -281,6 +281,7 @@ ifeq ($(OPTEE_RUST_ENABLE),y)
 BR2_PACKAGE_OPTEE_RUST_EXAMPLES_EXT ?= y
 BR2_PACKAGE_OPTEE_RUST_EXAMPLES_EXT_CROSS_COMPILE ?= $(CROSS_COMPILE_S_USER)
 BR2_PACKAGE_OPTEE_RUST_EXAMPLES_EXT_SITE ?= $(OPTEE_RUST_PATH)
+BR2_PACKAGE_OPTEE_RUST_EXAMPLES_TC_PATH_ENV = $(PATH):$(ROOT)/toolchains/aarch64/bin
 endif
 # The OPTEE_OS package builds nothing, it just installs files into the
 # root FS when applicable (for example: shared libraries)
