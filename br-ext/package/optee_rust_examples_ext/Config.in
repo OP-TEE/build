@@ -17,4 +17,9 @@ config BR2_PACKAGE_OPTEE_RUST_EXAMPLES_EXT_CROSS_COMPILE
 	help
 	  some help
 
+config BR2_PACKAGE_OPTEE_RUST_EXAMPLES_TC_PATH_ENV
+       string "OP-TEE Rust examples toolchain path"
+       default ""
+       help
+         some help
 endif
