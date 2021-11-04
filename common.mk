@@ -281,7 +281,7 @@ ifeq ($(OPTEE_RUST_ENABLE),y)
 BR2_PACKAGE_OPTEE_RUST_EXAMPLES_EXT ?= y
 BR2_PACKAGE_OPTEE_RUST_EXAMPLES_EXT_CROSS_COMPILE ?= $(CROSS_COMPILE_S_USER)
 BR2_PACKAGE_OPTEE_RUST_EXAMPLES_EXT_SITE ?= $(OPTEE_RUST_PATH)
-BR2_PACKAGE_OPTEE_RUST_EXAMPLES_TC_PATH_ENV = $(PATH):$(ROOT)/toolchains/aarch64/bin
+BR2_PACKAGE_OPTEE_RUST_EXAMPLES_TC_PATH_ENV = $(PATH):$(ROOT)/toolchains/aarch64/bin:$(HOME)/.cargo/bin
 endif
 # The OPTEE_OS package builds nothing, it just installs files into the
 # root FS when applicable (for example: shared libraries)
@@ -333,7 +333,7 @@ buildroot: optee-os optee-rust
 		$(DEFCONFIG_FTPM) \
 		--br-defconfig out-br/extra.conf \
 		--make-cmd $(MAKE))
-	@$(OPTEE_RUST_SET_ENV) $(MAKE) -C ../out-br all
+	@$(MAKE) -C ../out-br all
 
 .PHONY: buildroot-clean
 buildroot-clean:
@@ -518,7 +518,6 @@ optee-os-clean-common:
 optee-rust:
 ifeq ($(OPTEE_RUST_ENABLE),y)
 	@(cd $(OPTEE_RUST_PATH) && ./setup.sh)
-OPTEE_RUST_SET_ENV = source ~/.cargo/env &&
 endif
 
 ################################################################################
