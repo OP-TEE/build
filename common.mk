@@ -259,6 +259,9 @@ BUILDROOT_TOOLCHAIN=toolchain-aarch$(COMPILE_NS_USER)-legacy
 endif
 else
 BUILDROOT_TOOLCHAIN=toolchain-aarch$(COMPILE_NS_USER)-sdk
+# CXX tests fails to build with buildroot toolchain, disable them until
+# a proper fix is found.
+WITH_CXX_TESTS := n
 endif
 endif
 
