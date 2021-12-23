@@ -411,7 +411,7 @@ run-only:
 		-serial tcp:localhost:54320 -serial tcp:localhost:54321 \
 		-smp $(QEMU_SMP) \
 		-s -S -machine virt,secure=on,gic-version=$(QEMU_GIC_VERSION),virtualization=$(QEMU_VIRT) \
-		-cpu cortex-a57 \
+		-cpu max,sve=off \
 		-d unimp -semihosting-config enable=on,target=native \
 		-m $(QEMU_MEM) \
 		-bios bl1.bin		\
