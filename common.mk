@@ -108,11 +108,15 @@ QEMU_VIRTFS_MOUNTPOINT	?= /mnt/host
 ifeq ($(COMPILE_NS_USER),64)
 ifeq ($(UNAME_M),x86_64)
 MULTIARCH			:= aarch64-linux-gnu
+else ifeq ($(UNAME_M),aarch64)
+MULTIARCH			:= aarch64-linux
 else
 MULTIARCH			:= aarch64-linux
 endif
 else
 ifeq ($(UNAME_M),x86_64)
+MULTIARCH			:= arm-linux-gnueabihf
+else ifeq ($(UNAME_M),aarch64)
 MULTIARCH			:= arm-linux-gnueabihf
 else
 MULTIARCH			:= arm-linux
@@ -256,6 +260,12 @@ ifeq ($(COMPILE_LEGACY),)
 BUILDROOT_TOOLCHAIN=toolchain-aarch$(COMPILE_NS_USER)
 else
 BUILDROOT_TOOLCHAIN=toolchain-aarch$(COMPILE_NS_USER)-legacy
+endif
+else ifeq ($(UNAME_M),aarch64)
+ifeq ($(COMPILE_NS_USER),64)
+BUILDROOT_TOOLCHAIN=toolchain-aarch64-sdk
+else
+BUILDROOT_TOOLCHAIN=toolchain-aarch32
 endif
 else
 BUILDROOT_TOOLCHAIN=toolchain-aarch$(COMPILE_NS_USER)-sdk
