@@ -315,6 +315,9 @@ endif
 # Embed opensc for pkcs11-tool
 BR2_PACKAGE_OPENSC ?= y
 
+# Embed keyutils for trusted-keys
+BR2_PACKAGE_KEYUTILS ?= y
+
 # All BR2_* variables from the makefile or the environment are appended to
 # ../out-br/extra.conf. All values are quoted "..." except y and n.
 double-quote = "#" # This really sets the variable to " and avoids upsetting vim's syntax highlighting
@@ -511,7 +514,8 @@ OPTEE_OS_COMMON_FLAGS ?= \
 	CROSS_COMPILE_ta_arm32="$(CCACHE)$(AARCH32_CROSS_COMPILE)" \
 	CFG_TEE_CORE_LOG_LEVEL=$(CFG_TEE_CORE_LOG_LEVEL) \
 	DEBUG=$(DEBUG) \
-	CFG_TEE_BENCHMARK=$(CFG_TEE_BENCHMARK)
+	CFG_TEE_BENCHMARK=$(CFG_TEE_BENCHMARK) \
+	CFG_IN_TREE_EARLY_TAS=trusted_keys/f04a0fe7-1f5d-4b9b-abf7-619b85b4ce8c
 
 .PHONY: optee-os-common
 optee-os-common:

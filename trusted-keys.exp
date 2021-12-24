@@ -1,0 +1,60 @@
+#!/usr/bin/expect -f
+#
+# This script test Linux trusted keys support using OP-TEE as a trust
+# source. The return code is 0 for success, >0 for error.
+#
+
+set timeout 60
+set tk_id 0
+set ek_id 0
+proc check_keyctl_result arg {
+	expect {
+		-re "(\n)(\\d+)" {
+			set ::$arg $expect_out(2,string)
+			exp_continue
+		}
+		-re "Operation not permitted" {
+			info "keyctl failed: Operation not permitted\n"
+			exit 1
+		}
+		-re "No such device" {
+			info "keyctl failed: Trusted Keys support missing\n"
+			exit 1
+		}
+		-re "\n---" {
+			info "keyctl failed: mismatch\n"
+			exit 1
+		}
+		timeout {
+			info "!!! Timeout\n"
+			exit 1
+		}
+		"# "
+	}
+}
+info "Running: keyctl tests...\n"
+send -- "keyctl add trusted kmk \"new 32\" @u\r"
+check_keyctl_result tk_id
+send -- "keyctl add encrypted evm \"new trusted:kmk 32\" @u\r"
+check_keyctl_result ek_id
+send -- "keyctl pipe $tk_id > kmk.blob\r"
+check_keyctl_result tk_id
+send -- "keyctl pipe $ek_id > evm.blob\r"
+check_keyctl_result ek_id
+send -- "keyctl revoke $ek_id\r"
+check_keyctl_result ek_id
+send -- "keyctl revoke $tk_id\r"
+check_keyctl_result tk_id
+send -- "keyctl add trusted kmk \"load `cat kmk.blob`\" @u\r"
+check_keyctl_result tk_id
+send -- "keyctl add encrypted evm \"load `cat evm.blob`\" @u\r"
+check_keyctl_result ek_id
+send -- "keyctl pipe $tk_id > kmk.blob2\r"
+check_keyctl_result tk_id
+send -- "keyctl pipe $ek_id > evm.blob2\r"
+check_keyctl_result ek_id
+send -- "diff kmk.blob kmk.blob2\r"
+check_keyctl_result tk_id
+send -- "diff evm.blob evm.blob2\r"
+check_keyctl_result ek_id
+info "Status: keyctl tests successful\n"
