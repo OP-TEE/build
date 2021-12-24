@@ -158,3 +158,6 @@ if {$::env(XEN_BOOT) == "y"} {
 	send -- "$cmd\r"
 	check_test_result $teecore
 }
+# Invoke Trusted Keys tests
+set basedir [file dirname $argv0]
+source $basedir/trusted-keys.exp
