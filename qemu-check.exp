@@ -1,11 +1,12 @@
 #!/usr/bin/expect -f
 #
 # This scripts starts QEMU, loads and boots Linux/OP-TEE, then runs
-# xtest in the guest. The return code is 0 for success, >0 for error.
+# tests in the guest. The return code is 0 for success, >0 for error.
 #
 # Options:
 #   --bios    Path to the binary to be run [../out/bios-qemu/bios.bin]
 #   -q        Suppress output to stdout (quiet)
+#   --tests   Type of tests to run, values: all, xtest and trusted-keys
 #   --timeout Timeout for each test (sub)case, in seconds [480]
 
 set bios "../out/bios-qemu/bios.bin"
@@ -21,6 +22,7 @@ set quiet 0
 # The value here should be sufficient to run the whole optee_test suite
 # ('xtest') with all testsuites enabled (regression+gp+pkcs11).
 set timeout 900
+set tests "all"
 
 # Parse command line
 set myargs $argv
@@ -28,6 +30,7 @@ while {[llength $myargs]} {
 	set myargs [lassign $myargs arg]
 	switch -exact -- $arg {
 		"--bios"	{set myargs [lassign $myargs ::bios]}
+		"--tests"	{set myargs [lassign $myargs ::tests]}
 		"--timeout"	{set myargs [lassign $myargs ::timeout]}
 		"-q"		{set ::quiet 1}
 	}
@@ -123,9 +126,11 @@ info ".\n"
 # Toolchain libraries might be here or there
 send -- "export LD_LIBRARY_PATH=/lib:/lib/arm-linux-gnueabihf\r"
 expect "# "
-info "Running: $cmd...\n"
-send -- "$cmd\r"
-check_test_result $teecore
+if {$tests == "all" || $tests == "xtest"} {
+	info "Running: $cmd...\n"
+	send -- "$cmd\r"
+	check_test_result $teecore
+}
 if {$::env(XEN_BOOT) == "y"} {
 	info " Booting DomU.\n"
 	expect "# "
@@ -154,10 +159,14 @@ if {$::env(XEN_BOOT) == "y"} {
 	# Toolchain libraries might be here or there
 	send -- "export LD_LIBRARY_PATH=/lib:/lib/arm-linux-gnueabihf\r"
 	expect "# "
-	info "Running: $cmd...\n"
-	send -- "$cmd\r"
-	check_test_result $teecore
+	if {$tests == "all" || $tests == "xtest"} {
+		info "Running: $cmd...\n"
+		send -- "$cmd\r"
+		check_test_result $teecore
+	}
 }
-# Invoke Trusted Keys tests
-set basedir [file dirname $argv0]
-source $basedir/trusted-keys.exp
+if {$tests == "all" || $tests == "trusted-keys"} {
+	# Invoke Trusted Keys tests
+	set basedir [file dirname $argv0]
+	source $basedir/trusted-keys.exp
+}
