@@ -410,6 +410,9 @@ endif
 ifneq ($(TIMEOUT),)
 check-args := --timeout $(TIMEOUT)
 endif
+ifneq ($(CHECK_TESTS),)
+check-args += --tests $(CHECK_TESTS)
+endif
 
 check: $(CHECK_DEPS)
 	ln -sf $(ROOT)/out-br/images/rootfs.cpio.gz $(BINARIES_PATH)/
