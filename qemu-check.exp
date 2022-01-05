@@ -125,9 +125,9 @@ if {$::env(XEN_BOOT) == "y"} {
 info ".\n"
 # Toolchain libraries might be here or there
 send -- "export LD_LIBRARY_PATH=/lib:/lib/arm-linux-gnueabihf\r"
-expect "# "
 if {$tests == "all" || $tests == "xtest"} {
 	info "Running: $cmd...\n"
+	expect "# "
 	send -- "$cmd\r"
 	check_test_result $teecore
 }
