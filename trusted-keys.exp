@@ -9,7 +9,7 @@ set tk_id 0
 set ek_id 0
 proc check_keyctl_result arg {
 	expect {
-		-re "(\n)(\\d+)" {
+		-re "(\n)(\\d+)\r" {
 			set ::$arg $expect_out(2,string)
 			exp_continue
 		}
