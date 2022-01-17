@@ -42,11 +42,11 @@ GICV3 ?= y
 
 # Option to configure FF-A and SPM:
 # n:	disabled
-# 3:	not supported, SPMC and SPMD at EL3 (in TF-A)
+# 3:	SPMC and SPMD at EL3 (in TF-A)
 # 2:	not supported, SPMC at S-EL2 (in Hafnium), SPMD at EL3 (in TF-A)
 # 1:	SPMC at S-EL1 (in OP-TEE), SPMD at EL3 (in TF-A)
 SPMC_AT_EL ?= n
-ifneq ($(filter-out n 1,$(SPMC_AT_EL)),)
+ifneq ($(filter-out n 1 3,$(SPMC_AT_EL)),)
 $(error Unsupported SPMC_AT_EL value $(SPMC_AT_EL))
 endif
 
@@ -151,9 +151,6 @@ TF_A_OUT = $(TF_A_PATH)/build/qemu/debug
 endif
 
 TF_A_FLAGS ?= \
-	BL32=$(OPTEE_OS_HEADER_V2_BIN) \
-	BL32_EXTRA1=$(OPTEE_OS_PAGER_V2_BIN) \
-	BL32_EXTRA2=$(OPTEE_OS_PAGEABLE_V2_BIN) \
 	BL33=$(BL33_BIN) \
 	PLAT=qemu \
 	QEMU_USE_GIC_DRIVER=$(TFA_GIC_DRIVER) \
@@ -161,9 +158,19 @@ TF_A_FLAGS ?= \
 	DEBUG=$(TF_A_DEBUG) \
 	LOG_LEVEL=$(TF_A_LOGLVL)
 
-TF_A_FLAGS_SPMC_AT_EL_n  = SPD=opteed
-TF_A_FLAGS_SPMC_AT_EL_1  = SPD=spmd CTX_INCLUDE_EL2_REGS=0 SPMD_SPM_AT_SEL2=0
+TF_A_FLAGS_BL32_OPTEE  = BL32=$(OPTEE_OS_HEADER_V2_BIN)
+TF_A_FLAGS_BL32_OPTEE += BL32_EXTRA1=$(OPTEE_OS_PAGER_V2_BIN)
+TF_A_FLAGS_BL32_OPTEE += BL32_EXTRA2=$(OPTEE_OS_PAGEABLE_V2_BIN)
+
+TF_A_FLAGS_SPMC_AT_EL_n  = $(TF_A_FLAGS_BL32_OPTEE) SPD=opteed
+TF_A_FLAGS_SPMC_AT_EL_1  = $(TF_A_FLAGS_BL32_OPTEE) SPD=spmd
+TF_A_FLAGS_SPMC_AT_EL_1 += CTX_INCLUDE_EL2_REGS=0 SPMD_SPM_AT_SEL2=0
 TF_A_FLAGS_SPMC_AT_EL_1 += SPMC_OPTEE=1
+TF_A_FLAGS_SPMC_AT_EL_3  = SPD=spmd SPMC_AT_EL3=1
+TF_A_FLAGS_SPMC_AT_EL_3 += CTX_INCLUDE_EL2_REGS=0 SPMD_SPM_AT_SEL2=0
+TF_A_FLAGS_SPMC_AT_EL_3 += BL32=$(OPTEE_OS_PAGER_V2_BIN)
+TF_A_FLAGS_SPMC_AT_EL_3 += QEMU_SPMC_MANIFEST_DTS=../build/qemu_v8/spmc_el3_manifest.dts
+
 TF_A_FLAGS += $(TF_A_FLAGS_SPMC_AT_EL_$(SPMC_AT_EL))
 
 ifeq ($(TF_A_TRUSTED_BOARD_BOOT),y)
@@ -189,9 +196,17 @@ ifeq ($(TF_A_TRUSTED_BOARD_BOOT),y)
 	ln -sf $(TF_A_OUT)/nt_fw_key.crt $(BINARIES_PATH)
 	ln -sf $(TF_A_OUT)/nt_fw_content.crt $(BINARIES_PATH)
 endif
+ifeq ($(SPMC_AT_EL),3)
+	ln -sf $(TF_A_OUT)/fdts/spmc_el3_manifest.dtb \
+		$(BINARIES_PATH)/tos_fw_config.dtb
+	ln -sf $(OPTEE_OS_PAGER_V2_BIN) $(BINARIES_PATH)/bl32.bin
+	rm -f $(BINARIES_PATH)/bl32_extra1.bin
+	rm -f $(BINARIES_PATH)/bl32_extra2.bin
+else
 	ln -sf $(OPTEE_OS_HEADER_V2_BIN) $(BINARIES_PATH)/bl32.bin
 	ln -sf $(OPTEE_OS_PAGER_V2_BIN) $(BINARIES_PATH)/bl32_extra1.bin
 	ln -sf $(OPTEE_OS_PAGEABLE_V2_BIN) $(BINARIES_PATH)/bl32_extra2.bin
+endif
 	ln -sf $(BL33_BIN) $(BINARIES_PATH)/bl33.bin
 
 arm-tf-clean:
@@ -293,6 +308,9 @@ linux-cleaner: linux-cleaner-common
 ################################################################################
 OPTEE_OS_COMMON_FLAGS += DEBUG=$(DEBUG) CFG_ARM_GICV3=$(GICV3)
 OPTEE_OS_COMMON_FLAGS_SPMC_AT_EL_1 = CFG_CORE_SEL1_SPMC=y
+OPTEE_OS_COMMON_FLAGS_SPMC_AT_EL_3 = CFG_CORE_EL3_SPMC=y
+OPTEE_OS_COMMON_FLAGS_SPMC_AT_EL_3 += CFG_DT_ADDR=0x40000000
+OPTEE_OS_COMMON_FLAGS_SPMC_AT_EL_3 += CFG_CORE_RESERVED_SHM=n
 
 ifeq ($(XEN_BOOT),y)
 OPTEE_OS_COMMON_FLAGS += CFG_VIRTUALIZATION=y
