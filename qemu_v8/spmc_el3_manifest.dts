@@ -1,0 +1,25 @@
+/*
+ * Copyright (c) 2020-2021, Arm Limited. All rights reserved.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+/dts-v1/;
+
+#define MODE_EL1	(0x1)
+
+/* For consumption by EL3 SPMC. */
+/ {
+	compatible = "arm,ffa-manifest-1.0";
+	#address-cells = <2>;
+	#size-cells = <1>;
+
+	ffa-version = <0x00010000>; /* 31:16 - Major, 15:0 - Minor */
+	id = <0x8001>;
+	uuid = <0xe0786148 0xe311f8e7 0x02005ebc 0x1bc5d5a5>;
+	messaging-method = <1>; /* Direct Messaging Only */
+	exception-level = <MODE_EL1>;
+	execution-state = <0>;
+	execution-ctx-count = <8>;
+	gp-register-num = <0>;
+	power-management-messages = <0x1>; /* Subscribe to CPU_OFF PM Msgs */
+};
