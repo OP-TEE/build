@@ -387,12 +387,14 @@ run: all
 
 
 ifeq ($(XEN_BOOT),y)
+QEMU_CPU	?= cortex-a57
 QEMU_MEM 	?= 2048
 QEMU_SMP	?= 4
 QEMU_VIRT	= true
 QEMU_XEN	?= -drive if=none,file=$(XEN_EXT4),format=raw,id=hd1 \
 		   -device virtio-blk-device,drive=hd1
 else
+QEMU_CPU	?= max,sve=off
 QEMU_SMP 	?= 2
 QEMU_MEM 	?= 1057
 QEMU_VIRT	= false
@@ -411,7 +413,7 @@ run-only:
 		-serial tcp:localhost:54320 -serial tcp:localhost:54321 \
 		-smp $(QEMU_SMP) \
 		-s -S -machine virt,secure=on,gic-version=$(QEMU_GIC_VERSION),virtualization=$(QEMU_VIRT) \
-		-cpu max,sve=off \
+		-cpu $(QEMU_CPU) \
 		-d unimp -semihosting-config enable=on,target=native \
 		-m $(QEMU_MEM) \
 		-bios bl1.bin		\
@@ -439,6 +441,7 @@ check: $(CHECK_DEPS)
 		export QEMU_SMP=$(QEMU_SMP) && \
 		export QEMU_GIC=$(QEMU_GIC_VERSION) && \
 		export QEMU_MEM=$(QEMU_MEM) && \
+		export QEMU_CPU=$(QEMU_CPU) && \
 		export XEN_BOOT=$(XEN_BOOT) && \
 		expect $(ROOT)/build/qemu-check.exp -- $(check-args) || \
 		(if [ "$(DUMP_LOGS_ON_ERROR)" ]; then \
