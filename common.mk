@@ -505,7 +505,7 @@ endef
 ################################################################################
 # OP-TEE
 ################################################################################
-OPTEE_OS_COMMON_FLAGS ?= \
+OPTEE_OS_FLAGS = \
 	$(OPTEE_OS_COMMON_EXTRA_FLAGS) \
 	PLATFORM=$(OPTEE_OS_PLATFORM) \
 	CROSS_COMPILE=$(CROSS_COMPILE_S_USER) \
@@ -517,13 +517,17 @@ OPTEE_OS_COMMON_FLAGS ?= \
 	CFG_TEE_BENCHMARK=$(CFG_TEE_BENCHMARK) \
 	CFG_IN_TREE_EARLY_TAS=trusted_keys/f04a0fe7-1f5d-4b9b-abf7-619b85b4ce8c
 
+# This is done last to allow overriding any default CFG variable
+OPTEE_OS_FLAGS += \
+	$(foreach v, $(filter OPTEE_CFG_%,$(.VARIABLES)),$(v)=$($(v)))
+
 .PHONY: optee-os-common
 optee-os-common:
-	$(MAKE) -C $(OPTEE_OS_PATH) $(OPTEE_OS_COMMON_FLAGS)
+	$(MAKE) -C $(OPTEE_OS_PATH) $(OPTEE_OS_FLAGS)
 
 .PHONY: optee-os-clean-common
 optee-os-clean-common:
-	$(MAKE) -C $(OPTEE_OS_PATH) $(OPTEE_OS_COMMON_FLAGS) clean
+	$(MAKE) -C $(OPTEE_OS_PATH) $(OPTEE_OS_FLAGS) clean
 
 ################################################################################
 # OP-TEE Rust
