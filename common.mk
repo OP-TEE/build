@@ -517,6 +517,15 @@ OPTEE_OS_FLAGS = \
 	CFG_TEE_BENCHMARK=$(CFG_TEE_BENCHMARK) \
 	CFG_IN_TREE_EARLY_TAS=trusted_keys/f04a0fe7-1f5d-4b9b-abf7-619b85b4ce8c
 
+# For convenience here's a few variables often tweaked with during development
+#OPTEE_CFG_WERROR=y
+#OPTEE_CFG_CC_OPT_LEVEL=0
+#OPTEE_CFG_CORE_ASLR=n
+#OPTEE_CFG_CORE_UNMAP_CORE_AT_EL0=n
+#OPTEE_CFG_WITH_PAGER=y
+#OPTEE_CFG_TEE_CORE_MALLOC_DEBUG=y
+#OPTEE_CFG_TEE_CORE_DEBUG=y
+
 # This is done last to allow overriding any default CFG variable
 OPTEE_OS_FLAGS += \
 	$(foreach v, $(filter OPTEE_CFG_%,$(.VARIABLES)),$(v)=$($(v)))
