@@ -50,6 +50,9 @@ ifneq ($(filter-out n 1,$(SPMC_AT_EL)),)
 $(error Unsupported SPMC_AT_EL value $(SPMC_AT_EL))
 endif
 
+# Option to configure Pointer Authentication for TA's
+PAUTH ?= n
+
 ################################################################################
 # Paths to git projects and various binaries
 ################################################################################
@@ -171,6 +174,10 @@ TF_A_FLAGS += \
 	MBEDTLS_DIR=$(ROOT)/mbedtls \
 	TRUSTED_BOARD_BOOT=1 \
 	GENERATE_COT=1
+endif
+
+ifeq ($(PAUTH),y)
+TF_A_FLAGS += CTX_INCLUDE_PAUTH_REGS=1
 endif
 
 arm-tf: optee-os $(BL33_DEPS)
@@ -296,6 +303,10 @@ OPTEE_OS_COMMON_FLAGS_SPMC_AT_EL_1 = CFG_CORE_SEL1_SPMC=y
 
 ifeq ($(XEN_BOOT),y)
 OPTEE_OS_COMMON_FLAGS += CFG_VIRTUALIZATION=y
+endif
+
+ifeq ($(PAUTH),y)
+OPTEE_OS_COMMON_FLAGS += CFG_TA_PAUTH=y
 endif
 
 OPTEE_OS_COMMON_FLAGS += $(OPTEE_OS_COMMON_FLAGS_SPMC_AT_EL_$(SPMC_AT_EL))
