@@ -21,7 +21,7 @@ OPENSC_CONF_OPTS = --with-pkcs11-provider=/usr/lib/libckteec.so
 
 # We don't really need OpenSSL...
 ifeq ($(BR2_PACKAGE_OPENSSL),y)
-OPENSC_DEPENDENCIES = openssl
+OPENSC_DEPENDENCIES += openssl
 OPENSC_CONF_OPTS += --with-crypto-backend=openssl
 endif
 
