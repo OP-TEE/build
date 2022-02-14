@@ -277,6 +277,7 @@ ifeq ($(XEN_BOOT),y)
 DEFCONFIG_XEN_TOOLS=--br-defconfig build/br-ext/configs/xen_tools.conf
 endif
 
+BR2_PER_PACKAGE_DIRECTORIES ?= y
 BR2_PACKAGE_LIBOPENSSL ?= y
 BR2_PACKAGE_MMC_UTILS ?= y
 BR2_PACKAGE_OPENSSL ?= y
