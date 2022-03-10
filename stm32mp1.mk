@@ -34,10 +34,12 @@ endif
 ################################################################################
 
 TFA_BIN			:= tf-a-$(STM32MP1_DTS_BASENAME).stm32
-OPTEE_HEADER_BIN	:= tee-header_v2.stm32
-OPTEE_PAGER_BIN		:= tee-pager_v2.stm32
-OPTEE_PAGEABLE_BIN  	:= tee-pageable_v2.stm32
-U_BOOT_BIN		:= u-boot.stm32
+TFA_FIP_BIN		:= fip.bin
+OPTEE_HEADER_BIN	:= tee-header_v2.bin
+OPTEE_PAGER_BIN		:= tee-pager_v2.bin
+OPTEE_PAGEABLE_BIN  	:= tee-pageable_v2.bin
+U_BOOT_BIN		:= u-boot.bin
+U_BOOT_DTB		:= u-boot.dtb
 LINUX_KERNEL_BIN 	:= uImage
 LINUX_DTB_BIN		:= $(STM32MP1_DTS_BASENAME).dtb
 
@@ -94,6 +96,7 @@ TFA_FLAGS ?= \
 	BL32_EXTRA1=$(BINARIES_PATH)/$(OPTEE_PAGER_BIN) \
 	BL32_EXTRA2=$(BINARIES_PATH)/$(OPTEE_PAGEABLE_BIN) \
 	BL33=$(BINARIES_PATH)/$(U_BOOT_BIN) \
+	BL33_CFG=$(BINARIES_PATH)/$(U_BOOT_DTB) \
 	ARM_ARCH_MAJOR=7 \
 	ARCH=aarch32 \
 	PLAT=stm32mp1 \
@@ -102,12 +105,12 @@ TFA_FLAGS ?= \
 	DEBUG=$(TFA_DEBUG) \
 	LOG_LEVEL=$(TFA_LOGLVL) \
 	STM32MP_EMMC=1 STM32MP_SDMMC=1 \
-	STM32MP_USE_STM32IMAGE=1 \
 	STM32MP_RAW_NAND=0 STM32MP_SPI_NAND=0 STM32MP_SPI_NOR=0
 
 tfa: optee-os u-boot
-	$(TFA_EXPORTS) $(MAKE) -C $(TFA_PATH) $(TFA_FLAGS) all
+	$(TFA_EXPORTS) $(MAKE) -C $(TFA_PATH) $(TFA_FLAGS) all fip
 	@$(call install_in_binaries,$(TFA_OUT)/$(TFA_BIN))
+	@$(call install_in_binaries,$(TFA_OUT)/$(TFA_FIP_BIN))
 
 tfa-clean:
 	$(TFA_EXPORTS) $(MAKE) -C $(TFA_PATH) $(TFA_FLAGS) clean
@@ -127,6 +130,7 @@ else
 endif
 	$(U_BOOT_EXPORTS) $(MAKE) -C $(U_BOOT_PATH) DEVICE_TREE=$(STM32MP1_DTS_BASENAME) all
 	@$(call install_in_binaries,$(U_BOOT_PATH)/$(U_BOOT_BIN))
+	@$(call install_in_binaries,$(U_BOOT_PATH)/$(U_BOOT_DTB))
 
 u-boot-clean:
 	$(U_BOOT_EXPORTS) $(MAKE) -C $(U_BOOT_PATH) clean
@@ -207,7 +211,9 @@ buildroot: copy_images_to_br
 copy_images_to_br: tfa optee-os u-boot linux
 	@mkdir -p $(ROOT)/out-br/images
 	$(call install_in_br_images,$(TFA_BIN))
+	$(call install_in_br_images,$(TFA_FIP_BIN))
 	$(call install_in_br_images,$(U_BOOT_BIN))
+	$(call install_in_br_images,$(U_BOOT_DTB))
 	$(call install_in_br_images,$(LINUX_KERNEL_BIN))
 	$(call install_in_br_images,$(LINUX_DTB_BIN))
 	$(call install_in_br_images,$(OPTEE_HEADER_BIN))
