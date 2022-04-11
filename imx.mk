@@ -214,7 +214,7 @@ FLASH_IMAGE_SIZE := $(shell echo $$(( $(FLASH_IMAGE_SIZE) + $(FLASH_PARTITION_RO
 endif
 
 .PHONY: flash-image
-flash-image: buildroot mkimage
+flash-image: buildroot mkimage linux
 	$(MAKE) flash-image-only
 
 .PHONY: flash-image-only
