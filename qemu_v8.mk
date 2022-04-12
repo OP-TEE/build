@@ -56,6 +56,7 @@ PAUTH ?= n
 ################################################################################
 # Paths to git projects and various binaries
 ################################################################################
+MEASURED_BOOT		?= n
 TF_A_PATH		?= $(ROOT)/trusted-firmware-a
 BINARIES_PATH		?= $(ROOT)/out/bin
 EDK2_PATH		?= $(ROOT)/edk2
@@ -106,6 +107,12 @@ ifeq ($(GICV3),y)
 else
 	TFA_GIC_DRIVER	?= QEMU_GICV2
 	QEMU_GIC_VERSION = 2
+endif
+
+ifeq ($(MEASURED_BOOT),y)
+	ALGO	?= sha256
+	SWTPM 	?= y
+	SWTPM_TMP_DIR ?= /tmp/mytpm1
 endif
 
 ################################################################################
@@ -175,6 +182,14 @@ TF_A_FLAGS_SPMC_AT_EL_3 += BL32=$(OPTEE_OS_PAGER_V2_BIN)
 TF_A_FLAGS_SPMC_AT_EL_3 += QEMU_SPMC_MANIFEST_DTS=../build/qemu_v8/spmc_el3_manifest.dts
 
 TF_A_FLAGS += $(TF_A_FLAGS_SPMC_AT_EL_$(SPMC_AT_EL))
+
+ifeq ($(MEASURED_BOOT),y)
+TF_A_FLAGS += \
+	MBEDTLS_DIR=$(ROOT)/mbedtls \
+	MEASURED_BOOT=1 \
+	EVENT_LOG_LEVEL=20 \
+	TPM_HASH_ALG=$(ALGO)
+endif
 
 ifeq ($(TF_A_TRUSTED_BOARD_BOOT),y)
 TF_A_FLAGS += \
@@ -329,6 +344,10 @@ endif
 
 OPTEE_OS_COMMON_FLAGS += $(OPTEE_OS_COMMON_FLAGS_SPMC_AT_EL_$(SPMC_AT_EL))
 
+ifeq ($(MEASURED_BOOT),y)
+OPTEE_OS_COMMON_FLAGS += CFG_CORE_TPM_EVENT_LOG=y CFG_DRIVERS_TPM2=y CFG_DRIVERS_TPM2_MMIO=y
+endif
+
 optee-os: optee-os-common
 
 optee-os-clean: optee-os-clean-common
@@ -429,10 +448,22 @@ QEMU_MEM 	?= 1057
 QEMU_VIRT	= false
 endif
 
+ifeq ($(SWTPM),y)
+
+QEMU_SWTPM ?=	\
+    -device tpm-tis-device,tpmdev=tpm0 \
+    -tpmdev emulator,id=tpm0,chardev=chrtpm \
+    -chardev socket,id=chrtpm,path=$(SWTPM_TMP_DIR)/swtpm-sock
+
+endif
+
 .PHONY: run-only
 run-only:
 	ln -sf $(ROOT)/out-br/images/rootfs.cpio.gz $(BINARIES_PATH)/
 	$(call check-terminal)
+ifeq ($(SWTPM),y)
+	$(call run-swtpm-help)
+endif
 	$(call run-help)
 	$(call launch-terminal,54320,"Normal World")
 	$(call launch-terminal,54321,"Secure World")
@@ -450,6 +481,7 @@ run-only:
 		-kernel Image -no-acpi \
 		-append 'console=ttyAMA0,38400 keep_bootcon root=/dev/vda2 $(QEMU_KERNEL_BOOTARGS)' \
 		$(QEMU_XEN) \
+		$(QEMU_SWTPM) \
 		$(QEMU_EXTRA_ARGS)
 
 ifneq ($(filter check check-rust,$(MAKECMDGOALS)),)

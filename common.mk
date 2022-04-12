@@ -464,6 +464,16 @@ endif
 QEMU_EXTRA_ARGS +=\
 	-netdev user,id=vmnic$(HOSTFWD) -device virtio-net-device,netdev=vmnic
 
+SWTPM_CMD = 'rm -rf $(SWTPM_TMP_DIR); mkdir -p $(SWTPM_TMP_DIR); swtpm_setup --tpmstate $(SWTPM_TMP_DIR) --tpm2 --pcr-banks $(ALGO); exec swtpm socket --tpmstate dir=$(SWTPM_TMP_DIR) --ctrl type=unixio,path=$(SWTPM_TMP_DIR)/swtpm-sock --log level=40 --tpm2'
+
+define run-swtpm-help
+	@echo
+	@echo \* swtpm needs to be launched, else qemu will stop with error
+	@echo \* Install swtpm
+	@echo \* Run the cmd below in a separate terminal
+	@echo $(SWTPM_CMD)
+endef
+
 define run-help
 	@echo
 	@echo \* QEMU is now waiting to start the execution
