@@ -53,6 +53,9 @@ endif
 # Option to configure Pointer Authentication for TA's
 PAUTH ?= n
 
+# Option to configure Memory Tagging Extension
+MEMTAG ?= n
+
 ################################################################################
 # Paths to git projects and various binaries
 ################################################################################
@@ -185,6 +188,9 @@ endif
 
 ifeq ($(PAUTH),y)
 TF_A_FLAGS += CTX_INCLUDE_PAUTH_REGS=1
+endif
+ifeq ($(MEMTAG),y)
+TF_A_FLAGS += CTX_INCLUDE_MTE_REGS=1
 endif
 
 arm-tf: optee-os $(BL33_DEPS)
@@ -326,6 +332,9 @@ endif
 ifeq ($(PAUTH),y)
 OPTEE_OS_COMMON_FLAGS += CFG_TA_PAUTH=y
 endif
+ifeq ($(MEMTAG),y)
+OPTEE_OS_COMMON_FLAGS += CFG_MEMTAG=y
+endif
 
 OPTEE_OS_COMMON_FLAGS += $(OPTEE_OS_COMMON_FLAGS_SPMC_AT_EL_$(SPMC_AT_EL))
 
@@ -429,6 +438,12 @@ QEMU_MEM 	?= 1057
 QEMU_VIRT	= false
 endif
 
+ifeq ($(MEMTAG),y)
+QEMU_MTE	= on
+else
+QEMU_MTE	= off
+endif
+
 .PHONY: run-only
 run-only:
 	ln -sf $(ROOT)/out-br/images/rootfs.cpio.gz $(BINARIES_PATH)/
@@ -441,7 +456,7 @@ run-only:
 		-nographic \
 		-serial tcp:localhost:54320 -serial tcp:localhost:54321 \
 		-smp $(QEMU_SMP) \
-		-s -S -machine virt,secure=on,gic-version=$(QEMU_GIC_VERSION),virtualization=$(QEMU_VIRT) \
+		-s -S -machine virt,secure=on,mte=$(QEMU_MTE),gic-version=$(QEMU_GIC_VERSION),virtualization=$(QEMU_VIRT) \
 		-cpu $(QEMU_CPU) \
 		-d unimp -semihosting-config enable=on,target=native \
 		-m $(QEMU_MEM) \
@@ -468,6 +483,7 @@ check: $(CHECK_DEPS)
 	cd $(BINARIES_PATH) && \
 		export QEMU=$(QEMU_BUILD)/aarch64-softmmu/qemu-system-aarch64 && \
 		export QEMU_SMP=$(QEMU_SMP) && \
+		export QEMU_MTE=$(QEMU_MTE) && \
 		export QEMU_GIC=$(QEMU_GIC_VERSION) && \
 		export QEMU_MEM=$(QEMU_MEM) && \
 		export QEMU_CPU=$(QEMU_CPU) && \
@@ -489,6 +505,7 @@ check-rust: $(CHECK_DEPS)
 	cd $(BINARIES_PATH) && \
 		export QEMU=$(QEMU_BUILD)/aarch64-softmmu/qemu-system-aarch64 && \
 		export QEMU_SMP=$(QEMU_SMP) && \
+		export QEMU_MTE=$(QEMU_MTE) && \
 		export QEMU_GIC=$(QEMU_GIC_VERSION) && \
 		export QEMU_MEM=$(QEMU_MEM) && \
 		expect $(ROOT)/optee_rust/ci/qemu-check.exp -- $(check-args) || \
