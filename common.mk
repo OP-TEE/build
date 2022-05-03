@@ -275,6 +275,9 @@ endif
 
 ifeq ($(XEN_BOOT),y)
 DEFCONFIG_XEN_TOOLS=--br-defconfig build/br-ext/configs/xen_tools.conf
+# Contains a patch to address https://github.com/OP-TEE/optee_os/issues/5288
+# https://lists.xenproject.org/archives/html/xen-devel/2022-05/msg00245.html
+BR2_GLOBAL_PATCH_DIR=../build/br-ext/patches
 endif
 
 BR2_PER_PACKAGE_DIRECTORIES ?= y

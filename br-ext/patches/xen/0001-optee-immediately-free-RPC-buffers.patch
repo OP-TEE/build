@@ -1,0 +1,70 @@
+From e6059b14107cc061cc35fad44afdd9ad25ba1181 Mon Sep 17 00:00:00 2001
+From: Jens Wiklander <jens.wiklander@linaro.org>
+Date: Thu, 28 Apr 2022 09:07:41 +0200
+Subject: [PATCH] optee: immediately free RPC buffers that are released by
+ OP-TEE
+
+This commit fixes a case overlooked in [1].
+
+There are two kinds of shared memory buffers used by OP-TEE:
+1. Normal payload buffer
+2. Internal command structure buffers
+
+The internal command structure buffers are represented with a shadow
+copy internally in Xen since this buffer can contain physical addresses
+that may need to be translated between real physical address and guest
+physical address without leaking information to the guest.
+
+[1] fixes the problem when releasing the normal payload buffers. The
+internal command structure buffers must be released in the same way.
+Failure to follow this order opens a window where the guest has freed
+the shared memory but Xen is still tracking the buffer.
+
+During this window the guest may happen to recycle this particular
+shared memory in some other thread and try to use it. Xen will block
+this which will lead to spurious failures to register a new shared
+memory block.
+
+Fix this by freeing the internal command structure buffers first before
+informing the guest that the buffer can be freed.
+
+[1] 5b13eb1d978e ("optee: immediately free buffers that are released by OP-TEE")
+
+Signed-off-by: Jens Wiklander <jens.wiklander@linaro.org>
+---
+ xen/arch/arm/tee/optee.c | 13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
+
+diff --git a/xen/arch/arm/tee/optee.c b/xen/arch/arm/tee/optee.c
+index 8a39fe33b0ef..f6d2d689ab60 100644
+--- a/xen/arch/arm/tee/optee.c
++++ b/xen/arch/arm/tee/optee.c
+@@ -1149,8 +1149,14 @@ static int handle_rpc_return(struct optee_domain *ctx,
+             call->rpc_data_cookie = 0;
+         }
+         unmap_domain_page(shm_rpc->xen_arg);
++    } else if (call->rpc_op == OPTEE_SMC_RPC_FUNC_FREE) {
++        uint64_t cookie = regpair_to_uint64(get_user_reg(regs, 1),
++                                            get_user_reg(regs, 2));
++
++        free_shm_rpc(ctx, cookie);
+     }
+ 
++
+     return ret;
+ }
+ 
+@@ -1598,13 +1604,6 @@ static void handle_rpc(struct optee_domain *ctx, struct cpu_user_regs *regs)
+     case OPTEE_SMC_RPC_FUNC_ALLOC:
+         handle_rpc_func_alloc(ctx, regs, call);
+         return;
+-    case OPTEE_SMC_RPC_FUNC_FREE:
+-    {
+-        uint64_t cookie = regpair_to_uint64(call->rpc_params[0],
+-                                            call->rpc_params[1]);
+-        free_shm_rpc(ctx, cookie);
+-        break;
+-    }
+     case OPTEE_SMC_RPC_FUNC_FOREIGN_INTR:
+         break;
+     case OPTEE_SMC_RPC_FUNC_CMD:
