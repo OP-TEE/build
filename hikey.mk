@@ -300,7 +300,7 @@ lloader: arm-tf atf-fb
 		ln -sf $(TF_A_PATH)/build/hikey/$(TF_A_BUILD)/bl1.bin && \
 		ln -sf $(TF_A_PATH)/build/hikey/$(TF_A_BUILD)/bl2.bin && \
 		ln -sf $(ATF_FB_PATH)/build/hikey/$(ATF_FB_BUILD)/bl1.bin fastboot.bin && \
-		$(MAKE) hikey PTABLE_LST="linux-8g linux-4g" CROSS_COMPILE="$(CCACHE)$(AARCH32_CROSS_COMPILE)"
+		$(MAKE) hikey PTABLE_LST="linux-$(CFG_FLASH_SIZE)g" CROSS_COMPILE="$(CCACHE)$(AARCH32_CROSS_COMPILE)"
 
 .PHONY: lloader-clean
 lloader-clean:
