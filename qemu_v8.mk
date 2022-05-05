@@ -146,7 +146,7 @@ ifeq ($(TF_A_DEBUG),0)
 TF_A_LOGLVL ?= 30
 TF_A_OUT = $(TF_A_PATH)/build/qemu/release
 else
-TF_A_LOGLVL ?= 50
+TF_A_LOGLVL ?= 40
 TF_A_OUT = $(TF_A_PATH)/build/qemu/debug
 endif
 
