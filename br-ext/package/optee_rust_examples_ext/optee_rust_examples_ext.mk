@@ -21,6 +21,7 @@ export OPTEE_CLIENT_DIR = $(OPTEE_DIR)/out-br/build/optee_client_ext-1.0
 export OPTEE_CLIENT_INCLUDE = $(OPTEE_CLIENT_DIR)/out/export/usr/include
 export VENDOR = qemu_v8.mk
 export OPTEE_OS_INCLUDE = $(OPTEE_DIR)/optee_os/out/arm/export-ta_arm64/include
+export CC = $(OPTEE_DIR)/toolchains/aarch64/bin/aarch64-linux-gnu-gcc
 
 define OPTEE_RUST_EXAMPLES_EXT_BUILD_CMDS
 	@$(foreach f,$(wildcard $(@D)/examples/*/Makefile), \
