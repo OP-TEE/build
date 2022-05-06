@@ -1,0 +1,25 @@
+From 2c634e035c3a5cbd0b6d752cbfa1fabca3f6e530 Mon Sep 17 00:00:00 2001
+From: Jerome Forissier <jerome.forissier@linaro.org>
+Date: Fri, 6 May 2022 15:25:57 +0200
+Subject: [PATCH] Set config for OP-TEE
+
+Enables OP-TEE in the default arm64 configuration.
+
+Signed-off-by: Jerome Forissier <jerome.forissier@linaro.org>
+---
+ xen/arch/arm/configs/arm64_defconfig | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/xen/arch/arm/configs/arm64_defconfig b/xen/arch/arm/configs/arm64_defconfig
+index e69de29bb2..fa571067ee 100644
+--- a/xen/arch/arm/configs/arm64_defconfig
++++ b/xen/arch/arm/configs/arm64_defconfig
+@@ -0,0 +1,5 @@
++CONFIG_EXPERT=y
++CONFIG_TEE=y
++CONFIG_OPTEE=y
++CONFIG_SCHED_CREDIT2_DEFAULT=y
++CONFIG_DEBUG_INFO=n
+-- 
+2.34.1
+
