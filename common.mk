@@ -536,7 +536,7 @@ optee-os-clean-common:
 .PHONY: optee-rust
 optee-rust:
 ifeq ($(OPTEE_RUST_ENABLE),y)
-	@(cd $(OPTEE_RUST_PATH) && ./setup.sh)
+	@(export OPTEE_DIR=$(ROOT) && cd $(OPTEE_RUST_PATH) && ./setup.sh)
 endif
 
 ################################################################################
