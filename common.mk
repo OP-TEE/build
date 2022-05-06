@@ -274,9 +274,9 @@ endif
 endif
 
 ifeq ($(XEN_BOOT),y)
-DEFCONFIG_XEN_TOOLS=--br-defconfig build/br-ext/configs/xen_tools.conf
-# Contains a patch to address https://github.com/OP-TEE/optee_os/issues/5288
-# https://lists.xenproject.org/archives/html/xen-devel/2022-05/msg00245.html
+DEFCONFIG_XEN=--br-defconfig build/br-ext/configs/xen.conf
+# The version of Xen provided by Buildroot needs a few patches to work with
+# OP-TEE
 BR2_GLOBAL_PATCH_DIR=../build/br-ext/patches
 endif
 
@@ -345,7 +345,7 @@ buildroot: optee-os optee-rust
 		--br-defconfig build/br-ext/configs/optee_generic \
 		--br-defconfig build/br-ext/configs/$(BUILDROOT_TOOLCHAIN) \
 		$(DEFCONFIG_GDBSERVER) \
-		$(DEFCONFIG_XEN_TOOLS) \
+		$(DEFCONFIG_XEN) \
 		$(DEFCONFIG_TSS) \
 		$(DEFCONFIG_TPM_MODULE) \
 		$(DEFCONFIG_FTPM) \

@@ -99,7 +99,7 @@ BL33_DEPS		?= edk2
 endif
 
 XEN_PATH		?= $(ROOT)/xen
-XEN_IMAGE		?= $(XEN_PATH)/xen/xen.efi
+XEN_IMAGE		?= $(ROOT)/out-br/build/xen-4.14.3/xen/xen.efi
 XEN_EXT4		?= $(BINARIES_PATH)/xen.ext4
 XEN_CFG			?= $(ROOT)/build/qemu_v8/xen/xen.cfg
 
@@ -128,8 +128,8 @@ TARGET_CLEAN		+= edk2-clean
 endif
 
 ifeq ($(XEN_BOOT),y)
-TARGET_DEPS		+= xen xen-create-image buildroot-domu
-TARGET_CLEAN		+= xen-clean buildroot-domu-clean
+TARGET_DEPS		+= xen-create-image buildroot-domu
+TARGET_CLEAN		+= buildroot-domu-clean
 endif
 
 all: $(TARGET_DEPS)
@@ -374,24 +374,13 @@ $(ROOTFS_UGZ): u-boot buildroot | $(BINARIES_PATH)
 ################################################################################
 # XEN
 ################################################################################
-.PHONY: xen
-$(XEN_PATH)/xen/.config:
-	$(MAKE) -C $(XEN_PATH)/xen XEN_TARGET_ARCH=arm64 defconfig
-	cd $(XEN_PATH)/xen && \
-	tools/kconfig/merge_config.sh -m .config $(ROOT)/build/kconfigs/xen.conf
-
-xen: $(XEN_PATH)/xen/.config
-	$(MAKE) -C $(XEN_PATH) dist-xen \
-	XEN_TARGET_ARCH=arm64 \
-	CONFIG_XEN_INSTALL_SUFFIX=.gz	\
-	CROSS_COMPILE="$(CCACHE)$(AARCH64_CROSS_COMPILE)"
 
 XEN_TMP ?= $(BINARIES_PATH)/xen_files
 
 $(XEN_TMP):
 	mkdir -p $@
 
-xen-create-image: xen linux buildroot | $(XEN_TMP)
+xen-create-image: linux buildroot | $(XEN_TMP)
 	cp $(KERNEL_IMAGE) $(XEN_TMP)
 	cp $(XEN_IMAGE) $(XEN_TMP)
 	cp $(XEN_CFG) $(XEN_TMP)
@@ -399,21 +388,6 @@ xen-create-image: xen linux buildroot | $(XEN_TMP)
 	rm -f $(XEN_EXT4)
 	mke2fs -t ext4 -d $(XEN_TMP) $(XEN_EXT4) 100M
 
-xen-clean:
-	$(MAKE) -C $(XEN_PATH) clean
-
-# Make sure Xen and Xen tools have the same major.minor version or things are likely to break
-ifeq ($(XEN_BOOT),y)
-xen-br = $(ROOT)/buildroot/package/xen/xen.mk
-xen-xen = $(ROOT)/xen/xen/Makefile
-xen-version-br = $(shell sed -E -n 's/^XEN_VERSION = ([0-9]+.[0-9]+).*/\1/p' $(xen-br))
-xen-version-major-xen = $(shell sed -E -n 's/export XEN_VERSION *= ([0-9]+).*/\1/p' $(xen-xen))
-xen-version-minor-xen = $(shell sed -E -n 's/export XEN_SUBVERSION *= ([0-9]+).*/\1/p' $(xen-xen))
-xen-version-xen = $(xen-version-major-xen).$(xen-version-minor-xen)
-ifneq ($(xen-version-br),$(xen-version-xen))
-$(error Xen version mismatch: $(xen-version-br) [in $(xen-br)] != $(xen-version-xen) [in $(xen-xen)])
-endif
-endif
 
 ################################################################################
 # Run targets
