@@ -1,0 +1,37 @@
+From 82a8e6a916f1a7bb3910c365197319b37085d58c Mon Sep 17 00:00:00 2001
+From: Jerome Forissier <jerome.forissier@linaro.org>
+Date: Fri, 6 May 2022 17:28:28 +0200
+Subject: [PATCH] Revert "xen/arm: Restrict the amount of memory that dom0less
+ domU and dom0 can allocate"
+
+This reverts commit c439f5e97b0229851ba76249ccb224695a1baa29.
+---
+ xen/arch/arm/domain_build.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/xen/arch/arm/domain_build.c b/xen/arch/arm/domain_build.c
+index f49dbf1ca1..b07461f5d3 100644
+--- a/xen/arch/arm/domain_build.c
++++ b/xen/arch/arm/domain_build.c
+@@ -2439,8 +2439,7 @@ static int __init construct_domU(struct domain *d,
+ 
+     if ( vcpu_create(d, 0) == NULL )
+         return -ENOMEM;
+-
+-    d->max_pages = ((paddr_t)mem * SZ_1K) >> PAGE_SHIFT;
++    d->max_pages = ~0U;
+ 
+     kinfo.d = d;
+ 
+@@ -2541,7 +2540,7 @@ int __init construct_dom0(struct domain *d)
+ 
+     iommu_hwdom_init(d);
+ 
+-    d->max_pages = dom0_mem >> PAGE_SHIFT;
++    d->max_pages = ~0U;
+ 
+     kinfo.unassigned_mem = dom0_mem;
+     kinfo.d = d;
+-- 
+2.34.1
+
