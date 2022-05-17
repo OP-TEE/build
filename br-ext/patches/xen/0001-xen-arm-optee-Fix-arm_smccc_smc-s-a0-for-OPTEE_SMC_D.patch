@@ -1,0 +1,40 @@
+From 1c3ed9c908732d19660fbe83580674d585464d4c Mon Sep 17 00:00:00 2001
+From: Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
+Date: Mon, 27 Sep 2021 16:54:10 +0300
+Subject: [PATCH] xen/arm: optee: Fix arm_smccc_smc's a0 for
+ OPTEE_SMC_DISABLE_SHM_CACHE
+
+Fix a possible copy-paste error in arm_smccc_smc's first argument (a0)
+for OPTEE_SMC_DISABLE_SHM_CACHE case.
+
+This error causes Linux > v5.14-rc5 (b5c10dd04b7418793517e3286cde5c04759a86de
+optee: Clear stale cache entries during initialization) to stuck
+repeatedly issuing OPTEE_SMC_DISABLE_SHM_CACHE call and waiting for
+the result to be OPTEE_SMC_RETURN_ENOTAVAIL which will never happen.
+
+Signed-off-by: Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
+Reviewed-by: Bertrand Marquis <bertrand.marquis@arm.com>
+Reviewed-by: Volodymyr Babchuk <volodymyr_babchuk@epam.com>
+Acked-by: Stefano Stabellini <sstabellini@kernel.org>
+Fixes: 2e35cdf9b2ca ("xen/arm: optee: add OP-TEE mediator skeleton")
+Backport: 4.13+
+---
+ xen/arch/arm/tee/optee.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/xen/arch/arm/tee/optee.c b/xen/arch/arm/tee/optee.c
+index 345361566e..6df0d44eb9 100644
+--- a/xen/arch/arm/tee/optee.c
++++ b/xen/arch/arm/tee/optee.c
+@@ -1692,7 +1692,7 @@ static bool optee_handle_call(struct cpu_user_regs *regs)
+         return true;
+ 
+     case OPTEE_SMC_DISABLE_SHM_CACHE:
+-        arm_smccc_smc(OPTEE_SMC_ENABLE_SHM_CACHE, 0, 0, 0, 0, 0, 0,
++        arm_smccc_smc(OPTEE_SMC_DISABLE_SHM_CACHE, 0, 0, 0, 0, 0, 0,
+                       OPTEE_CLIENT_ID(current->domain), &resp);
+         set_user_reg(regs, 0, resp.a0);
+         if ( resp.a0 == OPTEE_SMC_RETURN_OK ) {
+-- 
+2.34.1
+
