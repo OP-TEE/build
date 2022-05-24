@@ -95,6 +95,35 @@ $(OUT_PATH):
 	mkdir -p $@
 
 ################################################################################
+# Shared folder
+################################################################################
+# Enable accessing the host directory FVP_VIRTFS_HOST_DIR from the FVP.
+# The shared folder can be mounted in the following ways:
+#  - Run 'mount -t 9p -o trans=virtio,version=9p2000.L FM <mount point>' or,
+#  - enable FVP_VIRTFS_AUTOMOUNT.
+# The latter will use the Buildroot post-build script to add an entry to the
+# target's /etc/fstab, mounting the shared directory to FVP_VIRTFS_MOUNTPOINT
+# on the FVP.
+# Note: the post-build script can only append to fstab. If FVP_VIRTFS_AUTOMOUNT
+# is changed from "y" to "n", run 'rm -r ../out-br/build/skeleton-init-sysv' so
+# the target's fstab will be replaced with the unmodified original again.
+FVP_VIRTFS_ENABLE	?= n
+FVP_VIRTFS_HOST_DIR	?= $(ROOT)
+FVP_VIRTFS_AUTOMOUNT	?= n
+FVP_VIRTFS_MOUNTPOINT	?= /mnt/host
+
+ifeq ($(FVP_VIRTFS_AUTOMOUNT),y)
+$(call force,FVP_VIRTFS_ENABLE,y,required by FVP_VIRTFS_AUTOMOUNT)
+endif
+
+ifneq ($(FVP_USE_BASE_PLAT),y)
+$(call force,FVP_VIRTFS_ENABLE,n,only supported on FVP Base Platform)
+endif
+
+BR2_ROOTFS_POST_BUILD_SCRIPT = $(ROOT)/build/br-ext/board/fvp/post-build.sh
+BR2_ROOTFS_POST_SCRIPT_ARGS = "$(FVP_VIRTFS_AUTOMOUNT) $(FVP_VIRTFS_MOUNTPOINT)"
+
+################################################################################
 # ARM Trusted Firmware
 ################################################################################
 TF_A_EXPORTS ?= \
@@ -276,6 +305,9 @@ FVP_ARGS ?= \
 	-C bp.secureflashloader.fname=$(TF_A_PATH)/build/fvp/$(TF_A_BUILD)/bl1.bin \
 	-C bp.flashloader0.fname=$(TF_A_PATH)/build/fvp/$(TF_A_BUILD)/fip.bin \
 	-C bp.virtioblockdevice.image_path=$(BOOT_IMG)
+ifeq ($(FVP_VIRTFS_ENABLE),y)
+	FVP_ARGS += -C bp.virtiop9device.root_path=$(FVP_VIRTFS_HOST_DIR)
+endif
 else
 FVP_ARGS ?= \
 	--arm-v8.0 \
