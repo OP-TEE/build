@@ -1,0 +1,2 @@
+This directory is intended to be mounted onto a shared directory on the host.
+See FVP_VIRTFS_AUTOMOUNT / FVP_VIRTFS_MOUNTPOINT in build/fvp.mk.
