@@ -61,3 +61,39 @@ endef
 
 # Add the list of SP paths to the optee_os config
 OPTEE_OS_COMMON_EXTRA_FLAGS += SP_PATHS="$(optee_os_sp_paths)"
+
+################################################################################
+# Linux FF-A user space drivers
+################################################################################
+.PHONY: linux-arm-ffa-tee linux-arm-ffa-tee-clean
+all: linux-arm-ffa-tee
+
+linux-arm-ffa-tee: linux
+	mkdir -p $(OUT_PATH)/linux-arm-ffa-tee
+	$(MAKE) -C $(ROOT)/linux-arm-ffa-tee $(LINUX_COMMON_FLAGS) install \
+		TARGET_DIR=$(OUT_PATH)/linux-arm-ffa-tee
+
+linux-arm-ffa-tee-clean:
+	$(MAKE) -C $(ROOT)/linux-arm-ffa-tee clean
+
+# This driver is only used by the uefi-test app
+ifeq ($(TS_UEFI_TESTS),y)
+.PHONY: linux-arm-ffa-user linux-arm-ffa-user-clean
+all: linux-arm-ffa-user
+
+linux-arm-ffa-user: linux
+	mkdir -p $(OUT_PATH)/linux-arm-ffa-user
+	$(MAKE) -C $(ROOT)/linux-arm-ffa-user $(LINUX_COMMON_FLAGS) install \
+		TARGET_DIR=$(OUT_PATH)/linux-arm-ffa-user
+	echo "ed32d533-99e6-4209-9cc0-2d72cdd998a7" > \
+		$(OUT_PATH)/linux-arm-ffa-user/sp_uuid_list.txt
+
+linux-arm-ffa-user-clean:
+	$(MAKE) -C $(ROOT)/linux-arm-ffa-user clean
+
+# Disable CONFIG_STRICT_DEVMEM option in the Linux kernel config. This allows
+# userspace access to the whole NS physical address space through /dev/mem. It's
+# needed by the uefi-test app to communicate with the smm-gateway SP using a
+# static carveout. If changed, run "make linux-defconfig-clean" to take effect.
+LINUX_DEFCONFIG_COMMON_FILES += $(CURDIR)/kconfigs/fvp_trusted-services.conf
+endif
