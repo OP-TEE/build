@@ -172,6 +172,7 @@ TF_A_FLAGS_SPMC_AT_EL_n  = $(TF_A_FLAGS_BL32_OPTEE) SPD=opteed
 TF_A_FLAGS_SPMC_AT_EL_1  = $(TF_A_FLAGS_BL32_OPTEE) SPD=spmd
 TF_A_FLAGS_SPMC_AT_EL_1 += CTX_INCLUDE_EL2_REGS=0 SPMD_SPM_AT_SEL2=0
 TF_A_FLAGS_SPMC_AT_EL_1 += SPMC_OPTEE=1
+TF_A_FLAGS_SPMC_AT_EL_1 += QEMU_SPMC_MANIFEST_DTS=../build/qemu_v8/spmc_el1_manifest.dts
 TF_A_FLAGS_SPMC_AT_EL_3  = SPD=spmd SPMC_AT_EL3=1
 TF_A_FLAGS_SPMC_AT_EL_3 += CTX_INCLUDE_EL2_REGS=0 SPMD_SPM_AT_SEL2=0
 TF_A_FLAGS_SPMC_AT_EL_3 += BL32=$(OPTEE_OS_PAGER_V2_BIN)
@@ -208,6 +209,10 @@ ifeq ($(TF_A_TRUSTED_BOARD_BOOT),y)
 	ln -sf $(TF_A_OUT)/soc_fw_content.crt $(BINARIES_PATH)
 	ln -sf $(TF_A_OUT)/nt_fw_key.crt $(BINARIES_PATH)
 	ln -sf $(TF_A_OUT)/nt_fw_content.crt $(BINARIES_PATH)
+endif
+ifeq ($(SPMC_AT_EL),1)
+	ln -sf $(TF_A_OUT)/fdts/spmc_el1_manifest.dtb \
+		$(BINARIES_PATH)/tos_fw_config.dtb
 endif
 ifeq ($(SPMC_AT_EL),3)
 	ln -sf $(TF_A_OUT)/fdts/spmc_el3_manifest.dtb \
