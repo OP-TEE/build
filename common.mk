@@ -534,10 +534,15 @@ optee-os-clean-common:
 # OP-TEE Rust
 ################################################################################
 .PHONY: optee-rust
-optee-rust:
+optee-rust: $(OPTEE_RUST_PATH)/.done
+
+$(OPTEE_RUST_PATH)/.done:
 ifeq ($(OPTEE_RUST_ENABLE),y)
-	@(export OPTEE_DIR=$(ROOT) && cd $(OPTEE_RUST_PATH) && ./setup.sh)
+	@(export OPTEE_DIR=$(ROOT) && cd $(OPTEE_RUST_PATH) && ./setup.sh && touch .done)
 endif
+
+optee-rust-clean:
+	rm -f $(OPTEE_RUST_PATH)/.done
 
 ################################################################################
 # fTPM Rules
