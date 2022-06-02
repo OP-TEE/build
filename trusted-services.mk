@@ -97,3 +97,40 @@ linux-arm-ffa-user-clean:
 # static carveout. If changed, run "make linux-defconfig-clean" to take effect.
 LINUX_DEFCONFIG_COMMON_FILES += $(CURDIR)/kconfigs/fvp_trusted-services.conf
 endif
+
+################################################################################
+# Trusted Services test applications
+################################################################################
+.PHONY: ffa-test-all ffa-test-all-clean ffa-test-all-realclean
+all: ffa-test-all
+
+ffa-test-all-realclean:
+	rm -rf $(TS_INSTALL_PREFIX)/arm-linux
+
+ifneq ($(COMPILE_NS_USER),64)
+$(error Trusted Services test apps only support AArch64)
+endif
+
+# Helper macro to build and install Trusted Services test applications.
+# Invokes CMake to configure, and make to build and install the apps.
+define build-ts-app
+.PHONY: ffa-$1
+ffa-$1:
+	CROSS_COMPILE=$(subst $(CCACHE),,$(CROSS_COMPILE_NS_USER)) cmake -G"Unix Makefiles" \
+		-S $(TS_PATH)/deployments/$1/arm-linux -B $(TS_BUILD_PATH)/$1 \
+		-DCMAKE_INSTALL_PREFIX=$(TS_INSTALL_PREFIX) \
+		-DCMAKE_C_COMPILER_LAUNCHER=$(CCACHE)
+	$$(MAKE) -C $(TS_BUILD_PATH)/$1 install
+
+.PHONY: ffa-$1-clean
+ffa-$1-clean:
+	$$(MAKE) -C $(TS_BUILD_PATH)/$1 clean
+
+.PHONY: ffa-$1-realclean
+ffa-$1-realclean:
+	rm -rf $(TS_BUILD_PATH)/$1
+
+ffa-test-all: ffa-$1
+ffa-test-all-clean: ffa-$1-clean
+ffa-test-all-realclean: ffa-$1-realclean
+endef
