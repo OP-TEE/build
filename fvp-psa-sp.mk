@@ -35,3 +35,15 @@ endif
 ifeq ($(TS_SMM_GATEWAY),y)
 $(eval $(call build-sp,smm-gateway,ed32d533-99e6-4209-9cc0-2d72cdd998a7,$(SP_SMM_GATEWAY_EXTRA_FLAGS)))
 endif
+
+$(eval $(call build-ts-app,libts))
+$(eval $(call build-ts-app,ts-service-test))
+$(eval $(call build-ts-app,psa-api-test/internal_trusted_storage))
+$(eval $(call build-ts-app,psa-api-test/protected_storage))
+$(eval $(call build-ts-app,psa-api-test/crypto))
+ifeq ($(MEASURED_BOOT),y)
+$(eval $(call build-ts-app,psa-api-test/initial_attestation))
+endif
+ifeq ($(TS_UEFI_TESTS),y)
+$(eval $(call build-ts-app,uefi-test))
+endif
