@@ -273,11 +273,17 @@ BUILDROOT_TOOLCHAIN=toolchain-aarch$(COMPILE_NS_USER)-sdk
 endif
 endif
 
+XEN_FFA=$(XEN_BOOT)
 ifeq ($(XEN_BOOT),y)
 DEFCONFIG_XEN=--br-defconfig build/br-ext/configs/xen.conf
 # The version of Xen provided by Buildroot needs a few patches to work with
 # OP-TEE
 BR2_GLOBAL_PATCH_DIR=../build/br-ext/patches
+
+# See if we run Xen with FF-A
+ifneq ($(filter 1 2 3,$(SPMC_AT_EL)),)
+XEN_FFA=y
+endif
 endif
 
 BR2_PER_PACKAGE_DIRECTORIES ?= y

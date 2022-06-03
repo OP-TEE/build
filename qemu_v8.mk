@@ -467,6 +467,7 @@ check: $(CHECK_DEPS)
 		export QEMU_MEM=$(QEMU_MEM) && \
 		export QEMU_CPU=$(QEMU_CPU) && \
 		export XEN_BOOT=$(XEN_BOOT) && \
+		export XEN_FFA=$(XEN_FFA) && \
 		expect $(ROOT)/build/qemu-check.exp -- $(check-args) || \
 		(if [ "$(DUMP_LOGS_ON_ERROR)" ]; then \
 			echo "== $$PWD/serial0.log:"; \
