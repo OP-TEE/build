@@ -90,7 +90,7 @@ BL33_BIN		?= $(UBOOT_BIN)
 BL33_DEPS		?= u-boot
 
 XEN_PATH		?= $(ROOT)/xen
-XEN_IMAGE		?= $(ROOT)/out-br/build/xen-4.14.5/xen/xen.efi
+XEN_IMAGE		?= $(XEN_PATH)/xen/xen.efi
 XEN_EXT4		?= $(BINARIES_PATH)/xen.ext4
 XEN_CFG			?= $(ROOT)/build/qemu_v8/xen/xen.cfg
 
@@ -416,7 +416,25 @@ $(ROOTFS_UGZ): u-boot buildroot | $(BINARIES_PATH)
 # XEN
 ################################################################################
 
-XEN_TMP ?= $(BINARIES_PATH)/xen_files
+XEN_CONFIGS = .config $(ROOT)/build/kconfigs/xen.conf
+
+$(XEN_PATH)/xen/.config:
+	$(MAKE) -C $(XEN_PATH)/xen XEN_TARGET_ARCH=arm64 defconfig
+	cd $(XEN_PATH)/xen && \
+	env XEN_TARGET_ARCH=arm64 tools/kconfig/merge_config.sh $(XEN_CONFIGS)
+
+xen-menuconfig:
+	$(MAKE) -C $(XEN_PATH)/xen XEN_TARGET_ARCH=arm64 menuconfig
+
+xen: $(XEN_PATH)/xen/.config
+	$(MAKE) -C $(XEN_PATH) dist-xen \
+	XEN_TARGET_ARCH=arm64 \
+	CONFIG_XEN_INSTALL_SUFFIX=.gz	\
+	CROSS_COMPILE="$(CCACHE)$(AARCH64_CROSS_COMPILE)"
+
+xen-create-image: xen
+
+XEN_TMP = $(BINARIES_PATH)/xen_files
 
 $(XEN_TMP):
 	mkdir -p $@
