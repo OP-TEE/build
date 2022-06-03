@@ -1,0 +1,161 @@
+From cb74119744b7d098489ae40ee81137cde03f9592 Mon Sep 17 00:00:00 2001
+From: Jens Wiklander <jens.wiklander@linaro.org>
+Date: Mon, 5 Jul 2021 19:01:19 +0200
+Subject: [PATCH 1/2] xen/arm: smccc: add support for SMCCCv1.2 extended
+ input/output registers
+
+SMCCC v1.2 AArch64 allows x0-x17 to be used as both parameter registers
+and result registers for the SMC and HVC instructions.
+
+Arm Firmware Framework for Armv8-A specification makes use of x0-x7 as
+parameter and result registers.
+
+Let us add new interface to support this extended set of input/output
+registers.
+
+This is based on 3fdc0cb59d97 ("arm64: smccc: Add support for SMCCCv1.2
+extended input/output registers") by Sudeep Holla from the Linux kernel
+
+Signed-off-by: Jens Wiklander <jens.wiklander@linaro.org>
+---
+ xen/arch/arm/arm64/smc.S    | 43 +++++++++++++++++++++++++++++++++++++
+ xen/arch/arm/vsmc.c         |  2 +-
+ xen/include/asm-arm/smccc.h | 42 ++++++++++++++++++++++++++++++++++++
+ 3 files changed, 86 insertions(+), 1 deletion(-)
+
+diff --git a/xen/arch/arm/arm64/smc.S b/xen/arch/arm/arm64/smc.S
+index b0752be57e8f..e024fa4d44d1 100644
+--- a/xen/arch/arm/arm64/smc.S
++++ b/xen/arch/arm/arm64/smc.S
+@@ -30,3 +30,46 @@ ENTRY(__arm_smccc_1_0_smc)
+         stp     x2, x3, [x4, #SMCCC_RES_a2]
+ 1:
+         ret
++
++
++/*
++ * void arm_smccc_1_2_smc(const struct arm_smccc_1_2_regs *args,
++ *                        struct arm_smccc_1_2_regs *res)
++ */
++ENTRY(arm_smccc_1_2_smc)
++    /* Save `res` and free a GPR that won't be clobbered */
++    stp     x1, x19, [sp, #-16]!
++
++    /* Ensure `args` won't be clobbered while loading regs in next step */
++    mov	x19, x0
++
++    /* Load the registers x0 - x17 from the struct arm_smccc_1_2_regs */
++    ldp	x0, x1, [x19, #0]
++    ldp	x2, x3, [x19, #16]
++    ldp	x4, x5, [x19, #32]
++    ldp	x6, x7, [x19, #48]
++    ldp	x8, x9, [x19, #64]
++    ldp	x10, x11, [x19, #80]
++    ldp	x12, x13, [x19, #96]
++    ldp	x14, x15, [x19, #112]
++    ldp	x16, x17, [x19, #128]
++
++    smc #0
++
++    /* Load the `res` from the stack */
++    ldr	x19, [sp]
++
++    /* Store the registers x0 - x17 into the result structure */
++    stp	x0, x1, [x19, #0]
++    stp	x2, x3, [x19, #16]
++    stp	x4, x5, [x19, #32]
++    stp	x6, x7, [x19, #48]
++    stp	x8, x9, [x19, #64]
++    stp	x10, x11, [x19, #80]
++    stp	x12, x13, [x19, #96]
++    stp	x14, x15, [x19, #112]
++    stp	x16, x17, [x19, #128]
++
++    /* Restore original x19 */
++    ldp     xzr, x19, [sp], #16
++    ret
+diff --git a/xen/arch/arm/vsmc.c b/xen/arch/arm/vsmc.c
+index a36db15fffc0..33b0ddc634da 100644
+--- a/xen/arch/arm/vsmc.c
++++ b/xen/arch/arm/vsmc.c
+@@ -93,7 +93,7 @@ static bool handle_arch(struct cpu_user_regs *regs)
+     switch ( fid )
+     {
+     case ARM_SMCCC_VERSION_FID:
+-        set_user_reg(regs, 0, ARM_SMCCC_VERSION_1_1);
++        set_user_reg(regs, 0, ARM_SMCCC_VERSION_1_2);
+         return true;
+ 
+     case ARM_SMCCC_ARCH_FEATURES_FID:
+diff --git a/xen/include/asm-arm/smccc.h b/xen/include/asm-arm/smccc.h
+index 9d94beb3df2d..8128283bc7b6 100644
+--- a/xen/include/asm-arm/smccc.h
++++ b/xen/include/asm-arm/smccc.h
+@@ -33,6 +33,7 @@
+ 
+ #define ARM_SMCCC_VERSION_1_0   SMCCC_VERSION(1, 0)
+ #define ARM_SMCCC_VERSION_1_1   SMCCC_VERSION(1, 1)
++#define ARM_SMCCC_VERSION_1_2   SMCCC_VERSION(1, 2)
+ 
+ /*
+  * This file provides common defines for ARM SMC Calling Convention as
+@@ -217,6 +218,7 @@ struct arm_smccc_res {
+ #ifdef CONFIG_ARM_32
+ #define arm_smccc_1_0_smc(...) arm_smccc_1_1_smc(__VA_ARGS__)
+ #define arm_smccc_smc(...) arm_smccc_1_1_smc(__VA_ARGS__)
++
+ #else
+ 
+ void __arm_smccc_1_0_smc(register_t a0, register_t a1, register_t a2,
+@@ -265,8 +267,48 @@ void __arm_smccc_1_0_smc(register_t a0, register_t a1, register_t a2,
+         else                                                    \
+             arm_smccc_1_0_smc(__VA_ARGS__);                     \
+     } while ( 0 )
++
++/**
++ * struct arm_smccc_1_2_regs - Arguments for or Results from SMC call
++ * @a0-a17 argument values from registers 0 to 17
++ */
++struct arm_smccc_1_2_regs {
++    unsigned long a0;
++    unsigned long a1;
++    unsigned long a2;
++    unsigned long a3;
++    unsigned long a4;
++    unsigned long a5;
++    unsigned long a6;
++    unsigned long a7;
++    unsigned long a8;
++    unsigned long a9;
++    unsigned long a10;
++    unsigned long a11;
++    unsigned long a12;
++    unsigned long a13;
++    unsigned long a14;
++    unsigned long a15;
++    unsigned long a16;
++    unsigned long a17;
++};
+ #endif /* CONFIG_ARM_64 */
+ 
++/**
++ * arm_smccc_1_2_smc() - make SMC calls
++ * @args: arguments passed via struct arm_smccc_1_2_regs
++ * @res: result values via struct arm_smccc_1_2_regs
++ *
++ * This function is used to make SMC calls following SMC Calling Convention
++ * v1.2 or above. The content of the supplied param are copied from the
++ * structure to registers prior to the SMC instruction. The return values
++ * are updated with the content from registers on return from the SMC
++ * instruction.
++ */
++void arm_smccc_1_2_smc(const struct arm_smccc_1_2_regs *args,
++                       struct arm_smccc_1_2_regs *res);
++
++
+ #endif /* __ASSEMBLY__ */
+ 
+ /*
+-- 
+2.31.1
+
