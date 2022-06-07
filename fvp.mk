@@ -52,9 +52,10 @@ else
 EDK2_BUILD		?= RELEASE
 endif
 EDK2_BIN		?= $(EDK2_PLATFORMS_PATH)/Build/ArmVExpress-FVP-AArch64/$(EDK2_BUILD)_$(EDK2_TOOLCHAIN)/FV/FVP_$(EDK2_ARCH)_EFI.fd
-FOUNDATION_PATH		?= $(ROOT)/Foundation_Platformpkg
-ifeq ($(wildcard $(FOUNDATION_PATH)),)
-$(error $(FOUNDATION_PATH) does not exist)
+FVP_PATH		?= $(ROOT)/Foundation_Platformpkg/models/Linux64_GCC-9.3
+FVP_BIN			?= Foundation_Platform
+ifeq ($(wildcard $(FVP_PATH)),)
+$(error $(FVP_PATH) does not exist)
 endif
 GRUB_PATH		?= $(ROOT)/grub
 GRUB_CONFIG_PATH	?= $(BUILD_PATH)/fvp/grub
@@ -256,9 +257,7 @@ boot-img-clean:
 run: all
 	$(MAKE) run-only
 
-run-only:
-	@cd $(FOUNDATION_PATH); \
-	$(FOUNDATION_PATH)/models/Linux64_GCC-6.4/Foundation_Platform \
+FVP_ARGS ?= \
 	--arm-v8.0 \
 	--cores=4 \
 	--secure-memory \
@@ -267,3 +266,6 @@ run-only:
 	--data="$(TF_A_PATH)/build/fvp/$(TF_A_BUILD)/bl1.bin"@0x0 \
 	--data="$(TF_A_PATH)/build/fvp/$(TF_A_BUILD)/fip.bin"@0x8000000 \
 	--block-device=$(BOOT_IMG)
+
+run-only:
+	$(FVP_PATH)/$(FVP_BIN) $(FVP_ARGS)
