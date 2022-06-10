@@ -560,14 +560,14 @@ FTPM_FLAGS ?= 						\
 
 .PHONY: ftpm
 ftpm:
-ifeq ($(MEASURED_BOOT),y)
+ifeq ($(MEASURED_BOOT_FTPM),y)
 ftpm: optee-os
 	$(FTPM_FLAGS) $(MAKE) -C $(FTPM_PATH)
 endif
 
 .PHONY: ftpm-clean
 ftpm-clean:
-ifeq ($(MEASURED_BOOT),y)
+ifeq ($(MEASURED_BOOT_FTPM),y)
 ftpm-clean:
 	-$(FTPM_FLAGS) $(MAKE) -C $(FTPM_PATH) clean
 endif

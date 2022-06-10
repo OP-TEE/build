@@ -72,8 +72,15 @@ GRUB_BIN		?= $(OUT_PATH)/bootaa64.efi
 BOOT_IMG		?= $(OUT_PATH)/boot-fat.uefi.img
 FTPM_PATH		?= $(ROOT)/ms-tpm-20-ref/Samples/ARM32-FirmwareTPM/optee_ta
 
-# Build ancillary components to access fTPM if Measured Boot is enabled.
 ifeq ($(MEASURED_BOOT),y)
+# By default enable FTPM for backwards compatibility.
+MEASURED_BOOT_FTPM ?= y
+else
+$(call force,MEASURED_BOOT_FTPM,n,requires MEASURED_BOOT enabled)
+endif
+
+# Build ancillary components to access fTPM if Measured Boot is enabled.
+ifeq ($(MEASURED_BOOT_FTPM),y)
 DEFCONFIG_FTPM ?= --br-defconfig build/br-ext/configs/ftpm_optee
 DEFCONFIG_TPM_MODULE ?= --br-defconfig build/br-ext/configs/linux_ftpm
 DEFCONFIG_TSS ?= --br-defconfig build/br-ext/configs/tss
@@ -186,7 +193,7 @@ LINUX_DEFCONFIG_COMMON_FILES := \
 
 .PHONY: linux-ftpm-module
 linux-ftpm-module: linux
-ifeq ($(MEASURED_BOOT),y)
+ifeq ($(MEASURED_BOOT_FTPM),y)
 linux-ftpm-module:
 	$(MAKE) -C $(LINUX_PATH) $(LINUX_COMMON_FLAGS) M=drivers/char/tpm  \
 		modules_install INSTALL_MOD_PATH=$(LINUX_PATH)
