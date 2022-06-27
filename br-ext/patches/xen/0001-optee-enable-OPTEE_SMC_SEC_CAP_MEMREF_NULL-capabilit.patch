@@ -1,0 +1,71 @@
+From d4fb5f166c2bfbaf9ba0de69da0d411288f437a9 Mon Sep 17 00:00:00 2001
+From: Volodymyr Babchuk <Volodymyr_Babchuk@epam.com>
+Date: Fri, 7 May 2021 01:39:47 +0000
+Subject: [PATCH] optee: enable OPTEE_SMC_SEC_CAP_MEMREF_NULL capability
+
+OP-TEE mediator already have support for NULL memory references. It
+was added in patch 0dbed3ad336 ("optee: allow plain TMEM buffers with
+NULL address"). But it does not propagate
+OPTEE_SMC_SEC_CAP_MEMREF_NULL capability flag to a guest, so well
+behaving guest can't use this feature.
+
+Note: linux optee driver honors this capability flag when handling
+buffers from userspace clients, but ignores it when working with
+internal calls. For instance, __optee_enumerate_devices() function
+uses NULL argument to get buffer size hint from OP-TEE. This was the
+reason, why "optee: allow plain TMEM buffers with NULL address" was
+introduced in the first place.
+
+This patch adds the mentioned capability to list of known
+capabilities. From Linux point of view it means that userspace clients
+can use this feature, which is confirmed by OP-TEE test suite:
+
+* regression_1025 Test memref NULL and/or 0 bytes size
+o regression_1025.1 Invalid NULL buffer memref registration
+  regression_1025.1 OK
+o regression_1025.2 Input/Output MEMREF Buffer NULL - Size 0 bytes
+  regression_1025.2 OK
+o regression_1025.3 Input MEMREF Buffer NULL - Size non 0 bytes
+  regression_1025.3 OK
+o regression_1025.4 Input MEMREF Buffer NULL over PTA invocation
+  regression_1025.4 OK
+  regression_1025 OK
+
+Signed-off-by: Volodymyr Babchuk <volodymyr_babchuk@epam.com>
+Acked-by: Julien Grall <jgrall@amazon.com>
+---
+ xen/arch/arm/tee/optee.c            | 3 ++-
+ xen/include/asm-arm/tee/optee_smc.h | 3 +++
+ 2 files changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/xen/arch/arm/tee/optee.c b/xen/arch/arm/tee/optee.c
+index 980eebe847..345361566e 100644
+--- a/xen/arch/arm/tee/optee.c
++++ b/xen/arch/arm/tee/optee.c
+@@ -96,7 +96,8 @@
+ #define OPTEE_KNOWN_NSEC_CAPS OPTEE_SMC_NSEC_CAP_UNIPROCESSOR
+ #define OPTEE_KNOWN_SEC_CAPS (OPTEE_SMC_SEC_CAP_HAVE_RESERVED_SHM | \
+                               OPTEE_SMC_SEC_CAP_UNREGISTERED_SHM | \
+-                              OPTEE_SMC_SEC_CAP_DYNAMIC_SHM)
++                              OPTEE_SMC_SEC_CAP_DYNAMIC_SHM | \
++                              OPTEE_SMC_SEC_CAP_MEMREF_NULL)
+ 
+ enum optee_call_state {
+     OPTEE_CALL_NORMAL,
+diff --git a/xen/include/asm-arm/tee/optee_smc.h b/xen/include/asm-arm/tee/optee_smc.h
+index d568bb2fe1..2f5c702326 100644
+--- a/xen/include/asm-arm/tee/optee_smc.h
++++ b/xen/include/asm-arm/tee/optee_smc.h
+@@ -244,6 +244,9 @@
+  */
+ #define OPTEE_SMC_SEC_CAP_DYNAMIC_SHM		(1 << 2)
+ 
++/* Secure world supports Shared Memory with a NULL reference */
++#define OPTEE_SMC_SEC_CAP_MEMREF_NULL		(1 << 4)
++
+ #define OPTEE_SMC_FUNCID_EXCHANGE_CAPABILITIES	9
+ #define OPTEE_SMC_EXCHANGE_CAPABILITIES \
+ 	OPTEE_SMC_FAST_CALL_VAL(OPTEE_SMC_FUNCID_EXCHANGE_CAPABILITIES)
+-- 
+2.34.1
+
