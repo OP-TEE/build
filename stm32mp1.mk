@@ -120,14 +120,8 @@ tfa-clean:
 ################################################################################
 U_BOOT_EXPORTS ?= CROSS_COMPILE="$(CCACHE)$(AARCH32_CROSS_COMPILE)"
 
-# Use stm32mp15_optee_defconfig up to U-Boot v2020.07-rc2.
-# Use stm32mp15_trusted_defconfig from v2020.07-rc3 onward.
 u-boot:
-ifneq ($(wildcard $(U_BOOT_PATH)/configs/stm32mp15_optee_defconfig),)
-	$(U_BOOT_EXPORTS) $(MAKE) -C $(U_BOOT_PATH) stm32mp15_optee_defconfig
-else
-	$(U_BOOT_EXPORTS) $(MAKE) -C $(U_BOOT_PATH) stm32mp15_trusted_defconfig
-endif
+	$(U_BOOT_EXPORTS) $(MAKE) -C $(U_BOOT_PATH) stm32mp15_defconfig
 	$(U_BOOT_EXPORTS) $(MAKE) -C $(U_BOOT_PATH) DEVICE_TREE=$(STM32MP1_DTS_BASENAME) all
 	@$(call install_in_binaries,$(U_BOOT_PATH)/$(U_BOOT_BIN))
 	@$(call install_in_binaries,$(U_BOOT_PATH)/$(U_BOOT_DTB))
