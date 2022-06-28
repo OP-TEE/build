@@ -75,11 +75,11 @@ proc check_test_result arg {
 		# Exit when result separator is seen
 		"+-----------------------------------------------------\r\r" {}
 		# Handle errors in TEE core output
-		-i $arg -re {(^..TC:.*assertion.*failed at.*)\n} {
+		-i $arg -re {(..TC:[^\n]*assertion[^\n]*failed at[^\n]*)} {
 			info "!!! $expect_out(1,string)\n"
 			exit 1
 		}
-		-i $arg -re {(^..TC:.*Panic at.*)\n} {
+		-i $arg -re {(..TC:[^\n]*Panic at[^\n]*)} {
 			info "!!! $expect_out(1,string)\n"
 			exit 1
 		}
