@@ -33,11 +33,16 @@ STM32MP1_DTS_BASENAME	= stm32mp157c-ev1
 else ifeq ($(PLATFORM),stm32mp1-157C_ED1)
 BREXT_FLAVOR		= STM32MP157C-ED1
 STM32MP1_DTS_BASENAME	= stm32mp157c-ed1
+else ifeq ($(PLATFORM),stm32mp1-135F_DK)
+BREXT_FLAVOR		= STM32MP135F-DK
+STM32MP1_DTS_BASENAME	= stm32mp135f-dk
+STM32MP1_DEFCONFIG_U_BOOT = stm32mp13_defconfig
 else
 $(error Unknown PLATFORM $(PLATFORM))
 endif
 
 STM32MP1_DTS_U_BOOT ?= $(STM32MP1_DTS_BASENAME)
+STM32MP1_DEFCONFIG_U_BOOT ?= stm32mp15_defconfig
 
 ################################################################################
 # Binary images names
@@ -136,8 +141,8 @@ tfa-clean:
 U_BOOT_EXPORTS ?= CROSS_COMPILE="$(CCACHE)$(AARCH32_CROSS_COMPILE)"
 
 u-boot:
-	$(U_BOOT_EXPORTS) $(MAKE) -C $(U_BOOT_PATH) stm32mp15_defconfig
-	$(U_BOOT_EXPORTS) $(MAKE) -C $(U_BOOT_PATH) DEVICE_TREE=$(STM32MP1_DTS_U_BOOT) all
+	$(U_BOOT_EXPORTS) $(MAKE) -C $(U_BOOT_PATH) $(STM32MP1_DEFCONFIG_U_BOOT)
+	$(U_BOOT_EXPORTS) $(MAKE) -C $(U_BOOT_PATH) DEVICE_TREE=$(STM32MP1_DTS_BASENAME) all
 	@$(call install_in_binaries,$(U_BOOT_PATH)/$(U_BOOT_BIN))
 	@$(call install_in_binaries,$(U_BOOT_PATH)/$(U_BOOT_DTB))
 
