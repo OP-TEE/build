@@ -489,7 +489,7 @@ xterm := $(shell command -v xterm 2>/dev/null)
 ifdef gnome-terminal
 define launch-terminal
 	@nc -z  127.0.0.1 $(1) || \
-	$(gnome-terminal) -x $(BUILD_PATH)/soc_term.py $(1) &
+	$(gnome-terminal) -t $(2) -x $(BUILD_PATH)/soc_term.py $(1) &
 endef
 else
 ifdef xterm
