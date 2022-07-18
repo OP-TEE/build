@@ -7,6 +7,7 @@ TS_SMM_GATEWAY			?= y
 TS_UEFI_TESTS			?= y
 # Supported values: embedded, fip
 SP_PACKAGING_METHOD		?= embedded
+SPMC_TESTS			?= y
 
 TF_A_FLAGS ?= \
 	BL32=$(OPTEE_OS_PAGER_V2_BIN) \
@@ -49,4 +50,10 @@ $(eval $(call build-ts-app,psa-api-test/initial_attestation))
 endif
 ifeq ($(TS_UEFI_TESTS),y)
 $(eval $(call build-ts-app,uefi-test))
+endif
+ifeq ($(SPMC_TESTS), y)
+OPTEE_OS_COMMON_EXTRA_FLAGS	+= CFG_SPMC_TESTS=y
+$(eval $(call build-sp,spm-test1,5c9edbc3-7b3a-4367-9f83-7c191ae86a37,$(SP_SPMC_TEST_EXTRA_FLAGS)))
+$(eval $(call build-sp,spm-test2,7817164c-c40c-4d1a-867a-9bb2278cf41a,$(SP_SPMC_TEST_EXTRA_FLAGS)))
+$(eval $(call build-sp,spm-test3,23eb0100-e32a-4497-9052-2f11e584afa6,$(SP_SPMC_TEST_EXTRA_FLAGS)))
 endif
