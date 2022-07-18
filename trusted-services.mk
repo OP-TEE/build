@@ -94,7 +94,10 @@ linux-arm-ffa-user: linux
 	mkdir -p $(OUT_PATH)/linux-arm-ffa-user
 	$(MAKE) -C $(ROOT)/linux-arm-ffa-user $(LINUX_COMMON_FLAGS) install \
 		TARGET_DIR=$(OUT_PATH)/linux-arm-ffa-user
-	echo "ed32d533-99e6-4209-9cc0-2d72cdd998a7" > \
+	echo "ed32d533-99e6-4209-9cc0-2d72cdd998a7,\
+	5c9edbc3-7b3a-4367-9f83-7c191ae86a37,\
+	7817164c-c40c-4d1a-867a-9bb2278cf41a,\
+	23eb0100-e32a-4497-9052-2f11e584afa6" > \
 		$(OUT_PATH)/linux-arm-ffa-user/sp_uuid_list.txt
 
 linux-arm-ffa-user-clean:
