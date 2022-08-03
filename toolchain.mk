@@ -36,8 +36,8 @@ define build_toolchain
 		--br-defconfig build/br-ext/configs/sdk-$1 \
 		--br-defconfig build/br-ext/configs/sdk-common \
 		--make-cmd $(MAKE))
-	@$(MAKE) -C ../out-$1-sdk clean
-	@$(MAKE) -C ../out-$1-sdk sdk
+	+@$(MAKE) -C ../out-$1-sdk clean
+	+@$(MAKE) -C ../out-$1-sdk sdk
 	@tar xf ../out-$1-sdk/images/$3-buildroot-linux-$4_sdk-buildroot.tar.gz \
 		-C $2 --strip-components=1
 	@touch $2/.done
