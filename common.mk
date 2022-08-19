@@ -332,6 +332,10 @@ append-var_ = echo '$(1)=$(3)'$($(1))'$(3)' >>$(2);
 append-var = $(call append-var_,$(1),$(2),$(if $(call y-or-n,$($(1))),,$(double-quote)))
 append-br2-vars = $(foreach var,$(filter BR2_%,$(.VARIABLES)),$(call append-var,$(var),$(1)))
 
+ifneq (y,$(BR2_PER_PACKAGE_DIRECTORIES))
+br-make-flags := -j1
+endif
+
 .PHONY: buildroot
 buildroot: optee-os optee-rust
 	@mkdir -p ../out-br
@@ -351,7 +355,7 @@ buildroot: optee-os optee-rust
 		$(DEFCONFIG_FTPM) \
 		--br-defconfig out-br/extra.conf \
 		--make-cmd $(MAKE))
-	@$(MAKE) -C ../out-br all
+	@$(MAKE) $(br-make-flags) -C ../out-br all
 
 .PHONY: buildroot-clean
 buildroot-clean:
@@ -376,7 +380,7 @@ buildroot-domu: optee-os
 		$(DEFCONFIG_GDBSERVER) \
 		--br-defconfig out-br-domu/extra.conf \
 		--make-cmd $(MAKE))
-	@$(MAKE) -C ../out-br-domu all
+	@$(MAKE) $(br-make-flags) -C ../out-br-domu all
 
 .PHONY: buildroot-domu-clean
 buildroot-domu-clean:
