@@ -1,5 +1,8 @@
 config BR2_PACKAGE_OPTEE_CLIENT_EXT
 	bool "optee_client"
+	select BR2_PACKAGE_UTIL_LINUX
+	select BR2_PACKAGE_UTIL_LINUX_LIBS
+	select BR2_PACKAGE_UTIL_LINUX_LIBUUID
 	help
 	  http://github.org/OP-TEE/optee_client
 
