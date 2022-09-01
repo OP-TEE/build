@@ -32,4 +32,37 @@
 		tpm_event_log_size = <0x0>;
 	};
 #endif
+
+/* If the ARM_BL2_SP_LIST_DTS is defined, SPs should be loaded from FIP */
+#ifdef ARM_BL2_SP_LIST_DTS
+	sp_packages {
+		compatible = "arm,sp_pkg";
+		internal_trusted_storage {
+			uuid = <0x48ef1edc 0xcf4c7ab1 0xcfdf8bac 0x141b71f7>;
+			load-address = <0x0 0x7a00000>;
+		};
+
+		protected_storage_sp {
+			uuid = <0x01f81b75 0x6847de3d 0x100f14a5 0x9017edae>;
+			load-address = <0x0 0x7b00000>;
+		};
+
+		crypto_sp {
+			uuid = <0xd552dfd9 0xb24ba216 0x6dd2a49a 0xc0e8843b>;
+			load-address = <0x0 0x7c00000>;
+		};
+
+#if MEASURED_BOOT
+		initial_attestation_sp {
+			uuid = <0x55f1baa1 0x95467688 0x95547c8f 0x74b98d5e>;
+			load-address = <0x0 0x7d00000>;
+		};
+#endif
+
+		smm_gateway {
+			uuid = <0x33d532ed 0x0942e699 0x722dc09c 0xa798d9cd>;
+			load-address = <0x0 0x7e00000>;
+		};
+	};
+#endif
 };

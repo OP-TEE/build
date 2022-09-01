@@ -5,6 +5,7 @@ MEASURED_BOOT			?= y
 MEASURED_BOOT_FTPM		?= n
 TS_SMM_GATEWAY			?= y
 TS_UEFI_TESTS			?= y
+SP_PACKAGING_METHOD		?= embedded # Supported values: embedded, fip
 
 TF_A_FLAGS ?= \
 	BL32=$(OPTEE_OS_PAGER_V2_BIN) \
@@ -12,7 +13,8 @@ TF_A_FLAGS ?= \
 	PLAT=fvp \
 	SPD=spmd \
 	SPMD_SPM_AT_SEL2=0 \
-	ARM_SPMC_MANIFEST_DTS=$(ROOT)/build/fvp/spmc_manifest.dts
+	ARM_SPMC_MANIFEST_DTS=$(ROOT)/build/fvp/spmc_manifest.dts \
+	$(TF_A_FIP_SP_FLAGS)
 
 include fvp.mk
 include trusted-services.mk

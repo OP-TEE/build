@@ -1,0 +1,31 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright (c) 2022, Arm Limited. All rights reserved.
+ */
+
+internal_trusted_storage {
+	uuid = "dc1eef48-b17a-4ccf-ac8b-dfcff7711b14";
+	load-address = <0x7a00000>;
+};
+
+protected_storage_sp {
+	uuid = "751bf801-3dde-4768-a514-0f10aeed1790";
+	load-address = <0x7b00000>;
+};
+
+crypto_sp {
+	uuid = "d9df52d5-16a2-4bb2-9aa4-d26d3b84e8c0";
+	load-address = <0x7c00000>;
+};
+
+#if MEASURED_BOOT
+initial_attestation_sp {
+	uuid = "a1baf155-8876-4695-8f7c-54955e8db974";
+	load-address = <0x7d00000>;
+};
+#endif
+
+smm_gateway {
+	uuid = "ed32d533-99e6-4209-9cc0-2d72cdd998a7";
+	load-address = <0x7e00000>;
+};
