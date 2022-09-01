@@ -59,8 +59,17 @@ ffa-sp-all-realclean: ffa-$1-sp-realclean
 optee_os_sp_paths += $(TS_INSTALL_PREFIX)/opteesp/bin/$2.stripped.elf
 endef
 
+ifeq ($(SP_PACKAGING_METHOD),embedded)
 # Add the list of SP paths to the optee_os config
 OPTEE_OS_COMMON_EXTRA_FLAGS += SP_PATHS="$(optee_os_sp_paths)"
+else ifeq ($(SP_PACKAGING_METHOD),fip)
+# Configure TF-A to load the SPs from FIP by BL2
+TF_A_FIP_SP_FLAGS += ARM_BL2_SP_LIST_DTS=$(ROOT)/build/fvp/bl2_sp_list.dtsi \
+		SP_LAYOUT_FILE=$(TS_INSTALL_PREFIX)/opteesp/json/sp_layout.json
+
+# This should be removed when TF-A is updated to v2.7 or later
+$(call force,MEASURED_BOOT,n,Need TF-A v2.7 for FIP SPs with Measured Boot)
+endif
 
 ################################################################################
 # Linux FF-A user space drivers
