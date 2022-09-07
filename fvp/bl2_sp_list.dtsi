@@ -48,4 +48,8 @@ test_sp3 {
 	load-address = <0x7a20000>;
 };
 
+test_sp4 {
+	uuid = "23eb0100-e32a-4497-9052-2f11e584afa6";
+	load-address = <0x7a30000>;
+};
 #endif
