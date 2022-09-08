@@ -29,6 +29,8 @@ else
 $(error Unknown PLATFORM $(PLATFORM))
 endif
 
+STM32MP1_DTS_U_BOOT ?= $(STM32MP1_DTS_BASENAME)
+
 ################################################################################
 # Binary images names
 ################################################################################
@@ -122,7 +124,7 @@ U_BOOT_EXPORTS ?= CROSS_COMPILE="$(CCACHE)$(AARCH32_CROSS_COMPILE)"
 
 u-boot:
 	$(U_BOOT_EXPORTS) $(MAKE) -C $(U_BOOT_PATH) stm32mp15_defconfig
-	$(U_BOOT_EXPORTS) $(MAKE) -C $(U_BOOT_PATH) DEVICE_TREE=$(STM32MP1_DTS_BASENAME) all
+	$(U_BOOT_EXPORTS) $(MAKE) -C $(U_BOOT_PATH) DEVICE_TREE=$(STM32MP1_DTS_U_BOOT) all
 	@$(call install_in_binaries,$(U_BOOT_PATH)/$(U_BOOT_BIN))
 	@$(call install_in_binaries,$(U_BOOT_PATH)/$(U_BOOT_DTB))
 
