@@ -542,7 +542,9 @@ optee-rust: $(OPTEE_RUST_PATH)/.done
 
 $(OPTEE_RUST_PATH)/.done:
 ifeq ($(OPTEE_RUST_ENABLE),y)
-	@(export OPTEE_DIR=$(ROOT) && cd $(OPTEE_RUST_PATH) && ./setup.sh && touch .done)
+	@(export OPTEE_DIR=$(ROOT) && \
+	  export CARGO_NET_GIT_FETCH_WITH_CLI=true && \
+	  cd $(OPTEE_RUST_PATH) && ./setup.sh && touch .done)
 endif
 
 optee-rust-clean:
