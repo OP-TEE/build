@@ -1,0 +1,16 @@
+the_ROM_image:
+{
+	image {
+	      { type=bootimage, file=../versal-vck190-bsp/project-spec/hw-description/vpl_gen_fixed.pdi }
+	      { type=bootloader, file=../versal-vck190-bsp/pre-built/linux/images/plm.elf }
+	      { core=psm, file=../versal-vck190-bsp/pre-built/linux/images/psmfw.elf }
+	}
+
+	image {
+	      id = 0x1c000000, name=apu_subsystem
+	      { type=raw, load=0x00001000, file=../u-boot/arch/arm/dts/versal-vck190-revA-x-ebm-01-revA.dtb }
+	      { core=a72-0, exception_level=el-3, trustzone, file=../arm-trusted-firmware/build/versal/debug/bl31/bl31.elf }
+	      { core=a72-0, exception_level=el-2, file=../u-boot/u-boot.elf }
+	      { core=a72-0, exception_level=el-1, trustzone, load=0x60000000, startup=0x60000000, file=../optee_os/out/arm/core/tee-raw.bin }
+	}
+}
