@@ -5,7 +5,8 @@ MEASURED_BOOT			?= y
 MEASURED_BOOT_FTPM		?= n
 TS_SMM_GATEWAY			?= y
 TS_UEFI_TESTS			?= y
-SP_PACKAGING_METHOD		?= embedded # Supported values: embedded, fip
+# Supported values: embedded, fip
+SP_PACKAGING_METHOD		?= embedded
 
 TF_A_FLAGS ?= \
 	BL32=$(OPTEE_OS_PAGER_V2_BIN) \
