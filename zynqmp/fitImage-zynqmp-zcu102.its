@@ -14,7 +14,7 @@
             compression = "none";
             load = <0x80000>;
             entry = <0x80000>;
-            hash@1 {
+            hash {
                 algo = "sha1";
             };
         };
@@ -25,7 +25,7 @@
             arch = "arm64";
             load = <0x10000000>;
             compression = "none";
-            hash@1 {
+            hash {
                 algo = "sha1";
             };
         };
@@ -36,7 +36,7 @@
             arch = "arm64";
             load = <0x11000000>;
             compression = "none";
-            hash@1 {
+            hash {
                 algo = "sha1";
             };
         };
@@ -47,19 +47,19 @@
             arch = "arm64";
             os = "linux";
             compression = "gzip";
-            hash@1 {
+            hash {
                 algo = "sha1";
             };
         };
     };
     configurations {
-        default = "conf@1";
-        conf@1 {
+        default = "conf";
+        conf {
             description = "Boot Linux kernel with FDT blob + ramdisk";
             kernel = "kernel";
             fdt = "fdt-1", "fdt-2";
 	    ramdisk = "ramdisk";
-            hash@1 {
+            hash {
                 algo = "sha1";
             };
         };
