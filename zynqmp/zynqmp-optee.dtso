@@ -10,4 +10,25 @@
 			};
 		};
 	};
+
+	fragment@2 {
+		target-path = "/";
+		__overlay__ {
+			reserved-memory {
+				#address-cells = <2>;
+		                #size-cells = <2>;
+				ranges;
+
+				atf@0 {
+					reg = <0x0 0x1000 0x0 0x1f000>;
+					no-map;
+				};
+
+				optee@60000000 {
+					reg = <0x0 0x60000000 0x0 0x10000000>;
+					no-map;
+				};
+			};
+		};
+	};
 };
