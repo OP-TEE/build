@@ -8,8 +8,19 @@ override COMPILE_NS_KERNEL := 64
 override COMPILE_S_USER    := 64
 override COMPILE_S_KERNEL  := 64
 
-PLATFORM = zynqmp-zcu102
+PLATFORM := zynqmp-zcu102
+
+ifeq ($(PLATFORM),zynqmp-ultra96)
+OPTEE_OS_PLATFORM = zynqmp-ultra96
+else
 OPTEE_OS_PLATFORM = zynqmp-zcu102
+endif
+
+DTS_zynqmp-zcu102 = zynqmp-zcu102-rev1.0
+DTS_zynqmp-zcu104 = zynqmp-zcu104-revC
+DTS_zynqmp-zcu106 = zynqmp-zcu106-revA
+DTS_zynqmp-ultra96 = avnet-ultra96-rev1
+U-BOOT_DTS = $(DTS_$(PLATFORM))
 
 ################################################################################
 # Paths to git projects and various binaries
@@ -60,7 +71,6 @@ optee-os-clean: optee-os-clean-common
 
 U-BOOT_EXPORTS = CROSS_COMPILE="$(CCACHE)$(AARCH64_CROSS_COMPILE)"
 U-BOOT_CONFIG = xilinx_zynqmp_virt_defconfig
-U-BOOT_DTS = zynqmp-zcu102-rev1.0
 
 u-boot:
 	$(U-BOOT_EXPORTS) $(MAKE) -C $(U-BOOT_PATH) $(U-BOOT_CONFIG)
@@ -165,7 +175,7 @@ else
 endif
 
 firmware-clean:
-	rm -rf ../zcu102-release
+	rm -rf ../$(PLATFORM)-release
 
 ###############################################################################
 # FIT Image

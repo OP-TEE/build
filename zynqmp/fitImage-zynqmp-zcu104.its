@@ -1,0 +1,67 @@
+/dts-v1/;
+
+/ {
+    description = "U-Boot fitImage for plnx_aarch64 kernel";
+    #address-cells = <1>;
+
+    images {
+        kernel {
+            description = "Linux Kernel";
+            data = /incbin/("./../../linux-xlnx/arch/arm64/boot/Image");
+            type = "kernel";
+            arch = "arm64";
+            os = "linux";
+            compression = "none";
+            load = <0x80000>;
+            entry = <0x80000>;
+            hash {
+                algo = "sha1";
+            };
+        };
+        fdt-1 {
+            description = "Flattened Device Tree blob";
+            data = /incbin/("../../u-boot-xlnx/arch/arm/dts/zynqmp-zcu104-revC.dtb");
+            type = "flat_dt";
+            arch = "arm64";
+            load = <0x10000000>;
+            compression = "none";
+            hash {
+                algo = "sha1";
+            };
+        };
+        fdt-2 {
+            description = "Flattened Device Tree overlay";
+            data = /incbin/("zynqmp-optee.dtbo");
+            type = "flat_dt";
+            arch = "arm64";
+            load = <0x11000000>;
+            compression = "none";
+            hash {
+                algo = "sha1";
+            };
+        };
+        ramdisk {
+            description = "ramdisk";
+            data = /incbin/("../../out-br/images/rootfs.cpio.gz");
+            type = "ramdisk";
+            arch = "arm64";
+            os = "linux";
+            compression = "gzip";
+            hash {
+                algo = "sha1";
+            };
+        };
+    };
+    configurations {
+        default = "conf";
+        conf {
+            description = "Boot Linux kernel with FDT blob + ramdisk";
+            kernel = "kernel";
+            fdt = "fdt-1", "fdt-2";
+	    ramdisk = "ramdisk";
+            hash {
+                algo = "sha1";
+            };
+        };
+    };
+};
