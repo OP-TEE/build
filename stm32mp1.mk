@@ -70,12 +70,16 @@ STM32MP1_DTS_LINUX ?= $(STM32MP1_DTS_BASENAME)
 STM32MP1_DTS_U_BOOT ?= $(STM32MP1_DTS_BASENAME)
 STM32MP1_DEFCONFIG_U_BOOT ?= stm32mp15_defconfig
 
+# When enabled, WITH_STMM embeds StMM application in OP-TEE OS and default
+# enables WITH_RPMB_TEST for RPMB secure storage which StMM relies on.
+WITH_STMM ?= n
+
 # When enabled WITH_RPMB_TEST enables RPMB secure storage test configuration.
 # The configuraiton enables OP-TEE RPMB test key (CFG_RPMB_TESTKEY=y)
 # and CFG_REE_FS_ALLOW_RESET to allow testing with an empty REE_FS secure
 # storage content wihtout needing to reset the full RPMB_FS secure storage.
 # This configuration switch is intended to platforms with an eMMC device.
-WITH_RPMB_TEST ?= n
+WITH_RPMB_TEST ?= $(WITH_STMM)
 
 # When enabled WITH_SRAM1_PAGER_POOL makes OP-TEE pager core to use secure
 # SYSRAM and SRAM1. This switch concerns STM32MP15 based platforms only.
@@ -101,6 +105,8 @@ BINARIES_PATH		?= $(ROOT)/out/bin
 TFA_PATH		?= $(ROOT)/trusted-firmware-a
 U_BOOT_PATH		?= $(ROOT)/u-boot
 SCPFW_PATH		?= $(ROOT)/scp-firmware
+EDK2_PATH		?= $(ROOT)/edk2
+EDK2_PLATFORMS_PATH	?= $(ROOT)/edk2-platforms
 
 define install_in_binaries
 	echo "  INSTALL $(shell basename $1) to $(BINARIES_PATH)" && \
@@ -118,6 +124,44 @@ all: tfa optee-os u-boot linux buildroot
 clean: tfa-clean optee-os-clean u-boot-clean linux-clean buildroot-clean
 
 include toolchain.mk
+
+################################################################################
+# EDK2 (edk2 & edk2-platforms)
+################################################################################
+EDK2_TOOLCHAIN ?= GCC5
+EDK2_ARCH ?= ARM
+EDK2_BUILD ?= RELEASE
+EDK2_OUT ?= $(ROOT)/out-edk2
+EDK2_BIN ?= $(EDK2_OUT)/Build/MmStandaloneRpmb/$(EDK2_BUILD)_$(EDK2_TOOLCHAIN)/FV/BL32_AP_MM.fd
+
+define edk2-env
+	export WORKSPACE=$(EDK2_OUT)
+endef
+
+define edk2-call
+        $(EDK2_TOOLCHAIN)_$(EDK2_ARCH)_PREFIX=$(AARCH32_CROSS_COMPILE) \
+        build -n `getconf _NPROCESSORS_ONLN` -a $(EDK2_ARCH) \
+                -t $(EDK2_TOOLCHAIN) -p Platform/StandaloneMm/PlatformStandaloneMmPkg/PlatformStandaloneMmRpmb.dsc \
+                -b $(EDK2_BUILD) -D DO_X86EMU=TRUE
+endef
+
+.PHONY: edk2-modules
+edk2-modules:
+	mkdir -p $(EDK2_OUT) && \
+	cd $(EDK2_PATH) && \
+	git submodule init && \
+	git submodule update --init --recursive
+
+edk2-common: edk2-modules
+edk2: edk2-common
+edk2-clean: edk2-clean-common
+
+ifeq ($(WITH_STMM),y)
+optee-os-common: edk2
+optee-os-clean: edk2-clean
+
+OPTEE_OS_COMMON_FLAGS += CFG_STMM_PATH=$(EDK2_BIN)
+endif #WITH_STMM
 
 ################################################################################
 # OP-TEE OS
@@ -194,6 +238,9 @@ U_BOOT_CONFIG_FRAGMENTS += $(BUILD_PATH)/stm32mp/u-boot_$(STM32MP1_DTS_U_BOOT).c
 endif
 ifeq ($(WITH_RPMB_TEST),y)
 U_BOOT_CONFIG_FRAGMENTS += $(BUILD_PATH)/stm32mp/u-boot_rpmb.conf
+endif
+ifeq ($(WITH_STMM),y)
+U_BOOT_CONFIG_FRAGMENTS += $(BUILD_PATH)/stm32mp/u-boot_stmm.conf
 endif
 
 u-boot:
