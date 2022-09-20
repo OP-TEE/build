@@ -1,0 +1,64 @@
+#!/bin/sh
+#
+# Non-root user can access communicate with OP-TEE provided they
+# belong to the teeclnt group.
+#
+# tee-supplicant is run as root user ID to access /dev/teepriv0
+# and eMMC resources including its RPMB partition.
+
+DAEMON="tee-supplicant"
+DAEMON_PATH="/usr/sbin"
+DAEMON_ARGS="-d /dev/teepriv0"
+PIDFILE="/var/run/$DAEMON.pid"
+
+start() {
+	echo 'Set /dev/tee permissions: root:teeclnt 0660'
+	chown root:teeclnt /dev/tee0 && chmod 0660 /dev/tee0
+	status=$?
+	if [ "$status" -eq 0 ]; then
+		echo "OK"
+	else
+		echo "FAIL"
+		return "$status"
+	fi
+	printf 'Starting %s: ' "$DAEMON"
+	start-stop-daemon -S -q -p "$PIDFILE" -c root -x "$DAEMON_PATH/$DAEMON" \
+		-- $DAEMON_ARGS
+	status=$?
+	if [ "$status" -eq 0 ]; then
+		echo "OK"
+	else
+		echo "FAIL"
+	fi
+	return "$status"
+}
+
+stop() {
+	printf 'Stopping %s: ' "$DAEMON"
+	start-stop-daemon -K -q -p "$PIDFILE"
+	status=$?
+	if [ "$status" -eq 0 ]; then
+		echo "OK"
+	else
+		echo "FAIL"
+	fi
+	return "$status"
+}
+
+restart() {
+	stop
+	sleep 1
+	start
+}
+
+case "$1" in
+        start|stop|restart)
+		"$1";;
+	reload)
+		# Restart, since there is no true "reload" feature (does not
+		# reconfigure/restart on SIGHUP, just closes all open files).
+		restart;;
+        *)
+                echo "Usage: $0 {start|stop|restart|reload}"
+                exit 1
+esac

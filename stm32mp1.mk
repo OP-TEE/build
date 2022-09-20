@@ -36,6 +36,7 @@ BREXT_FLAVOR		= STM32MP157C-EV1
 STM32MP1_DTS_BASENAME	= stm32mp157c-ev1
 STM32MP1_DTS_LINUX 	?= $(STM32MP1_DTS_BASENAME)-scmi
 STM32MP1_DTS_U_BOOT 	?= $(STM32MP1_DTS_BASENAME)-scmi
+CFG_RPMB_FS_DEV_ID	= 1
 else ifeq ($(PLATFORM),stm32mp1-157C_ED1)
 BREXT_FLAVOR		= STM32MP157C-ED1
 STM32MP1_DTS_BASENAME	= stm32mp157c-ed1
@@ -52,6 +53,13 @@ endif
 STM32MP1_DTS_LINUX ?= $(STM32MP1_DTS_BASENAME)
 STM32MP1_DTS_U_BOOT ?= $(STM32MP1_DTS_BASENAME)
 STM32MP1_DEFCONFIG_U_BOOT ?= stm32mp15_defconfig
+
+# When enabled WITH_RPMB_TEST enables RPMB secure storage test configuration.
+# The configuraiton enables OP-TEE RPMB test key (CFG_RPMB_TESTKEY=y)
+# and CFG_REE_FS_ALLOW_RESET to allow testing with an empty REE_FS secure
+# storage content wihtout needing to reset the full RPMB_FS secure storage.
+# This configuration switch is intended to platforms with an eMMC device.
+WITH_RPMB_TEST ?= n
 
 ################################################################################
 # Binary images names
@@ -94,6 +102,14 @@ include toolchain.mk
 ################################################################################
 # OP-TEE OS
 ################################################################################
+ifeq ($(WITH_RPMB_TEST),y)
+CFG_RPMB_FS_DEV_ID ?= 1
+OPTEE_OS_COMMON_FLAGS += \
+		CFG_RPMB_FS_DEV_ID=$(CFG_RPMB_FS_DEV_ID) \
+		CFG_RPMB_FS=y \
+		CFG_RPMB_TESTKEY=y \
+		CFG_REE_FS_ALLOW_RESET=y
+endif # WITH_RPMB_TEST
 
 # Provide scp-firmware source tree path in case CFG_SCMI_SERVER is enabled
 OPTEE_OS_COMMON_FLAGS += CFG_SCP_FIRMWARE=$(SCPFW_PATH)
@@ -203,6 +219,13 @@ BREXT_BOOTFS_OVERLAY=$(BREXT_BOARD_PATH)/overlay-$(BREXT_FLAVOR)
 BR2_PACKAGE_HOST_GENIMAGE=y
 BR2_ROOTFS_POST_SCRIPT_ARGS="$(BREXT_GENIMAGE_CONFIG) $(BINARIES_PATH) $(BREXT_BOOTFS_OVERLAY)"
 BR2_ROOTFS_POST_IMAGE_SCRIPT=$(BREXT_BOARD_PATH)/post-image.sh
+
+ifeq ($(WITH_RPMB_TEST),y)
+# Use S30optee init.d script that runs tee-supplicant as root
+BR2_ROOTFS_OVERLAY=$(BREXT_BOARD_PATH)/overlay-$(BREXT_FLAVOR)-rpmb
+# Disable RPMB emulation in tee-supplicant
+BR2_PACKAGE_OPTEE_CLIENT_EXT_RPMB_EMU=n
+endif # WITH_RPMB_TEST
 
 # TF-A, Linux kernel, U-Boot and OP-TEE OS/Client/... are not built from their
 # related Buildroot native package.
