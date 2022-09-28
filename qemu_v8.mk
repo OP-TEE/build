@@ -331,6 +331,7 @@ endif
 
 ifeq ($(PAUTH),y)
 OPTEE_OS_COMMON_FLAGS += CFG_TA_PAUTH=y
+OPTEE_OS_COMMON_FLAGS += CFG_CORE_PAUTH=y
 endif
 ifeq ($(MEMTAG),y)
 OPTEE_OS_COMMON_FLAGS += CFG_MEMTAG=y
@@ -406,7 +407,7 @@ QEMU_VIRT	= true
 QEMU_XEN	?= -drive if=none,file=$(XEN_EXT4),format=raw,id=hd1 \
 		   -device virtio-blk-device,drive=hd1
 else
-QEMU_CPU	?= max,sve=off
+QEMU_CPU	?= max,sve=off,pauth-impdef=on
 QEMU_SMP 	?= 2
 QEMU_MEM 	?= 1057
 QEMU_VIRT	= false
