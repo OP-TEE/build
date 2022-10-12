@@ -1,3 +1,4 @@
+source "$BR2_EXTERNAL_OPTEE_PATH/package/docopt.cpp_ext/Config.in"
 source "$BR2_EXTERNAL_OPTEE_PATH/package/optee_os_ext/Config.in"
 source "$BR2_EXTERNAL_OPTEE_PATH/package/optee_client_ext/Config.in"
 source "$BR2_EXTERNAL_OPTEE_PATH/package/optee_test_ext/Config.in"
