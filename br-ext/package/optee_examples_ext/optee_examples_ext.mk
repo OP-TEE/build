@@ -8,20 +8,23 @@ OPTEE_EXAMPLES_EXT_SDK = $(BR2_PACKAGE_OPTEE_EXAMPLES_EXT_SDK)
 OPTEE_EXAMPLES_EXT_CONF_OPTS = -DOPTEE_EXAMPLES_SDK=$(OPTEE_EXAMPLES_EXT_SDK)
 
 define OPTEE_EXAMPLES_EXT_BUILD_TAS
-	@$(foreach f,$(wildcard $(@D)/*/ta/Makefile), \
-		echo Building $f && \
-			$(MAKE) CROSS_COMPILE="$(shell echo $(BR2_PACKAGE_OPTEE_EXAMPLES_EXT_CROSS_COMPILE))" \
-			O=out TA_DEV_KIT_DIR=$(OPTEE_EXAMPLES_EXT_SDK) \
-			PYTHON3=$(HOST_DIR)/bin/python3 \
-			$(TARGET_CONFIGURE_OPTS) -C $(dir $f) all &&) true
+	@for f in $(@D)/*/ta/Makefile; \
+	do \
+	  echo Building $$f && \
+	  $(MAKE) CROSS_COMPILE="$(shell echo $(BR2_PACKAGE_OPTEE_EXAMPLES_EXT_CROSS_COMPILE))" \
+	    O=out TA_DEV_KIT_DIR=$(OPTEE_EXAMPLES_EXT_SDK) \
+	    PYTHON3=$(HOST_DIR)/bin/python3 \
+	    $(TARGET_CONFIGURE_OPTS) -C $${f%/*} all; \
+	done
 endef
 
 define OPTEE_EXAMPLES_EXT_INSTALL_TAS
-	@$(foreach f,$(wildcard $(@D)/*/ta/out/*.ta), \
-		mkdir -p $(TARGET_DIR)/lib/optee_armtz && \
-		$(INSTALL) -v -p  --mode=444 \
-			--target-directory=$(TARGET_DIR)/lib/optee_armtz $f \
-			&&) true
+	@for f in $(@D)/*/ta/out/*.ta; \
+	do \
+	  mkdir -p $(TARGET_DIR)/lib/optee_armtz && \
+	  $(INSTALL) -v -p  --mode=444 \
+	    --target-directory=$(TARGET_DIR)/lib/optee_armtz $$f; \
+	done
 endef
 
 OPTEE_EXAMPLES_EXT_POST_BUILD_HOOKS += OPTEE_EXAMPLES_EXT_BUILD_TAS
