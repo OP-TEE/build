@@ -99,7 +99,7 @@ def serve_conn(conn):
                 buf = bytearray(data)
                 handle_telnet_codes(readyfd, buf)
                 if (readyfd == fd):
-                    to = sys.stdin.fileno()
+                    to = sys.stdout.fileno()
                 else:
                     to = fd
             except ConnectionResetError:
