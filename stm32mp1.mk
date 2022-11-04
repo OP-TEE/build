@@ -59,6 +59,7 @@ LINUX_DTB_BIN		:= $(STM32MP1_DTS_BASENAME).dtb
 BINARIES_PATH		?= $(ROOT)/out/bin
 TFA_PATH		?= $(ROOT)/trusted-firmware-a
 U_BOOT_PATH		?= $(ROOT)/u-boot
+SCPFW_PATH		?= $(ROOT)/scp-firmware
 
 define install_in_binaries
 	echo "  INSTALL $(shell basename $1) to $(BINARIES_PATH)" && \
@@ -80,6 +81,10 @@ include toolchain.mk
 ################################################################################
 # OP-TEE OS
 ################################################################################
+
+# Provide scp-firmware source tree path in case CFG_SCMI_SERVER is enabled
+OPTEE_OS_COMMON_FLAGS += CFG_SCP_FIRMWARE=$(SCPFW_PATH)
+
 optee-os: optee-os-common
 	@$(call install_in_binaries,$(OPTEE_OS_PATH)/out/arm/core/$(OPTEE_HEADER_BIN))
 	@$(call install_in_binaries,$(OPTEE_OS_PATH)/out/arm/core/$(OPTEE_PAGER_BIN))
