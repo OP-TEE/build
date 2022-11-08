@@ -14,6 +14,12 @@ proc check_keyctl_result arg {
 			set ::$arg $expect_out(1,string)
 			exp_continue
 		}
+		"add_key: No such device" {
+			info [join {"Skipping test due to 'No such device':"
+				    "trusted keys are not supported"
+				    "(missing driver? CFG_CORE_DYN_SHM=n?)\n"}]
+			exit 0
+		}
 		"FAILED" {
 			info "!!! Error\n"
 			exit 1
