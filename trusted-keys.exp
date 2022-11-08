@@ -4,25 +4,18 @@
 # source. The return code is 0 for success, >0 for error.
 #
 
-set timeout 60
+set timeout 5
 set tk_id 0
 set ek_id 0
+# Wait for next prompt, dealing with key ID, failure message and timeout
 proc check_keyctl_result arg {
 	expect {
-		-re "(\n)(\\d+)\r" {
-			set ::$arg $expect_out(2,string)
+		-re {(\d+)\r} {
+			set ::$arg $expect_out(1,string)
 			exp_continue
 		}
-		-re "Operation not permitted" {
-			info "keyctl failed: Operation not permitted\n"
-			exit 1
-		}
-		-re "No such device" {
-			info "keyctl failed: Trusted Keys support missing\n"
-			exit 1
-		}
-		-re "\n---" {
-			info "keyctl failed: mismatch\n"
+		"FAILED" {
+			info "!!! Error\n"
 			exit 1
 		}
 		timeout {
@@ -32,29 +25,35 @@ proc check_keyctl_result arg {
 		"# "
 	}
 }
+proc run_cmd arg {
+	send -- [append arg " || fail\r"]
+}
 info "Running: keyctl tests...\n"
-send -- "keyctl add trusted kmk \"new 32\" @u\r"
+expect "# "
+send -- "function fail { echo FAILED ; }\r"
+expect "# "
+run_cmd "keyctl add trusted kmk \"new 32\" @u"
 check_keyctl_result tk_id
-send -- "keyctl add encrypted evm \"new trusted:kmk 32\" @u\r"
+run_cmd "keyctl add encrypted evm \"new trusted:kmk 32\" @u"
 check_keyctl_result ek_id
-send -- "keyctl pipe $tk_id > kmk.blob\r"
+run_cmd "keyctl pipe $tk_id > kmk.blob"
 check_keyctl_result tk_id
-send -- "keyctl pipe $ek_id > evm.blob\r"
+run_cmd "keyctl pipe $ek_id > evm.blob"
 check_keyctl_result ek_id
-send -- "keyctl revoke $ek_id\r"
+run_cmd "keyctl revoke $ek_id"
 check_keyctl_result ek_id
-send -- "keyctl revoke $tk_id\r"
+run_cmd "keyctl revoke $tk_id"
 check_keyctl_result tk_id
-send -- "keyctl add trusted kmk \"load `cat kmk.blob`\" @u\r"
+run_cmd "keyctl add trusted kmk \"load `cat kmk.blob`\" @u"
 check_keyctl_result tk_id
-send -- "keyctl add encrypted evm \"load `cat evm.blob`\" @u\r"
+run_cmd "keyctl add encrypted evm \"load `cat evm.blob`\" @u"
 check_keyctl_result ek_id
-send -- "keyctl pipe $tk_id > kmk.blob2\r"
+run_cmd "keyctl pipe $tk_id > kmk.blob2"
 check_keyctl_result tk_id
-send -- "keyctl pipe $ek_id > evm.blob2\r"
+run_cmd "keyctl pipe $ek_id > evm.blob2"
 check_keyctl_result ek_id
-send -- "diff kmk.blob kmk.blob2\r"
+run_cmd "diff kmk.blob kmk.blob2"
 check_keyctl_result tk_id
-send -- "diff evm.blob evm.blob2\r"
+run_cmd "diff evm.blob evm.blob2"
 check_keyctl_result ek_id
 info "Status: keyctl tests successful\n"
