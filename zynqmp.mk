@@ -9,12 +9,7 @@ override COMPILE_S_USER    := 64
 override COMPILE_S_KERNEL  := 64
 
 PLATFORM := zynqmp-zcu102
-
-ifeq ($(PLATFORM),zynqmp-ultra96)
-OPTEE_OS_PLATFORM = zynqmp-ultra96
-else
-OPTEE_OS_PLATFORM = zynqmp-zcu102
-endif
+OPTEE_OS_PLATFORM = $(PLATFORM)
 
 DTS_zynqmp-zcu102 = zynqmp-zcu102-rev1.0
 DTS_zynqmp-zcu104 = zynqmp-zcu104-revC
