@@ -3,7 +3,7 @@ OPTEE_TEST_EXT_SOURCE = local
 OPTEE_TEST_EXT_SITE = $(BR2_PACKAGE_OPTEE_TEST_EXT_SITE)
 OPTEE_TEST_EXT_SITE_METHOD = local
 OPTEE_TEST_EXT_INSTALL_STAGING = YES
-OPTEE_TEST_EXT_DEPENDENCIES = optee_client_ext openssl host-python3-pycryptodomex host-python-cryptography
+OPTEE_TEST_EXT_DEPENDENCIES = optee_client_ext openssl host-python-cryptography
 OPTEE_TEST_EXT_SDK = $(BR2_PACKAGE_OPTEE_TEST_EXT_SDK)
 OPTEE_TEST_EXT_CONF_OPTS = -DOPTEE_TEST_SDK=$(OPTEE_TEST_EXT_SDK)
 # os_test has dependencies, this enforces a valid build order
