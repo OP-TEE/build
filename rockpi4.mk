@@ -145,13 +145,19 @@ clean: optee-os-clean
 ################################################################################
 # Boot image, shall be copied to SD card
 ################################################################################
+
 # U-Boot offset comes from CONFIG_SYS_MMCSD_RAW_MODE_U_BOOT_SECTOR=0x4000
 # Partition no. 5 ends at 12288 + BR2_TARGET_ROOTFS_EXT2_SIZE (in kiB)
+# File size needs to be slightly bigger to accomodate for whatever meta-data
+rootfs-size-kib := $(shell echo $(BR2_TARGET_ROOTFS_EXT2_SIZE) | sed 's/M/*1024/')
+p5-end-kib := $(shell echo $$((12288 + $(rootfs-size-kib))))
+img-size-kib := $(shell echo $$(($(p5-end-kib) + 1024)))
+
 .PHONY: boot-img
 boot-img: u-boot buildroot $(LINUX_PATH)/arch/arm64/boot/Image.gz
 	mkdir -p $(BINARIES_PATH)
 	rm -f $(BOOT_IMG)
-	truncate -s 128MiB $(BOOT_IMG)
+	truncate -s $(img-size-kib)KiB $(BOOT_IMG)
 	parted -s $(BOOT_IMG) \
 		unit kiB \
 		mklabel gpt \
@@ -159,7 +165,7 @@ boot-img: u-boot buildroot $(LINUX_PATH)/arch/arm64/boot/Image.gz
 		mkpart primary fat32 4032 4096 \
 		mkpart primary fat32 4096 8192 \
 		mkpart uboot 8192 12288 \
-		mkpart root fat32 12288 126976
+		mkpart root fat32 12288 $(p5-end-kib)
 	sgdisk -u 5:17d61bff-8fdc-4089-b675-9be21b9f6ac7 $(BOOT_IMG)
 	dd if=$(UBOOT_PATH)/idbloader.img of=$(BOOT_IMG) bs=1kiB seek=32 conv=notrunc
 	dd if=$(UBOOT_PATH)/u-boot.itb of=$(BOOT_IMG) bs=1kiB seek=8192 conv=notrunc
