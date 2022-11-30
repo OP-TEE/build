@@ -147,7 +147,8 @@ TF_A_FLAGS ?= \
 	SPD=opteed
 
 ifneq ($(MEASURED_BOOT),y)
-	TF_A_FLAGS += DEBUG=$(DEBUG)
+	TF_A_FLAGS += DEBUG=$(DEBUG) \
+		          MEASURED_BOOT=0
 else
 	TF_A_FLAGS += DEBUG=0 \
 		      MBEDTLS_DIR=$(ROOT)/mbedtls  \
