@@ -31,18 +31,19 @@ endif
 #
 # Parameter list:
 # 1 - SP deployment name (e.g. internal-trusted-storage, crypto, etc.)
-# 2 - SP canonical UUID (e.g. dc1eef48-b17a-4ccf-ac8b-dfcff7711b14)
-# 3 - SP additional build flags (e.g. -DTS_PLATFORM=<...>)
+# 2 - Build configuration name (e.g. config/shared-flash)
+# 3 - SP canonical UUID (e.g. dc1eef48-b17a-4ccf-ac8b-dfcff7711b14)
+# 4 - SP additional build flags (e.g. -DTS_PLATFORM=<...>)
 define build-sp
 .PHONY: ffa-$1-sp
 ffa-$1-sp:
 	CROSS_COMPILE=$(subst $(CCACHE),,$(CROSS_COMPILE_S_USER)) cmake -G"Unix Makefiles" \
-		-S $(TS_PATH)/deployments/$1/opteesp -B $(TS_BUILD_PATH)/$1 \
+		-S $(TS_PATH)/deployments/$1/$2 -B $(TS_BUILD_PATH)/$1 \
 		-DCMAKE_INSTALL_PREFIX=$(TS_INSTALL_PREFIX) \
-		-DCMAKE_C_COMPILER_LAUNCHER=$(CCACHE) $(SP_COMMON_FLAGS) $3
+		-DCMAKE_C_COMPILER_LAUNCHER=$(CCACHE) $(SP_COMMON_FLAGS) $4
 	$$(MAKE) -C $(TS_BUILD_PATH)/$1 install
-	dtc -I dts -O dtb -o $(TS_INSTALL_PREFIX)/opteesp/manifest/$2.dtb \
-				$(TS_INSTALL_PREFIX)/opteesp/manifest/$2.dts
+	dtc -I dts -O dtb -o $(TS_INSTALL_PREFIX)/opteesp/manifest/$3.dtb \
+				$(TS_INSTALL_PREFIX)/opteesp/manifest/$3.dts
 
 .PHONY: ffa-$1-sp-clean
 ffa-$1-sp-clean:
@@ -56,7 +57,7 @@ ffa-sp-all: ffa-$1-sp
 ffa-sp-all-clean: ffa-$1-sp-clean
 ffa-sp-all-realclean: ffa-$1-sp-realclean
 
-optee_os_sp_paths += $(TS_INSTALL_PREFIX)/opteesp/bin/$2.stripped.elf
+optee_os_sp_paths += $(TS_INSTALL_PREFIX)/opteesp/bin/$3.stripped.elf
 endef
 
 ifeq ($(SP_PACKAGING_METHOD),embedded)
