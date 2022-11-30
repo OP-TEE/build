@@ -23,11 +23,24 @@ RKDEVELOPTOOL_PATH	?= $(ROOT)/rkdeveloptool
 RKDEVELOPTOOL_BIN	?= $(RKDEVELOPTOOL_PATH)/rkdeveloptool
 LOADER_BIN		?= $(BINARIES_PATH)/rk3399_loader_v1.20.119.bin
 
-BR2_TARGET_ROOTFS_CPIO=n
-BR2_TARGET_ROOTFS_CPIO_GZIP=n
-BR2_TARGET_ROOTFS_EXT2=y
-BR2_TARGET_ROOTFS_EXT2_SIZE=112M
-BR2_TARGET_GENERIC_GETTY_PORT=ttyS2
+LINUX_MODULES ?= n
+
+BR2_TARGET_ROOTFS_CPIO = n
+BR2_TARGET_ROOTFS_CPIO_GZIP = n
+BR2_TARGET_ROOTFS_EXT2 = y
+BR2_TARGET_GENERIC_GETTY_PORT = ttyS2
+ifeq ($(LINUX_MODULES),y)
+# If modules are installed...
+# ...enable automatic device detection and driver loading
+BR2_ROOTFS_DEVICE_CREATION_DYNAMIC_EUDEV = y
+# ...and configure eth0 automatically based on ifup helpers
+BR2_PACKAGE_IFUPDOWN_SCRIPTS = y
+BR2_SYSTEM_DHCP = eth0
+# An image with module takes more space
+BR2_TARGET_ROOTFS_EXT2_SIZE = 256M
+else
+BR2_TARGET_ROOTFS_EXT2_SIZE = 112M
+endif
 
 ################################################################################
 # Targets
@@ -107,10 +120,15 @@ LINUX_DEFCONFIG_COMMON_FILES ?= $(LINUX_PATH)/arch/arm64/configs/defconfig \
 .PHONY: linux-defconfig
 linux-defconfig: $(LINUX_PATH)/.config
 
-LINUX_COMMON_FLAGS += ARCH=arm64 Image rockchip/rk3399-rock-pi-4b.dtb
+LINUX_COMMON_FLAGS += ARCH=arm64 Image rockchip/rk3399-rock-pi-4b.dtb \
+			$(if $(filter y,$(LINUX_MODULES)),modules)
 
 .PHONY: linux
 linux: linux-common
+ifeq ($(LINUX_MODULES),y)
+	$(MAKE) -C $(LINUX_PATH) ARCH=arm64 modules_install \
+		INSTALL_MOD_PATH=$(BINARIES_PATH)/modules
+endif
 
 $(LINUX_PATH)/arch/arm64/boot/Image.gz: linux
 	gzip -c $(LINUX_PATH)/arch/arm64/boot/Image >$@
@@ -172,6 +190,9 @@ boot-img: u-boot buildroot $(LINUX_PATH)/arch/arm64/boot/Image.gz
 	e2mkdir $(ROOT_IMG):/boot
 	e2cp $(LINUX_PATH)/arch/arm64/boot/Image.gz $(ROOT_IMG):/boot
 	e2cp $(LINUX_PATH)/arch/arm64/boot/dts/rockchip/rk3399-rock-pi-4b.dtb $(ROOT_IMG):/boot
+ifeq ($(LINUX_MODULES),y)
+	find $(BINARIES_PATH)/modules -type f | while read f; do e2cp -a $$f $(ROOT_IMG):$$(echo $$f | sed s@$(BINARIES_PATH)/modules@@); done
+endif
 	dd if=$(ROOT_IMG) of=$(BOOT_IMG) bs=1kiB seek=12288 conv=notrunc
 
 .PHONY: boot-img-clean
