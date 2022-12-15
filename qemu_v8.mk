@@ -160,6 +160,8 @@ TF_A_FLAGS ?= \
 	BL33=$(BL33_BIN) \
 	PLAT=qemu \
 	QEMU_USE_GIC_DRIVER=$(TFA_GIC_DRIVER) \
+	ENABLE_SVE_FOR_NS=1 \
+	ENABLE_SVE_FOR_SWD=1 \
 	BL32_RAM_LOCATION=tdram \
 	DEBUG=$(TF_A_DEBUG) \
 	LOG_LEVEL=$(TF_A_LOGLVL)
@@ -407,7 +409,7 @@ QEMU_VIRT	= true
 QEMU_XEN	?= -drive if=none,file=$(XEN_EXT4),format=raw,id=hd1 \
 		   -device virtio-blk-device,drive=hd1
 else
-QEMU_CPU	?= max,sve=off,pauth-impdef=on
+QEMU_CPU	?= max,pauth-impdef=on
 QEMU_SMP 	?= 2
 QEMU_MEM 	?= 1057
 QEMU_VIRT	= false
