@@ -7,7 +7,7 @@ TS_SMM_GATEWAY			?= y
 TS_UEFI_TESTS			?= y
 # Supported values: embedded, fip
 SP_PACKAGING_METHOD		?= embedded
-SPMC_TESTS			?= y
+SPMC_TESTS			?= n
 
 TF_A_FLAGS ?= \
 	BL32=$(OPTEE_OS_PAGER_V2_BIN) \
