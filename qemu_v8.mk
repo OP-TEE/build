@@ -216,15 +216,20 @@ ifeq ($(TF_A_TRUSTED_BOARD_BOOT),y)
 	ln -sf $(TF_A_OUT)/nt_fw_key.crt $(BINARIES_PATH)
 	ln -sf $(TF_A_OUT)/nt_fw_content.crt $(BINARIES_PATH)
 endif
+	rm -f $(BINARIES_PATH)/bl32.bin
+	rm -f $(BINARIES_PATH)/bl32_extra1.bin
+	rm -f $(BINARIES_PATH)/bl32_extra2.bin
+	rm -f $(BINARIES_PATH)/tos_fw_config.dtb
 ifeq ($(SPMC_AT_EL),1)
 	ln -sf $(TF_A_OUT)/fdts/spmc_el1_manifest.dtb \
 		$(BINARIES_PATH)/tos_fw_config.dtb
+	ln -sf $(OPTEE_OS_HEADER_V2_BIN) $(BINARIES_PATH)/bl32.bin
+	ln -sf $(OPTEE_OS_PAGER_V2_BIN) $(BINARIES_PATH)/bl32_extra1.bin
+	ln -sf $(OPTEE_OS_PAGEABLE_V2_BIN) $(BINARIES_PATH)/bl32_extra2.bin
 else ifeq ($(SPMC_AT_EL),3)
 	ln -sf $(TF_A_OUT)/fdts/spmc_el3_manifest.dtb \
 		$(BINARIES_PATH)/tos_fw_config.dtb
 	ln -sf $(OPTEE_OS_PAGER_V2_BIN) $(BINARIES_PATH)/bl32.bin
-	rm -f $(BINARIES_PATH)/bl32_extra1.bin
-	rm -f $(BINARIES_PATH)/bl32_extra2.bin
 else
 	ln -sf $(OPTEE_OS_HEADER_V2_BIN) $(BINARIES_PATH)/bl32.bin
 	ln -sf $(OPTEE_OS_PAGER_V2_BIN) $(BINARIES_PATH)/bl32_extra1.bin
