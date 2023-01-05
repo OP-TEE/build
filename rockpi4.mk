@@ -38,6 +38,10 @@ BR2_PACKAGE_IFUPDOWN_SCRIPTS = y
 BR2_SYSTEM_DHCP = eth0
 # An image with module takes more space
 BR2_TARGET_ROOTFS_EXT2_SIZE = 256M
+# Enable SSH daemon for remote login
+BR2_PACKAGE_OPENSSH = y
+BR2_PACKAGE_OPENSSH_SERVER = y
+BR2_ROOTFS_POST_BUILD_SCRIPT = $(ROOT)/build/br-ext/board/rockpi4/post-build.sh
 else
 BR2_TARGET_ROOTFS_EXT2_SIZE = 112M
 endif
