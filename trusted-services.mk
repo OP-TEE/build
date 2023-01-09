@@ -14,11 +14,28 @@ optee-os-common: ffa-sp-all
 optee-os-clean: ffa-sp-all-clean
 
 ffa-sp-all-realclean:
-	rm -rf $(TS_INSTALL_PREFIX)/opteesp
+	rm -rf $(TS_INSTALL_PREFIX)/opteesp $(TS_INSTALL_PREFIX)/sp
 
 ifneq ($(COMPILE_S_USER),64)
 $(error Trusted Services SPs only support AArch64)
 endif
+
+SP_EXT-opteesp := stripped.elf
+SP_EXT-sp := bin
+
+# The macro sets a variable if the source variable is defined, otherwise it
+# results in an error.
+# Parameter list:
+# 1 - Destination variable name
+# 2 - Source variable name
+# 3 - Error message
+define set_if_source_defined
+ifndef $(2)
+$$(error $(3))
+else
+$(1) := $($(2))
+endif
+endef
 
 # Helper macro to build and install Trusted Services Secure Partitions (SPs).
 # Invokes CMake to configure, and make to build and install the SP. (CMake's
@@ -35,6 +52,9 @@ endif
 # 3 - SP canonical UUID (e.g. dc1eef48-b17a-4ccf-ac8b-dfcff7711b14)
 # 4 - SP additional build flags (e.g. -DTS_PLATFORM=<...>)
 define build-sp
+$(eval SP_DIR := $(lastword $(subst -, ,$(2))))
+$(eval $(call set_if_source_defined,SP_EXT,SP_EXT-$(lastword $(subst -, ,$(2))),Invalid $(1) SP configuration: $(2)))
+
 .PHONY: ffa-$1-sp
 ffa-$1-sp:
 	CROSS_COMPILE=$(subst $(CCACHE),,$(CROSS_COMPILE_S_USER)) cmake -G"Unix Makefiles" \
@@ -42,8 +62,8 @@ ffa-$1-sp:
 		-DCMAKE_INSTALL_PREFIX=$(TS_INSTALL_PREFIX) \
 		-DCMAKE_C_COMPILER_LAUNCHER=$(CCACHE) $(SP_COMMON_FLAGS) $4
 	$$(MAKE) -C $(TS_BUILD_PATH)/$1 install
-	dtc -I dts -O dtb -o $(TS_INSTALL_PREFIX)/opteesp/manifest/$3.dtb \
-				$(TS_INSTALL_PREFIX)/opteesp/manifest/$3.dts
+	dtc -I dts -O dtb -o $(TS_INSTALL_PREFIX)/$(SP_DIR)/manifest/$3.dtb \
+				$(TS_INSTALL_PREFIX)/$(SP_DIR)/manifest/$3.dts
 
 .PHONY: ffa-$1-sp-clean
 ffa-$1-sp-clean:
@@ -57,7 +77,7 @@ ffa-sp-all: ffa-$1-sp
 ffa-sp-all-clean: ffa-$1-sp-clean
 ffa-sp-all-realclean: ffa-$1-sp-realclean
 
-optee_os_sp_paths += $(TS_INSTALL_PREFIX)/opteesp/bin/$3.stripped.elf
+optee_os_sp_paths += $(TS_INSTALL_PREFIX)/$(SP_DIR)/bin/$3.$(SP_EXT)
 endef
 
 ifeq ($(SP_PACKAGING_METHOD),embedded)
@@ -66,7 +86,7 @@ OPTEE_OS_COMMON_EXTRA_FLAGS += SP_PATHS="$(optee_os_sp_paths)"
 else ifeq ($(SP_PACKAGING_METHOD),fip)
 # Configure TF-A to load the SPs from FIP by BL2
 TF_A_FIP_SP_FLAGS += ARM_BL2_SP_LIST_DTS=$(ROOT)/build/fvp/bl2_sp_list.dtsi \
-		SP_LAYOUT_FILE=$(TS_INSTALL_PREFIX)/opteesp/json/sp_layout.json
+		SP_LAYOUT_FILE=$(TS_INSTALL_PREFIX)/$(SP_DIR)/json/sp_layout.json
 
 # This should be removed when TF-A is updated to v2.7 or later
 $(call force,MEASURED_BOOT,n,Need TF-A v2.7 for FIP SPs with Measured Boot)
