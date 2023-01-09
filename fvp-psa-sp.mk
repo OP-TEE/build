@@ -9,6 +9,15 @@ TS_UEFI_TESTS			?= y
 SP_PACKAGING_METHOD		?= embedded
 SPMC_TESTS			?= y
 
+# TS SP configurations
+DEFAULT_SP_CONFIG		?= default-opteesp
+SP_BLOCK_STORAGE_CONFIG	?= $(DEFAULT_SP_CONFIG)
+SP_PSA_ITS_CONFIG		?= $(DEFAULT_SP_CONFIG)
+SP_PSA_PS_CONFIG		?= $(DEFAULT_SP_CONFIG)
+SP_PSA_CRYPTO_CONFIG		?= $(DEFAULT_SP_CONFIG)
+SP_PSA_ATTESTATION_CONFIG	?= $(DEFAULT_SP_CONFIG)
+SP_SMM_GATEWAY_CONFIG		?= $(DEFAULT_SP_CONFIG)
+
 TF_A_FLAGS ?= \
 	BL32=$(OPTEE_OS_PAGER_V2_BIN) \
 	BL33=$(EDK2_BIN) \
@@ -30,15 +39,15 @@ OPTEE_OS_COMMON_EXTRA_FLAGS += \
 
 # The boot order of the SPs is determined by the order of calls here. This is
 # due to the SPMC not (yet) supporting the boot order field of the SP manifest.
-$(eval $(call build-sp,block-storage,config/default-opteesp,63646e80-eb52-462f-ac4f-8cdf3987519c,$(SP_BLOCK_STORAGE_EXTRA_FLAGS)))
-$(eval $(call build-sp,internal-trusted-storage,config/shared-flash-opteesp,dc1eef48-b17a-4ccf-ac8b-dfcff7711b14,$(SP_PSA_ITS_EXTRA_FLAGS)))
-$(eval $(call build-sp,protected-storage,config/shared-flash-opteesp,751bf801-3dde-4768-a514-0f10aeed1790,$(SP_PSA_PS_EXTRA_FLAGS)))
-$(eval $(call build-sp,crypto,config/default-opteesp,d9df52d5-16a2-4bb2-9aa4-d26d3b84e8c0,$(SP_PSA_CRYPTO_EXTRA_FLAGS)))
+$(eval $(call build-sp,block-storage,config/$(SP_BLOCK_STORAGE_CONFIG),63646e80-eb52-462f-ac4f-8cdf3987519c,$(SP_BLOCK_STORAGE_EXTRA_FLAGS)))
+$(eval $(call build-sp,internal-trusted-storage,config/$(SP_PSA_ITS_CONFIG),dc1eef48-b17a-4ccf-ac8b-dfcff7711b14,$(SP_PSA_ITS_EXTRA_FLAGS)))
+$(eval $(call build-sp,protected-storage,config/$(SP_PSA_PS_CONFIG),751bf801-3dde-4768-a514-0f10aeed1790,$(SP_PSA_PS_EXTRA_FLAGS)))
+$(eval $(call build-sp,crypto,config/$(SP_PSA_CRYPTO_CONFIG),d9df52d5-16a2-4bb2-9aa4-d26d3b84e8c0,$(SP_PSA_CRYPTO_EXTRA_FLAGS)))
 ifeq ($(MEASURED_BOOT),y)
-$(eval $(call build-sp,attestation,config/default-opteesp,a1baf155-8876-4695-8f7c-54955e8db974,$(SP_PSA_ATTESTATION_EXTRA_FLAGS)))
+$(eval $(call build-sp,attestation,config/$(SP_PSA_ATTESTATION_CONFIG),a1baf155-8876-4695-8f7c-54955e8db974,$(SP_PSA_ATTESTATION_EXTRA_FLAGS)))
 endif
 ifeq ($(TS_SMM_GATEWAY),y)
-$(eval $(call build-sp,smm-gateway,config/default-opteesp,ed32d533-99e6-4209-9cc0-2d72cdd998a7,$(SP_SMM_GATEWAY_EXTRA_FLAGS)))
+$(eval $(call build-sp,smm-gateway,config/$(SP_SMM_GATEWAY_CONFIG),ed32d533-99e6-4209-9cc0-2d72cdd998a7,$(SP_SMM_GATEWAY_EXTRA_FLAGS)))
 endif
 
 $(eval $(call build-ts-app,libts))
