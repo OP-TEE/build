@@ -4,10 +4,10 @@ FVP_VIRTFS_AUTOMOUNT		?= y
 MEASURED_BOOT			?= y
 MEASURED_BOOT_FTPM		?= n
 TS_SMM_GATEWAY			?= y
-TS_UEFI_TESTS			?= y
+TS_UEFI_TESTS			?= n
 # Supported values: embedded, fip
 SP_PACKAGING_METHOD		?= embedded
-SPMC_TESTS			?= y
+SPMC_TESTS			?= n
 
 # TS SP configurations
 DEFAULT_SP_CONFIG		?= default-opteesp
