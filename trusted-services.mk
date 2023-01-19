@@ -87,9 +87,6 @@ else ifeq ($(SP_PACKAGING_METHOD),fip)
 # Configure TF-A to load the SPs from FIP by BL2
 TF_A_FIP_SP_FLAGS += ARM_BL2_SP_LIST_DTS=$(ROOT)/build/fvp/bl2_sp_list.dtsi \
 		SP_LAYOUT_FILE=$(TS_INSTALL_PREFIX)/$(SP_DIR)/json/sp_layout.json
-
-# This should be removed when TF-A is updated to v2.7 or later
-$(call force,MEASURED_BOOT,n,Need TF-A v2.7 for FIP SPs with Measured Boot)
 endif
 
 ################################################################################
