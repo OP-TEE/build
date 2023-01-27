@@ -20,6 +20,7 @@ BR2_PACKAGE_OPENSSH_KEY_UTILS ?= y
 
 PLATFORM = versal-vck190
 OPTEE_OS_PLATFORM = versal
+OPTEE_OS_COMMON_EXTRA_FLAGS = CFG_PKCS11_TA=y CFG_USER_TA_TARGET_pkcs11=ta_arm64 O=out/arm
 
 ################################################################################
 # Paths to git projects and various binaries
