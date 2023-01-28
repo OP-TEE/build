@@ -99,7 +99,7 @@ BL33_DEPS		?= edk2
 endif
 
 XEN_PATH		?= $(ROOT)/xen
-XEN_IMAGE		?= $(ROOT)/out-br/build/xen-4.14.3/xen/xen.efi
+XEN_IMAGE		?= $(ROOT)/out-br/build/xen-4.14.5/xen/xen.efi
 XEN_EXT4		?= $(BINARIES_PATH)/xen.ext4
 XEN_CFG			?= $(ROOT)/build/qemu_v8/xen/xen.cfg
 
