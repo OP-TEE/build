@@ -185,6 +185,9 @@ endif
 ifneq ($(CHECK_TESTS),)
 check-args += --tests $(CHECK_TESTS)
 endif
+ifneq ($(XTEST_ARGS),)
+check-args += --xtest-args "$(XTEST_ARGS)"
+endif
 
 check: $(CHECK_DEPS)
 	ln -sf $(ROOT)/out-br/images/rootfs.cpio.gz $(BINARIES_PATH)/
