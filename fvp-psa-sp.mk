@@ -12,6 +12,8 @@ SPMC_TESTS			?= n
 # Enable the "HArdware Volatile Entropy Gathering and Expansion" daemon to
 # overcome low-entropy conditions in the FVP
 BR2_PACKAGE_HAVEGED		?= y
+SPMC_TESTS			?= y
+TS_RPC_UUID			?= y
 
 # TS SP configurations
 DEFAULT_SP_CONFIG		?= default-opteesp
@@ -40,6 +42,17 @@ OPTEE_OS_COMMON_EXTRA_FLAGS += \
 	CFG_CORE_HEAP_SIZE=131072 \
 	CFG_DT=y \
 	CFG_MAP_EXT_DT_SECURE=y
+
+
+ifeq ($(TS_RPC_UUID),y)
+TS_RPC_UUID="bdcd76d7-825e-4751-963b-86d4f84943ac"
+SP_BLOCK_STORAGE_EXTRA_FLAGS +=-DTS_RPC_UUID=$(TS_RPC_UUID)
+SP_PSA_ITS_EXTRA_FLAGS +=-DTS_RPC_UUID=$(TS_RPC_UUID)
+SP_PSA_PS_EXTRA_FLAGS +=-DTS_RPC_UUID=$(TS_RPC_UUID)
+SP_PSA_CRYPTO_EXTRA_FLAGS +=-DTS_RPC_UUID=$(TS_RPC_UUID)
+SP_PSA_ATTESTATION_EXTRA_FLAGS +=-DTS_RPC_UUID=$(TS_RPC_UUID)
+SP_SMM_GATEWAY_EXTRA_FLAGS +=-DTS_RPC_UUID=$(TS_RPC_UUID)
+endif
 
 # The boot order of the SPs is determined by the order of calls here. This is
 # due to the SPMC not (yet) supporting the boot order field of the SP manifest.
