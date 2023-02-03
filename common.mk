@@ -553,6 +553,10 @@ optee-os-common:
 optee-os-clean-common:
 	$(MAKE) -C $(OPTEE_OS_PATH) $(OPTEE_OS_COMMON_FLAGS) clean
 
+.PHONY: optee-os-devkit
+optee-os-devkit:
+	$(MAKE) -C $(OPTEE_OS_PATH) $(OPTEE_OS_COMMON_FLAGS) ta_dev_kit
+
 ################################################################################
 # fTPM Rules
 ################################################################################
@@ -570,7 +574,7 @@ FTPM_FLAGS ?= 						\
 .PHONY: ftpm
 ftpm:
 ifeq ($(MEASURED_BOOT_FTPM),y)
-ftpm: optee-os
+ftpm: optee-os-devkit
 	$(FTPM_FLAGS) $(MAKE) -C $(FTPM_PATH)
 endif
 
