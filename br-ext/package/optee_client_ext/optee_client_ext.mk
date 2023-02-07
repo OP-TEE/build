@@ -31,12 +31,10 @@ endef
 # User tee is used to run tee-supplicant because access to /dev/teepriv0 is
 # restricted to group tee.
 # Any user in group teeclnt (such as test) may run client applications.
-# Any user in group ion may access /dev/ion
 define OPTEE_CLIENT_EXT_USERS
 	tee -1 tee -1 * - /bin/sh - TEE user
 	- -1 teeclnt -1 - - - - TEE users group
-	- -1 ion -1 - - - - ION users group
-	test -1 test -1 - - /bin/sh teeclnt,ion Test user, may run TEE client applications
+	test -1 test -1 - - /bin/sh teeclnt Test user, may run TEE client applications
 endef
 
 $(eval $(cmake-package))
