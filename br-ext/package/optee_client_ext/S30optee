@@ -19,17 +19,6 @@ start() {
 		echo "FAIL"
 		return "$status"
 	fi
-	if [ -e /dev/ion ]; then
-		printf 'Set permissions on %s: ' "/dev/ion"
-		chown root:ion /dev/ion && chmod 0660 /dev/ion
-		status=$?
-		if [ "$status" -eq 0 ]; then
-			echo "OK"
-		else
-			echo "FAIL"
-			return "$status"
-		fi
-	fi
 	printf 'Create/set permissions on %s: ' "/data/tee"
 	mkdir -p /data/tee && chown -R tee:tee /data/tee && chmod 0770 /data/tee
 	status=$?
