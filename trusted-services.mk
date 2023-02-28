@@ -160,9 +160,15 @@ ffa-$1:
 	CROSS_COMPILE=$(subst $(CCACHE),,$(CROSS_COMPILE_NS_USER)) cmake -G"Unix Makefiles" \
 		-S $(TS_PATH)/deployments/$1/arm-linux -B $(TS_BUILD_PATH)/$1 \
 		-DCMAKE_INSTALL_PREFIX=$(TS_INSTALL_PREFIX) \
+		-Dlibts_DIR=${TS_INSTALL_PREFIX}/arm-linux/lib/cmake/libts \
+		-DCFG_FORCE_PREBUILT_LIBTS=On \
 		-DCMAKE_C_COMPILER_LAUNCHER=$(CCACHE) $(TS_APP_COMMON_FLAGS) \
 		$(TS_APP_${FFA_$1_UC_NAME}_EXTRA_FLAGS)
 	$$(MAKE) -C $(TS_BUILD_PATH)/$1 install
+
+ifneq ($1,libts)
+ffa-$1: ffa-libts
+endif
 
 .PHONY: ffa-$1-clean
 ffa-$1-clean:
