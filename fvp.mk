@@ -329,4 +329,4 @@ FVP_ARGS ?= \
 endif
 
 run-only:
-	$(FVP_PATH)/$(FVP_BIN) $(FVP_ARGS)
+	$(FVP_PATH)/$(FVP_BIN) $(FVP_ARGS) $(FVP_EXTRA_ARGS)
