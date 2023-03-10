@@ -233,7 +233,7 @@ arm-tf-clean:
 # QEMU
 ################################################################################
 $(QEMU_BUILD)/config-host.mak:
-	cd $(QEMU_PATH); ./configure --target-list=aarch64-softmmu\
+	cd $(QEMU_PATH); ./configure --target-list=aarch64-softmmu --enable-slirp\
 			$(QEMU_CONFIGURE_PARAMS_COMMON)
 
 qemu: $(QEMU_BUILD)/config-host.mak
