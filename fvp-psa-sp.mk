@@ -9,6 +9,10 @@ TS_UEFI_TESTS			?= n
 SP_PACKAGING_METHOD		?= embedded
 SPMC_TESTS			?= n
 
+# Enable the "HArdware Volatile Entropy Gathering and Expansion" daemon to
+# overcome low-entropy conditions in the FVP
+BR2_PACKAGE_HAVEGED		?= y
+
 # TS SP configurations
 DEFAULT_SP_CONFIG		?= default-opteesp
 SP_BLOCK_STORAGE_CONFIG	?= $(DEFAULT_SP_CONFIG)
