@@ -103,8 +103,8 @@ linux-arm-ffa-tee: linux
 linux-arm-ffa-tee-clean:
 	$(MAKE) -C $(ROOT)/linux-arm-ffa-tee clean
 
-# This driver is only used by the uefi-test app
-ifeq ($(TS_UEFI_TESTS),y)
+# This driver is only used by the uefi-test app or the spmc tests
+ifneq ($(filter y, $(TS_UEFI_TESTS) $(SPMC_TESTS)),)
 .PHONY: linux-arm-ffa-user linux-arm-ffa-user-clean
 all: linux-arm-ffa-user
 
