@@ -489,11 +489,18 @@ define launch-terminal
 endef
 else
 gnome-terminal := $(shell command -v gnome-terminal 2>/dev/null)
+konsole := $(shell command -v konsole 2>/dev/null)
 xterm := $(shell command -v xterm 2>/dev/null)
 ifdef gnome-terminal
 define launch-terminal
 	@nc -z  127.0.0.1 $(1) || \
 	$(gnome-terminal) -t $(2) -x $(BUILD_PATH)/soc_term.py $(1) &
+endef
+else
+ifdef konsole
+define launch-terminal
+	@nc -z  127.0.0.1 $(1) || \
+	$(konsole) --new-tab -p tabtitle=$(2) -e $(BUILD_PATH)/soc_term.py $(1) &
 endef
 else
 ifdef xterm
@@ -502,7 +509,8 @@ define launch-terminal
 	$(xterm) -title $(2) -e $(BASH) -c "$(BUILD_PATH)/soc_term.py $(1)" &
 endef
 else
-check-terminal := @echo "Error: could not find gnome-terminal nor xterm" ; false
+check-terminal := @echo "Error: could not find gnome-terminal, konsole nor xterm" ; false
+endif
 endif
 endif
 endif
