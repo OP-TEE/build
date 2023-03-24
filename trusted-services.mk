@@ -78,15 +78,21 @@ ffa-sp-all-clean: ffa-$1-sp-clean
 ffa-sp-all-realclean: ffa-$1-sp-realclean
 
 optee_os_sp_paths += $(TS_INSTALL_PREFIX)/$(SP_DIR)/bin/$3.$(SP_EXT)
+fip_sp_json_paths += $(TS_INSTALL_PREFIX)/$(SP_DIR)/json/$1.json
 endef
 
 ifeq ($(SP_PACKAGING_METHOD),embedded)
 # Add the list of SP paths to the optee_os config
 OPTEE_OS_COMMON_EXTRA_FLAGS += SP_PATHS="$(optee_os_sp_paths)"
 else ifeq ($(SP_PACKAGING_METHOD),fip)
+$(TS_INSTALL_PREFIX)/sp_layout.json: ffa-sp-all
+	python $(TS_PATH)/tools/python/merge_json.py $@ $(fip_sp_json_paths)
+
+optee-os-common: $(TS_INSTALL_PREFIX)/sp_layout.json
+
 # Configure TF-A to load the SPs from FIP by BL2
 TF_A_FIP_SP_FLAGS += ARM_BL2_SP_LIST_DTS=$(ROOT)/build/fvp/bl2_sp_list.dtsi \
-		SP_LAYOUT_FILE=$(TS_INSTALL_PREFIX)/$(SP_DIR)/json/sp_layout.json
+		SP_LAYOUT_FILE=$(TS_INSTALL_PREFIX)/sp_layout.json
 endif
 
 ################################################################################
