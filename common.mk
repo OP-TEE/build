@@ -201,9 +201,11 @@ endif
 
 ifeq ($(COMPILE_S_USER),32)
 OPTEE_OS_TA_DEV_KIT_DIR	?= $(OPTEE_OS_PATH)/out/arm/export-ta_arm32
+OPTEE_OS_COMMON_EXTRA_FLAGS	+= CFG_USER_TA_TARGETS=ta_arm32
 endif
 ifeq ($(COMPILE_S_USER),64)
 OPTEE_OS_TA_DEV_KIT_DIR	?= $(OPTEE_OS_PATH)/out/arm/export-ta_arm64
+OPTEE_OS_COMMON_EXTRA_FLAGS	+= CFG_USER_TA_TARGETS=ta_arm64
 endif
 
 ifeq ($(COMPILE_S_KERNEL),64)
