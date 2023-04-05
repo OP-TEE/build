@@ -38,6 +38,13 @@ smm_gateway {
 };
 #endif /* TS_SMM_GATEWAY */
 
+#if TS_FW_UPDATE
+fwu {
+	uuid = "6823a838-1b06-470e-9774-0cce8bfb53fd";
+	load-address = <0x7d80000>;
+};
+#endif /* TS_FW_UPDATE */
+
 #else /* SPMC_TESTS */
 
 test_sp1 {

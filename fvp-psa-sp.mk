@@ -5,6 +5,7 @@ MEASURED_BOOT			?= y
 MEASURED_BOOT_FTPM		?= n
 TS_SMM_GATEWAY			?= y
 TS_UEFI_TESTS			?= n
+TS_FW_UPDATE			?= n
 # Supported values: embedded, fip
 SP_PACKAGING_METHOD		?= embedded
 SPMC_TESTS			?= n
@@ -36,6 +37,7 @@ SP_PSA_PS_CONFIG		?= $(DEFAULT_SP_CONFIG)
 SP_PSA_CRYPTO_CONFIG		?= $(DEFAULT_SP_CONFIG)
 SP_PSA_ATTESTATION_CONFIG	?= $(DEFAULT_SP_CONFIG)
 SP_SMM_GATEWAY_CONFIG		?= $(DEFAULT_SP_CONFIG)
+SP_FWU_CONFIG			?= $(DEFAULT_SP_CONFIG)
 
 TF_A_FLAGS ?= \
 	BL32=$(OPTEE_OS_PAGER_V2_BIN) \
@@ -60,6 +62,7 @@ endef
 ifeq ($(SP_PACKAGING_METHOD),fip)
 $(eval $(call add-dtc-define,SPMC_TESTS))
 $(eval $(call add-dtc-define,TS_SMM_GATEWAY))
+$(eval $(call add-dtc-define,TS_FW_UPDATE))
 
 TF_A_EXPORTS += DTC_CPPFLAGS="$(DTC_CPPFLAGS)"
 endif
@@ -85,6 +88,9 @@ $(eval $(call build-sp,attestation,config/$(SP_PSA_ATTESTATION_CONFIG),a1baf155-
 endif
 ifeq ($(TS_SMM_GATEWAY),y)
 $(eval $(call build-sp,smm-gateway,config/$(SP_SMM_GATEWAY_CONFIG),ed32d533-99e6-4209-9cc0-2d72cdd998a7,$(SP_SMM_GATEWAY_EXTRA_FLAGS)))
+endif
+ifeq ($(TS_FW_UPDATE),y)
+$(eval $(call build-sp,fwu,config/$(SP_FWU_CONFIG),6823a838-1b06-470e-9774-0cce8bfb53fd,$(SP_FWU_EXTRA_FLAGS)))
 endif
 else
 # SPMC test SPs
@@ -128,4 +134,29 @@ carveout-dtb-clean:
 
 boot-img-clean: carveout-dtb-clean
 endif
+
+ifeq ($(TS_FW_UPDATE),y)
+
+# TODO: the fwu-tool is currently not needed.
+$(eval $(call  build-ts-host-app,fwu-tool))
+
+ffa-fwu-sp: ts-host-fwu-tool
+
+# Copy the disk image used by FWU to the build directory to allow the FVP binary to find it.
+$(BINARIES_PATH)/secure-flash.img:
+	mkdir -p $(BINARIES_PATH)
+	cp $(ROOT)/trusted-services/components/media/disk/disk_images/multi_location_fw.img $(BINARIES_PATH)/secure-flash.img
+
+# Add a shortcut to help manually doing the copy.
+ffa-fwu-fash-img: $(BINARIES_PATH)/secure-flash.img
+
+ffa-fwu-sp: $(BINARIES_PATH)/secure-flash.img
+
+endif
+
+ffa-fwu-fash-img-clean:
+	rm -f $(BINARIES_PATH)/secure-flash.img
+
+clean: ffa-fwu-fash-img-clean
+
 endif
