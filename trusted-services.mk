@@ -189,3 +189,51 @@ ffa-test-all: ffa-$1
 ffa-test-all-clean: ffa-$1-clean
 ffa-test-all-realclean: ffa-$1-realclean
 endef
+
+################################################################################
+# Trusted Services hot applications
+################################################################################
+.PHONY: ts-host-all ts-host-all-clean ts-host-all-realclean
+all: ts-host-all
+
+ts-host-all-realclean:
+	rm -rf $(TS_INSTALL_PREFIX)/linux-pc
+
+# Helper macro to build and install Trusted Services applications which
+# run on the host.
+# Invokes CMake to configure, and make to build and install the apps.
+#
+# Parameter list:
+# 1 - deployment name (e.g. fwu-app )
+#
+# Each target will pass TS_HOST_COMMON_FLAGS and
+# TS_HOST_<ucfdpn>_EXTRA_FLAGS to cmake. ucfdpn is the upper case
+# deployment name with all / characters replaced by _ characters. These
+# variables allow setting extra build flags trough the environment.
+
+define build-ts-host-app
+.PHONY: ts-host-$1
+$(if $1, ,$(error build-ts-host-app: missing deployment name argument))
+
+FFA_$1_UC_NAME:=$(shell echo $1 | tr a-z/ A-Z_)
+ts-host-$1:
+	cmake -G"Unix Makefiles" \
+		-S $(TS_PATH)/deployments/$1/linux-pc -B $(TS_BUILD_PATH)/$1 \
+		-DCMAKE_INSTALL_PREFIX=$(TS_INSTALL_PREFIX) \
+		-DCMAKE_C_COMPILER_LAUNCHER=$(CCACHE) $(TS_HOST_COMMON_FLAGS) \
+		$(TS_HOST_${FFA_$1_UC_NAME}_EXTRA_FLAGS)
+	$$(MAKE) -C $(TS_BUILD_PATH)/$1 install
+
+.PHONY: ts-host-$1-clean
+ts-host-$1-clean:
+	$$(MAKE) -C $(TS_BUILD_PATH)/$1 clean
+
+.PHONY: ts-host-$1-realclean
+ts-host-$1-realclean:
+	rm -rf $(TS_BUILD_PATH)/$1
+
+ts-host-all: ts-host-$1
+ts-host-all-clean: ts-host-$1-clean
+ts-host-all-realclean: ts-host-$1-realclean
+
+endef
