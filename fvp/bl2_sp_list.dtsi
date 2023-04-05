@@ -47,18 +47,18 @@ test_sp1 {
 
 test_sp2 {
 	uuid = "7817164c-c40c-4d1a-867a-9bb2278cf41a";
-	load-address = <0x7a10000>;
+	load-address = <0x7a20000>;
 };
 
 test_sp3 {
 	uuid = "23eb0100-e32a-4497-9052-2f11e584afa6";
-	load-address = <0x7a20000>;
+	load-address = <0x7a40000>;
 };
 
 test_sp4 {
 	/* FF-A UUID */
 	uuid = "23eb0100-e32a-4497-9052-2f11e584afa6";
-	load-address = <0x7a30000>;
+	load-address = <0x7a80000>;
 };
 
 #endif /* SPMC_TESTS */
