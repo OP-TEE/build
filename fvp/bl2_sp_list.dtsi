@@ -55,10 +55,12 @@ test_sp3 {
 	load-address = <0x7a40000>;
 };
 
+#if TS_RPC_UUID
 test_sp4 {
 	/* FF-A UUID */
 	uuid = "23eb0100-e32a-4497-9052-2f11e584afa6";
 	load-address = <0x7a80000>;
 };
+#endif /* TS_RPC_UUID */
 
 #endif /* SPMC_TESTS */
