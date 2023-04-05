@@ -64,12 +64,14 @@
 		};
 #endif
 
+#if TS_SMM_GATEWAY
 		smm_gateway {
 			uuid = <0x33d532ed 0x0942e699 0x722dc09c 0xa798d9cd>;
 			load-address = <0x0 0x7d00000>;
 		};
+#endif /* TS_SMM_GATEWAY */
 
-#else /*BUILD_SPMC_TESTS*/
+#else /* SPMC_TESTS */
 		test_sp1 {
 			uuid = <0xc3db9e5c 0x67433a7b 0x197c839f 0x376ae81a>;
 			load-address = <0x0 0x7a00000>;
@@ -90,8 +92,8 @@
 			uuid = <0xed623742 0x6f407277 0x270cd899 0xf8bb0ada>;
 			load-address = <0x0 0x7a30000>;
 		};
-#endif
+#endif /* SPMC_TESTS */
 
 	};
-#endif
+#endif /* ARM_BL2_SP_LIST_DTS */
 };
