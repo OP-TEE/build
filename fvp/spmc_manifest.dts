@@ -72,6 +72,13 @@
 		};
 #endif /* TS_SMM_GATEWAY */
 
+#if TS_FW_UPDATE
+		fwu {
+			uuid = <0x38a82368 0x0e47061b 0xce0c7497 0xfd53fb8b>;
+			load-address = <0x0 0x7d80000>;
+		};
+#endif /* TS_FW_UPDATE */
+
 #else /* SPMC_TESTS */
 		test_sp1 {
 			uuid = <0xc3db9e5c 0x67433a7b 0x197c839f 0x376ae81a>;
