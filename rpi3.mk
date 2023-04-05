@@ -22,6 +22,10 @@ BR2_PACKAGE_OPENSSH ?= y
 BR2_PACKAGE_OPENSSH_SERVER ?= y
 BR2_PACKAGE_OPENSSH_KEY_UTILS ?= y
 
+# We don't want buildroot to strip kernel8.img, since that will remove the
+# "magic" from the kernel header.
+BR2_STRIP_EXCLUDE_FILES ?= kernel8.img
+
 OPTEE_OS_PLATFORM = rpi3
 
 include common.mk
