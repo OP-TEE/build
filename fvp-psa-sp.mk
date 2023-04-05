@@ -36,6 +36,19 @@ TF_A_FLAGS ?= \
 include fvp.mk
 include trusted-services.mk
 
+# The macros used in bl2_sp_list.dts and spmc_manifest.dts has to be passed to
+# TF-A because it handles the preprocessing of these files.
+define add-dtc-define
+DTC_CPPFLAGS+=-D$1=$(subst y,1,$(subst n,0,$($1)))
+endef
+
+ifeq ($(SP_PACKAGING_METHOD),fip)
+$(eval $(call add-dtc-define,SPMC_TESTS))
+$(eval $(call add-dtc-define,TS_SMM_GATEWAY))
+
+TF_A_EXPORTS += DTC_CPPFLAGS="$(DTC_CPPFLAGS)"
+endif
+
 OPTEE_OS_COMMON_EXTRA_FLAGS += \
 	CFG_SECURE_PARTITION=y \
 	CFG_CORE_SEL1_SPMC=y \
