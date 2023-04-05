@@ -29,14 +29,16 @@ initial_attestation_sp {
 	uuid = "a1baf155-8876-4695-8f7c-54955e8db974";
 	load-address = <0x7c80000>;
 };
-#endif
+#endif /* MEASURED_BOOT */
 
+#if TS_SMM_GATEWAY
 smm_gateway {
 	uuid = "ed32d533-99e6-4209-9cc0-2d72cdd998a7";
 	load-address = <0x7d00000>;
 };
+#endif /* TS_SMM_GATEWAY */
 
-#else
+#else /* SPMC_TESTS */
 
 test_sp1 {
 	uuid = "5c9edbc3-7b3a-4367-9f83-7c191ae86a37";
@@ -58,4 +60,5 @@ test_sp4 {
 	uuid = "23eb0100-e32a-4497-9052-2f11e584afa6";
 	load-address = <0x7a30000>;
 };
-#endif
+
+#endif /* SPMC_TESTS */
