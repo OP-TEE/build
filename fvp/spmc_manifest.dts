@@ -79,18 +79,18 @@
 
 		test_sp2 {
 			uuid = <0x4c161778 0x1a4d0cc4 0xb29b7a86 0x1af48c27>;
-			load-address = <0x0 0x7a10000>;
+			load-address = <0x0 0x7a20000>;
 		};
 
 		test_sp3 {
 			uuid = <0x0001eb23 0x97442ae3 0x112f5290 0xa6af84e5>;
-			load-address = <0x0 0x7a20000>;
+			load-address = <0x0 0x7a40000>;
 		};
 
 		test_sp4 {
 			/* SP binary UUID */
 			uuid = <0xed623742 0x6f407277 0x270cd899 0xf8bb0ada>;
-			load-address = <0x0 0x7a30000>;
+			load-address = <0x0 0x7a80000>;
 		};
 #endif /* SPMC_TESTS */
 
