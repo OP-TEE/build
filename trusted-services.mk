@@ -86,7 +86,7 @@ ifeq ($(SP_PACKAGING_METHOD),embedded)
 OPTEE_OS_COMMON_EXTRA_FLAGS += SP_PATHS="$(optee_os_sp_paths)"
 else ifeq ($(SP_PACKAGING_METHOD),fip)
 $(TS_INSTALL_PREFIX)/sp_layout.json: ffa-sp-all
-	python $(TS_PATH)/tools/python/merge_json.py $@ $(fip_sp_json_paths)
+	$(PYTHON3) $(TS_PATH)/tools/python/merge_json.py $@ $(fip_sp_json_paths)
 
 optee-os-common: $(TS_INSTALL_PREFIX)/sp_layout.json
 

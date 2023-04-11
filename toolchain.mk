@@ -30,7 +30,7 @@ endef
 define build_toolchain
 	@echo Building $1 toolchain
 	@mkdir -p ../out-$1-sdk $2
-	@(cd .. && python build/br-ext/scripts/make_def_config.py \
+	@(cd .. && $(PYTHON3) build/br-ext/scripts/make_def_config.py \
 		--br buildroot --out out-$1-sdk --br-ext build/br-ext \
 		--top-dir "$(ROOT)" \
 		--br-defconfig build/br-ext/configs/sdk-$1 \

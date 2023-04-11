@@ -24,6 +24,7 @@ endef
 
 SHELL := bash
 BASH ?= bash
+PYTHON3 ?= python3
 ROOT ?= $(shell pwd)/..
 
 UNAME_M				:= $(shell uname -m)
@@ -344,7 +345,7 @@ buildroot: optee-os optee-rust
 	@rm -f ../out-br/build/optee_*/.stamp_*
 	@rm -f ../out-br/extra.conf
 	@$(call append-br2-vars,../out-br/extra.conf)
-	@(cd .. && python build/br-ext/scripts/make_def_config.py \
+	@(cd .. && $(PYTHON3) build/br-ext/scripts/make_def_config.py \
 		--br buildroot --out out-br --br-ext build/br-ext \
 		--top-dir "$(ROOT)" \
 		--br-defconfig build/br-ext/configs/optee_$(BUILDROOT_ARCH) \
@@ -373,7 +374,7 @@ buildroot-domu: optee-os
 	@rm -f ../out-br-domu/build/optee_*/.stamp_*
 	@rm -f ../out-br-domu/extra.conf
 	@$(call append-br2-vars,../out-br-domu/extra.conf)
-	@(cd .. && python build/br-ext/scripts/make_def_config.py \
+	@(cd .. && $(PYTHON3) build/br-ext/scripts/make_def_config.py \
 		--br buildroot --out out-br-domu --br-ext build/br-ext \
 		--top-dir "$(ROOT)" \
 		--br-defconfig build/br-ext/configs/optee_$(BUILDROOT_ARCH) \
