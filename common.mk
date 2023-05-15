@@ -186,19 +186,10 @@ endif
 ################################################################################
 # set the compiler when COMPILE_xxx are defined
 ################################################################################
-
-
-ifeq ($(COMPILE_LEGACY),)
 CROSS_COMPILE_NS_USER   ?= "$(CCACHE)$(AARCH$(COMPILE_NS_USER)_CROSS_COMPILE)"
 CROSS_COMPILE_NS_KERNEL ?= "$(CCACHE)$(AARCH$(COMPILE_NS_KERNEL)_CROSS_COMPILE)"
 CROSS_COMPILE_S_USER    ?= "$(CCACHE)$(AARCH$(COMPILE_S_USER)_CROSS_COMPILE)"
 CROSS_COMPILE_S_KERNEL  ?= "$(CCACHE)$(AARCH$(COMPILE_S_KERNEL)_CROSS_COMPILE)"
-else
-CROSS_COMPILE_NS_USER   ?= "$(CCACHE)$(LEGACY_AARCH$(COMPILE_NS_USER)_CROSS_COMPILE)"
-CROSS_COMPILE_NS_KERNEL ?= "$(CCACHE)$(LEGACY_AARCH$(COMPILE_NS_KERNEL)_CROSS_COMPILE)"
-CROSS_COMPILE_S_USER    ?= "$(CCACHE)$(LEGACY_AARCH$(COMPILE_S_USER)_CROSS_COMPILE)"
-CROSS_COMPILE_S_KERNEL  ?= "$(CCACHE)$(LEGACY_AARCH$(COMPILE_S_KERNEL)_CROSS_COMPILE)"
-endif
 
 ifeq ($(COMPILE_S_USER),32)
 OPTEE_OS_TA_DEV_KIT_DIR	?= $(OPTEE_OS_PATH)/out/arm/export-ta_arm32
@@ -260,11 +251,7 @@ DEFCONFIG_GDBSERVER=--br-defconfig build/br-ext/configs/gdbserver.conf
 else
 # Local toolchains (downloaded by "make toolchains")
 ifeq ($(UNAME_M),x86_64)
-ifeq ($(COMPILE_LEGACY),)
 BUILDROOT_TOOLCHAIN=toolchain-aarch$(COMPILE_NS_USER)
-else
-BUILDROOT_TOOLCHAIN=toolchain-aarch$(COMPILE_NS_USER)-legacy
-endif
 else ifeq ($(UNAME_M),aarch64)
 ifeq ($(COMPILE_NS_USER),64)
 BUILDROOT_TOOLCHAIN=toolchain-aarch64-sdk
