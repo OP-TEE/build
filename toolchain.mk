@@ -19,7 +19,7 @@ define dltc
 		tar xf $(TOOLCHAIN_ROOT)/$(3).tar.xz -C $(1) --strip-components=1 || \
 			{ rm $(TOOLCHAIN_ROOT)/$(3).tar.xz; echo Downloaded file is damaged; \
 			cd $(TOOLCHAIN_ROOT) && rm -rf $(1); exit 1; }; \
-		(cd $(1)/bin && for f in *-none-linux*; do ln -s $$f $${f//-none} ; done;) \
+		(cd $(1)/bin && shopt -s nullglob && for f in *-none-linux*; do ln -s $$f $${f//-none} ; done;) \
 	fi
 endef
 
