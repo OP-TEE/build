@@ -188,7 +188,7 @@ edk2-clean: edk2-clean-common
 # Linux kernel
 ################################################################################
 LINUX_DEFCONFIG_COMMON_ARCH := arm64
-LINUX_DEFCONFIG_COMMON_FILES := \
+LINUX_DEFCONFIG_COMMON_FILES ?= \
 		$(LINUX_PATH)/arch/arm64/configs/defconfig \
 		$(CURDIR)/kconfigs/fvp.conf
 

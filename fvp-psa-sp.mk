@@ -32,6 +32,8 @@ TF_A_FLAGS ?= \
 	ARM_SPMC_MANIFEST_DTS=$(ROOT)/build/fvp/spmc_manifest.dts \
 	$(TF_A_FIP_SP_FLAGS)
 
+LINUX_DEFCONFIG_COMMON_FILES ?= $(CURDIR)/kconfigs/fvp_trusted-services.conf
+
 include fvp.mk
 include trusted-services.mk
 
