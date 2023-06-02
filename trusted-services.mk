@@ -132,7 +132,7 @@ linux-arm-ffa-user-clean:
 # userspace access to the whole NS physical address space through /dev/mem. It's
 # needed by the uefi-test app to communicate with the smm-gateway SP using a
 # static carveout. If changed, run "make linux-defconfig-clean" to take effect.
-LINUX_DEFCONFIG_COMMON_FILES += $(CURDIR)/kconfigs/fvp_trusted-services.conf
+LINUX_DEFCONFIG_COMMON_FILES += $(CURDIR)/kconfigs/fvp_trusted-services_uefi.conf
 endif
 
 ################################################################################
