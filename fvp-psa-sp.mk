@@ -12,6 +12,22 @@ SPMC_TESTS			?= n
 # Enable the "HArdware Volatile Entropy Gathering and Expansion" daemon to
 # overcome low-entropy conditions in the FVP
 BR2_PACKAGE_HAVEGED		?= y
+
+# Disable packages not used by this configuration
+BR2_PACKAGE_HOST_E2FSPROGS	?= n
+BR2_PACKAGE_KEYUTILS		?= n
+BR2_PACKAGE_MMC_UTILS		?= n
+BR2_PACKAGE_OPENSC		?= n
+BR2_PACKAGE_OPTEE_EXAMPLES_EXT	?= n
+BR2_PACKAGE_STRACE		?= n
+
+# Building xtest is not necessary if we don't want to run the SPMC tests
+ifneq ($(SPMC_TESTS),y)
+BR2_PACKAGE_OPTEE_TEST_EXT	?= n
+BR2_PACKAGE_LIBOPENSSL		?= n
+BR2_PACKAGE_OPENSSL		?= n
+endif
+
 TS_RPC_UUID			?= n
 
 # TS SP configurations
