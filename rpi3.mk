@@ -22,13 +22,18 @@ BR2_PACKAGE_OPENSSH ?= y
 BR2_PACKAGE_OPENSSH_SERVER ?= y
 BR2_PACKAGE_OPENSSH_KEY_UTILS ?= y
 
-# We don't want buildroot to strip kernel8.img, since that will remove the
-# "magic" from the kernel header.
-BR2_STRIP_EXCLUDE_FILES ?= kernel8.img
-
 OPTEE_OS_PLATFORM = rpi3
 
 include common.mk
+
+# Required tools to create the SD image
+BR2_PACKAGE_HOST_GENIMAGE=y
+
+# We need the ext2/4 image to be generated, so we will be able to copy that
+# directly into a parition on the image.
+BR2_TARGET_ROOTFS_EXT2=y
+BR2_TARGET_ROOTFS_EXT2_4=y
+BR2_TARGET_ROOTFS_EXT2_SIZE="128M"
 
 ################################################################################
 # Paths to git projects and various binaries
@@ -50,6 +55,8 @@ RPI3_STOCK_FW_PATH_BOOT	?= $(RPI3_STOCK_FW_PATH)/boot
 OPTEE_BIN		?= $(OPTEE_PATH)/out/arm/core/tee-header_v2.bin
 OPTEE_BIN_EXTRA1	?= $(OPTEE_PATH)/out/arm/core/tee-pager_v2.bin
 OPTEE_BIN_EXTRA2	?= $(OPTEE_PATH)/out/arm/core/tee-pageable_v2.bin
+BOOT_PARTITION_FILES	?= $(ROOT)/out/boot
+CREATE_IMAGE		?= $(BUILD_PATH)/rpi3/scripts/create-image.sh
 
 LINUX_IMAGE		?= $(LINUX_PATH)/arch/arm64/boot/Image
 LINUX_DTB_RPI3_B	?= $(LINUX_PATH)/arch/arm64/boot/dts/broadcom/bcm2710-rpi-3-b.dtb
@@ -59,7 +66,8 @@ MODULE_OUTPUT		?= $(ROOT)/module_output
 ################################################################################
 # Targets
 ################################################################################
-all: arm-tf buildroot optee-os u-boot linux update_rootfs
+all: arm-tf buildroot optee-os u-boot linux update_bootfs update_rootfs \
+	sdcard-image
 clean: arm-tf-clean buildroot-clean u-boot-clean \
 	optee-os-clean
 
@@ -162,67 +170,38 @@ optee-os-clean: optee-os-clean-common
 # Make sure this is built before the buildroot target which will create the
 # root file system based on what's in $(BUILDROOT_TARGET_ROOT)
 buildroot: update_rootfs
-update_rootfs: arm-tf linux u-boot
-	@mkdir -p --mode=755 $(BUILDROOT_TARGET_ROOT)/boot
+update_rootfs: linux
 	@mkdir -p --mode=755 $(BUILDROOT_TARGET_ROOT)/usr/bin
-	@install -v -p --mode=755 $(LINUX_DTB_RPI3_B) $(BUILDROOT_TARGET_ROOT)/boot/bcm2710-rpi-3-b.dtb
-	@install -v -p --mode=755 $(LINUX_DTB_RPI3_BPLUS) $(BUILDROOT_TARGET_ROOT)/boot/bcm2710-rpi-3-b-plus.dtb
-	@install -v -p --mode=755 $(RPI3_BOOT_CONFIG) $(BUILDROOT_TARGET_ROOT)/boot/config.txt
-	@install -v -p --mode=755 $(LINUX_IMAGE) $(BUILDROOT_TARGET_ROOT)/boot/kernel8.img
-	@install -v -p --mode=755 $(TF_A_BOOT) $(BUILDROOT_TARGET_ROOT)/boot/armstub8.bin
-	@install -v -p --mode=755 $(RPI3_UBOOT_ENV) $(BUILDROOT_TARGET_ROOT)/boot/uboot.env
-	@install -v -p --mode=755 $(RPI3_STOCK_FW_PATH)/boot/bootcode.bin $(BUILDROOT_TARGET_ROOT)/boot/bootcode.bin
-	@install -v -p --mode=755 $(RPI3_STOCK_FW_PATH)/boot/COPYING.linux $(BUILDROOT_TARGET_ROOT)/boot/COPYING.linux
-	@install -v -p --mode=755 $(RPI3_STOCK_FW_PATH)/boot/fixup_cd.dat $(BUILDROOT_TARGET_ROOT)/boot/fixup_cd.dat
-	@install -v -p --mode=755 $(RPI3_STOCK_FW_PATH)/boot/fixup.dat $(BUILDROOT_TARGET_ROOT)/boot/fixup.dat
-	@install -v -p --mode=755 $(RPI3_STOCK_FW_PATH)/boot/fixup_db.dat $(BUILDROOT_TARGET_ROOT)/boot/fixup_db.dat
-	@install -v -p --mode=755 $(RPI3_STOCK_FW_PATH)/boot/fixup_x.dat $(BUILDROOT_TARGET_ROOT)/boot/fixup_x.dat
-	@install -v -p --mode=755 $(RPI3_STOCK_FW_PATH)/boot/LICENCE.broadcom $(BUILDROOT_TARGET_ROOT)/boot/LICENCE.broadcom
-	@install -v -p --mode=755 $(RPI3_STOCK_FW_PATH)/boot/start_cd.elf $(BUILDROOT_TARGET_ROOT)/boot/start_cd.elf
-	@install -v -p --mode=755 $(RPI3_STOCK_FW_PATH)/boot/start_db.elf $(BUILDROOT_TARGET_ROOT)/boot/start_db.elf
-	@install -v -p --mode=755 $(RPI3_STOCK_FW_PATH)/boot/start.elf $(BUILDROOT_TARGET_ROOT)/boot/start.elf
-	@install -v -p --mode=755 $(RPI3_STOCK_FW_PATH)/boot/start_x.elf $(BUILDROOT_TARGET_ROOT)/boot/start_x.elf
 	@cd $(MODULE_OUTPUT) && find . | cpio -pudm $(BUILDROOT_TARGET_ROOT)
+
+update_bootfs: arm-tf u-boot
+	@mkdir -p --mode=755 $(BOOT_PARTITION_FILES)
+	@install -v -p --mode=755 $(LINUX_DTB_RPI3_B) $(BOOT_PARTITION_FILES)/bcm2710-rpi-3-b.dtb
+	@install -v -p --mode=755 $(LINUX_DTB_RPI3_BPLUS) $(BOOT_PARTITION_FILES)/bcm2710-rpi-3-b-plus.dtb
+	@install -v -p --mode=755 $(RPI3_BOOT_CONFIG) $(BOOT_PARTITION_FILES)/config.txt
+	@install -v -p --mode=755 $(LINUX_IMAGE) $(BOOT_PARTITION_FILES)/kernel8.img
+	@install -v -p --mode=755 $(TF_A_BOOT) $(BOOT_PARTITION_FILES)/armstub8.bin
+	@install -v -p --mode=755 $(RPI3_UBOOT_ENV) $(BOOT_PARTITION_FILES)/uboot.env
+	@install -v -p --mode=755 $(RPI3_STOCK_FW_PATH)/boot/bootcode.bin $(BOOT_PARTITION_FILES)/bootcode.bin
+	@install -v -p --mode=755 $(RPI3_STOCK_FW_PATH)/boot/COPYING.linux $(BOOT_PARTITION_FILES)/COPYING.linux
+	@install -v -p --mode=755 $(RPI3_STOCK_FW_PATH)/boot/fixup_cd.dat $(BOOT_PARTITION_FILES)/fixup_cd.dat
+	@install -v -p --mode=755 $(RPI3_STOCK_FW_PATH)/boot/fixup.dat $(BOOT_PARTITION_FILES)/fixup.dat
+	@install -v -p --mode=755 $(RPI3_STOCK_FW_PATH)/boot/fixup_db.dat $(BOOT_PARTITION_FILES)/fixup_db.dat
+	@install -v -p --mode=755 $(RPI3_STOCK_FW_PATH)/boot/fixup_x.dat $(BOOT_PARTITION_FILES)/fixup_x.dat
+	@install -v -p --mode=755 $(RPI3_STOCK_FW_PATH)/boot/LICENCE.broadcom $(BOOT_PARTITION_FILES)/LICENCE.broadcom
+	@install -v -p --mode=755 $(RPI3_STOCK_FW_PATH)/boot/start_cd.elf $(BOOT_PARTITION_FILES)/start_cd.elf
+	@install -v -p --mode=755 $(RPI3_STOCK_FW_PATH)/boot/start_db.elf $(BOOT_PARTITION_FILES)/start_db.elf
+	@install -v -p --mode=755 $(RPI3_STOCK_FW_PATH)/boot/start.elf $(BOOT_PARTITION_FILES)/start.elf
+	@install -v -p --mode=755 $(RPI3_STOCK_FW_PATH)/boot/start_x.elf $(BOOT_PARTITION_FILES)/start_x.elf
+
+.PHONY: sdcard-image
+sdcard-image: update_bootfs update_rootfs buildroot
+	$(CREATE_IMAGE) -w $(ROOT)
 
 # Creating images etc, could wipe out a drive on the system, therefore we don't
 # want to automate that in script or make target. Instead we just simply provide
 # the steps here.
 .PHONY: img-help
 img-help:
-	@echo "$$ fdisk /dev/sdx   # where sdx is the name of your sd-card"
-	@echo "   > p             # prints partition table"
-	@echo "   > d             # repeat until all partitions are deleted"
-	@echo "   > n             # create a new partition"
-	@echo "   > p             # create primary"
-	@echo "   > 1             # make it the first partition"
-	@echo "   > <enter>       # use the default sector"
-	@echo "   > +64M          # create a boot partition with 64MB of space"
-	@echo "   > n             # create rootfs partition"
-	@echo "   > p"
-	@echo "   > 2"
-	@echo "   > <enter>"
-	@echo "   > <enter>       # fill the remaining disk, adjust size to fit your needs"
-	@echo "   > t             # change partition type"
-	@echo "   > 1             # select first partition"
-	@echo "   > e             # use type 'e' (FAT16)"
-	@echo "   > a             # make partition bootable"
-	@echo "   > 1             # select first partition"
-	@echo "   > p             # double check everything looks right"
-	@echo "   > w             # write partition table to disk."
-	@echo ""
-	@echo "run the following as root"
-	@echo "   $$ mkfs.vfat -F16 -n BOOT /dev/sdx1"
-	@echo "   $$ mkdir -p /media/boot"
-	@echo "   $$ mount /dev/sdx1 /media/boot"
-	@echo "   $$ cd /media"
-	@echo "   $$ gunzip -cd $(ROOT)/out-br/images/rootfs.cpio.gz | sudo cpio -idmv \"boot/*\""
-	@echo "   $$ umount boot"
-	@echo ""
-	@echo "run the following as root"
-	@echo "   $$ mkfs.ext4 -L rootfs /dev/sdx2"
-	@echo "   $$ mkdir -p /media/rootfs"
-	@echo "   $$ mount /dev/sdx2 /media/rootfs"
-	@echo "   $$ cd rootfs"
-	@echo "   $$ gunzip -cd $(ROOT)/out-br/images/rootfs.cpio.gz | sudo cpio -idmv"
-	@echo "   $$ rm -rf /media/rootfs/boot/*"
-	@echo "   $$ cd .. && umount rootfs"
+	@echo "Use 'dmesg' to find your device/SD-card name, then run the following as root:"
+	@echo "   $$ sudo dd if=$(ROOT)/out/rpi3-sdcard.img of=/dev/<name-of-my-sd-card> bs=1024k conv=fsync status=progress"
