@@ -134,6 +134,7 @@ endef
 
 .PHONY: edk2
 edk2:
+        sed -i 's/\(^DEFINE GCC_ALL_CC_FLAGS.*-Wno-array-bounds\)/\1 -Wno-stringop-overflow/' $(EDK2_PATH)/BaseTools/Conf/tools_def.template
 	cd $(EDK2_PATH) && rm -rf OpenPlatformPkg && \
 		ln -s $(OPENPLATPKG_PATH)
 	set -e && cd $(EDK2_PATH) && source edksetup.sh && \
