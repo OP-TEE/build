@@ -197,7 +197,12 @@ OPTEE_OS_COMMON_EXTRA_FLAGS	+= CFG_USER_TA_TARGETS=ta_arm32
 endif
 ifeq ($(COMPILE_S_USER),64)
 OPTEE_OS_TA_DEV_KIT_DIR	?= $(OPTEE_OS_PATH)/out/arm/export-ta_arm64
+ifeq ($(MEASURED_BOOT_FTPM),y)
+# The fTPM TA can only be built for 32-bit so enable the 32-bit libraries as well
+OPTEE_OS_COMMON_EXTRA_FLAGS	+= CFG_USER_TA_TARGETS="ta_arm64 ta_arm32"
+else
 OPTEE_OS_COMMON_EXTRA_FLAGS	+= CFG_USER_TA_TARGETS=ta_arm64
+endif
 endif
 
 ifeq ($(COMPILE_S_KERNEL),64)
