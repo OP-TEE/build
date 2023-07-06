@@ -189,8 +189,15 @@ tfa-clean:
 ################################################################################
 U_BOOT_EXPORTS ?= CROSS_COMPILE="$(CCACHE)$(AARCH32_CROSS_COMPILE)"
 
+ifneq (,$(wildcard stm32mp/u-boot_$(STM32MP1_DTS_U_BOOT).conf))
+U_BOOT_CONFIG_FRAGMENTS += $(BUILD_PATH)/stm32mp/u-boot_$(STM32MP1_DTS_U_BOOT).conf
+endif
+ifeq ($(WITH_RPMB_TEST),y)
+U_BOOT_CONFIG_FRAGMENTS += $(BUILD_PATH)/stm32mp/u-boot_rpmb.conf
+endif
+
 u-boot:
-	$(U_BOOT_EXPORTS) $(MAKE) -C $(U_BOOT_PATH) $(STM32MP1_DEFCONFIG_U_BOOT)
+	cd $(U_BOOT_PATH) && scripts/kconfig/merge_config.sh configs/$(STM32MP1_DEFCONFIG_U_BOOT) $(U_BOOT_CONFIG_FRAGMENTS)
 	$(U_BOOT_EXPORTS) $(MAKE) -C $(U_BOOT_PATH) DEVICE_TREE=$(STM32MP1_DTS_U_BOOT) all
 	@$(call install_in_binaries,$(U_BOOT_PATH)/$(U_BOOT_BIN))
 	@$(call install_in_binaries,$(U_BOOT_PATH)/$(U_BOOT_DTB))
