@@ -43,10 +43,10 @@ GICV3 ?= y
 # Option to configure FF-A and SPM:
 # n:	disabled
 # 3:	SPMC and SPMD at EL3 (in TF-A)
-# 2:	not supported, SPMC at S-EL2 (in Hafnium), SPMD at EL3 (in TF-A)
+# 2:	SPMC at S-EL2 (in Hafnium), SPMD at EL3 (in TF-A)
 # 1:	SPMC at S-EL1 (in OP-TEE), SPMD at EL3 (in TF-A)
 SPMC_AT_EL ?= n
-ifneq ($(filter-out n 1 3,$(SPMC_AT_EL)),)
+ifneq ($(filter-out n 1 2 3,$(SPMC_AT_EL)),)
 $(error Unsupported SPMC_AT_EL value $(SPMC_AT_EL))
 endif
 
@@ -76,6 +76,8 @@ MODULE_OUTPUT		?= $(ROOT)/out/kernel_modules
 UBOOT_PATH		?= $(ROOT)/u-boot
 UBOOT_BIN		?= $(UBOOT_PATH)/u-boot.bin
 MKIMAGE_PATH		?= $(UBOOT_PATH)/tools
+HAFNIUM_PATH		?= $(ROOT)/hafnium
+HAFNIUM_BIN		?= $(HAFNIUM_PATH)/out/reference/secure_qemu_aarch64_clang/hafnium.bin
 
 ROOTFS_GZ		?= $(BINARIES_PATH)/rootfs.cpio.gz
 ROOTFS_UGZ		?= $(BINARIES_PATH)/rootfs.cpio.uboot
@@ -89,6 +91,12 @@ KERNEL_ENTRY		?= 0x40400000
 KERNEL_LOADADDR		?= 0x40400000
 ROOTFS_ENTRY		?= 0x44000000
 ROOTFS_LOADADDR		?= 0x44000000
+
+ifeq ($(SPMC_AT_EL),2)
+BL32_DEPS		?= hafnium optee-os
+else
+BL32_DEPS		?= optee-os
+endif
 
 ifeq ($(UBOOT),y)
 BL33_BIN		?= $(UBOOT_BIN)
@@ -162,6 +170,7 @@ TF_A_FLAGS ?= \
 	QEMU_USE_GIC_DRIVER=$(TFA_GIC_DRIVER) \
 	ENABLE_SVE_FOR_NS=1 \
 	ENABLE_SVE_FOR_SWD=1 \
+	ENABLE_FEAT_FGT=2 \
 	BL32_RAM_LOCATION=tdram \
 	DEBUG=$(TF_A_DEBUG) \
 	LOG_LEVEL=$(TF_A_LOGLVL)
@@ -176,6 +185,22 @@ TF_A_FLAGS_SPMC_AT_EL_1 += CTX_INCLUDE_EL2_REGS=0 SPMD_SPM_AT_SEL2=0
 TF_A_FLAGS_SPMC_AT_EL_1 += ENABLE_SME_FOR_NS=0 ENABLE_SME_FOR_SWD=0
 TF_A_FLAGS_SPMC_AT_EL_1 += QEMU_TOS_FW_CONFIG_DTS=../build/qemu_v8/spmc_el1_manifest.dts
 TF_A_FLAGS_SPMC_AT_EL_1 += SPMC_OPTEE=1
+TF_A_FLAGS_SPMC_AT_EL_1 += QEMU_TOS_FW_CONFIG_DTS=../build/qemu_v8/spmc_el1_manifest.dts
+TF_A_FLAGS_SPMC_AT_EL_2  = SPD=spmd 
+TF_A_FLAGS_SPMC_AT_EL_2 += ENABLE_SPE_FOR_LOWER_ELS=0
+TF_A_FLAGS_SPMC_AT_EL_2 += ENABLE_SME_FOR_NS=0 ENABLE_SME_FOR_SWD=0
+TF_A_FLAGS_SPMC_AT_EL_2 += ENABLE_FEAT_SEL2=1
+TF_A_FLAGS_SPMC_AT_EL_2 += SP_LAYOUT_FILE=../build/qemu_v8/sp_layout.json
+TF_A_FLAGS_SPMC_AT_EL_2 += NEED_FDT=yes
+TF_A_FLAGS_SPMC_AT_EL_2 += BL32=$(HAFNIUM_BIN)
+TF_A_FLAGS_SPMC_AT_EL_2 += QEMU_TOS_FW_CONFIG_DTS=../build/qemu_v8/spmc_el2_manifest.dts
+TF_A_FLAGS_SPMC_AT_EL_2 += QEMU_TB_FW_CONFIG_DTS=../build/qemu_v8/tb_fw_config.dts
+ifneq ($(PAUTH),y)
+TF_A_FLAGS_SPMC_AT_EL_2 += CTX_INCLUDE_PAUTH_REGS=1
+endif
+ifneq ($(MEMTAG),y)
+TF_A_FLAGS_SPMC_AT_EL_2 += CTX_INCLUDE_MTE_REGS=1
+endif
 TF_A_FLAGS_SPMC_AT_EL_3  = SPD=spmd SPMC_AT_EL3=1
 TF_A_FLAGS_SPMC_AT_EL_3 += CTX_INCLUDE_EL2_REGS=0 SPMD_SPM_AT_SEL2=0
 TF_A_FLAGS_SPMC_AT_EL_3 += ENABLE_SME_FOR_NS=0 ENABLE_SME_FOR_SWD=0
@@ -198,7 +223,7 @@ ifeq ($(MEMTAG),y)
 TF_A_FLAGS += CTX_INCLUDE_MTE_REGS=1
 endif
 
-arm-tf: optee-os $(BL33_DEPS)
+arm-tf: $(BL32_DEPS) $(BL33_DEPS)
 	$(TF_A_EXPORTS) $(MAKE) -C $(TF_A_PATH) $(TF_A_FLAGS) all fip
 	mkdir -p $(BINARIES_PATH)
 	ln -sf $(TF_A_OUT)/bl1.bin $(BINARIES_PATH)
@@ -218,12 +243,20 @@ endif
 	rm -f $(BINARIES_PATH)/bl32_extra1.bin
 	rm -f $(BINARIES_PATH)/bl32_extra2.bin
 	rm -f $(BINARIES_PATH)/tos_fw_config.dtb
+	rm -f $(BINARIES_PATH)/op-tee.pkg
 ifeq ($(SPMC_AT_EL),1)
 	ln -sf $(TF_A_OUT)/fdts/spmc_el1_manifest.dtb \
 		$(BINARIES_PATH)/tos_fw_config.dtb
 	ln -sf $(OPTEE_OS_HEADER_V2_BIN) $(BINARIES_PATH)/bl32.bin
 	ln -sf $(OPTEE_OS_PAGER_V2_BIN) $(BINARIES_PATH)/bl32_extra1.bin
 	ln -sf $(OPTEE_OS_PAGEABLE_V2_BIN) $(BINARIES_PATH)/bl32_extra2.bin
+else ifeq ($(SPMC_AT_EL),2)
+	ln -sf $(TF_A_OUT)/fdts/spmc_el2_manifest.dtb \
+		$(BINARIES_PATH)/tos_fw_config.dtb
+	ln -sf $(TF_A_OUT)/fdts/tb_fw_config.dtb \
+		$(BINARIES_PATH)/tb_fw_config.dtb
+	ln -sf $(HAFNIUM_BIN) $(BINARIES_PATH)/bl32.bin
+	ln -sf $(TF_A_OUT)/op-tee.pkg $(BINARIES_PATH)/op-tee.pkg
 else ifeq ($(SPMC_AT_EL),3)
 	ln -sf $(TF_A_OUT)/fdts/spmc_el3_manifest.dtb \
 		$(BINARIES_PATH)/tos_fw_config.dtb
@@ -334,6 +367,13 @@ linux-cleaner: linux-cleaner-common
 ################################################################################
 OPTEE_OS_COMMON_FLAGS += DEBUG=$(DEBUG) CFG_ARM_GICV3=$(GICV3)
 OPTEE_OS_COMMON_FLAGS_SPMC_AT_EL_1 = CFG_CORE_SEL1_SPMC=y
+OPTEE_OS_COMMON_FLAGS_SPMC_AT_EL_2 = CFG_CORE_SEL2_SPMC=y
+OPTEE_OS_COMMON_FLAGS_SPMC_AT_EL_2 += CFG_ARM_GICV3=n CFG_CORE_HAFNIUM_INTC=y
+# [0e00.0000 0e2f.ffff] is reserved to early boot and SPMC
+# [0e30.0000 0e33.ffff] is reserved manifest etc (op-tee.pkg)
+OPTEE_OS_COMMON_FLAGS_SPMC_AT_EL_2 += CFG_TZDRAM_START=0x0e304000
+OPTEE_OS_COMMON_FLAGS_SPMC_AT_EL_2 += CFG_TZDRAM_SIZE=0x00cfc000
+OPTEE_OS_COMMON_FLAGS_SPMC_AT_EL_2 += CFG_CORE_WORKAROUND_NSITR_CACHE_PRIME=n
 OPTEE_OS_COMMON_FLAGS_SPMC_AT_EL_3 = CFG_CORE_EL3_SPMC=y
 OPTEE_OS_COMMON_FLAGS_SPMC_AT_EL_3 += CFG_DT_ADDR=0x40000000
 OPTEE_OS_COMMON_FLAGS_SPMC_AT_EL_3 += CFG_CORE_RESERVED_SHM=n
@@ -355,6 +395,22 @@ OPTEE_OS_COMMON_FLAGS += $(OPTEE_OS_COMMON_FLAGS_SPMC_AT_EL_$(SPMC_AT_EL))
 optee-os: optee-os-common
 
 optee-os-clean: optee-os-clean-common
+
+################################################################################
+# Hafnium
+################################################################################
+
+HAFNIUM_EXPORTS = PATH=$(HAFNIUM_PATH)/prebuilts/linux-x64/clang/bin:$(HAFNIUM_PATH)/prebuilts/linux-x64/dtc:$(PATH)
+
+.hafnium_checkout:
+	git -C $(HAFNIUM_PATH) submodule init --update
+	touch $@
+
+hafnium: $(HAFNIUM_BIN)
+
+$(HAFNIUM_BIN): .hafnium_checkout | $(OUT_PATH)
+	$(HAFNIUM_EXPORTS) $(MAKE) -C $(HAFNIUM_PATH) $(HAFNIUM_FLAGS) all
+
 
 ################################################################################
 # mkimage - create images to be loaded by U-Boot
@@ -420,7 +476,11 @@ QEMU_VIRT	= true
 QEMU_XEN	?= -drive if=none,file=$(XEN_EXT4),format=raw,id=hd1 \
 		   -device virtio-blk-device,drive=hd1
 else
+ifeq ($(SPMC_AT_EL),2)
+QEMU_VIRT	= true
+else
 QEMU_VIRT	= false
+endif
 ifeq ($(SPMC_AT_EL),n)
 QEMU_SME	= on
 else
@@ -432,6 +492,8 @@ QEMU_MEM 	?= 1057
 endif
 
 ifeq ($(MEMTAG),y)
+QEMU_MTE	= on
+else ifeq ($(SPMC_AT_EL),2)
 QEMU_MTE	= on
 else
 QEMU_MTE	= off
