@@ -5,7 +5,7 @@
  */
 /dts-v1/;
 
-#define MODE_EL1	(0x1)
+#define MODE_S_EL1	(0x2)
 
 /* For consumption by EL3 SPMC. */
 / {
@@ -17,7 +17,7 @@
 	id = <0x8001>;
 	uuid = <0xe0786148 0xe311f8e7 0x02005ebc 0x1bc5d5a5>;
 	messaging-method = <1>; /* Direct Messaging Only */
-	exception-level = <MODE_EL1>;
+	exception-level = <MODE_S_EL1>;
 	execution-state = <0>;
 	execution-ctx-count = <8>;
 	gp-register-num = <0>;
