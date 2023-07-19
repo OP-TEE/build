@@ -5,6 +5,7 @@ SHELL				= /bin/bash
 ROOT				?= $(CURDIR)/..
 TOOLCHAIN_ROOT 			?= $(ROOT)/toolchains
 UNAME_M				:= $(shell uname -m)
+TARGET_ARCH			?= arm
 
 # Download toolchain macro for saving some repetition
 # $(1) is $AARCH.._PATH		: i.e., path to the destination
@@ -44,6 +45,7 @@ define build_toolchain
 endef
 
 ifeq ($(UNAME_M),x86_64)
+ifeq ($(TARGET_ARCH),arm)
 AARCH32_PATH 			?= $(TOOLCHAIN_ROOT)/aarch32
 AARCH32_CROSS_COMPILE 		?= $(AARCH32_PATH)/bin/arm-linux-gnueabihf-
 AARCH32_GCC_VERSION 		?= arm-gnu-toolchain-11.3.rel1-x86_64-arm-none-linux-gnueabihf
@@ -80,6 +82,22 @@ endef
 .PHONY: clang-toolchains
 clang-toolchains:
 	$(call dl-clang,$(CLANG_VER),$(CLANG_PATH))
+
+else ifeq ($(TARGET_ARCH),riscv)
+RISCV64_PATH 			?= $(TOOLCHAIN_ROOT)/riscv64
+RISCV64_CROSS_COMPILE 		?= $(RISCV64_PATH)/bin/riscv64-unknown-linux-gnu-
+RISCV64_GCC_RELEASE_DATE	?= 2023.07.07
+RISCV64_GCC_VERSION		?= riscv64-glibc-ubuntu-22.04-gcc-nightly-$(RISCV64_GCC_RELEASE_DATE)-nightly
+SRC_RISCV64_GCC			?= https://github.com/riscv-collab/riscv-gnu-toolchain/releases/download/$(RISCV64_GCC_RELEASE_DATE)/$(RISCV64_GCC_VERSION).tar.gz
+
+.PHONY: toolchains
+toolchains: riscv64
+
+.PHONY: riscv64
+riscv64:
+	$(call dltc,$(RISCV64_PATH),$(SRC_RISCV64_GCC),$(RISCV64_GCC_VERSION))
+
+endif
 
 else ifeq ($(UNAME_M),aarch64)
 
