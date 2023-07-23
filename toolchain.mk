@@ -15,7 +15,7 @@ define dltc
 	@if [ ! -d "$(1)" ]; then \
 		echo "Downloading $(3) ..."; \
 		mkdir -p $(1); \
-		curl --retry 5 -k -s -S -L $(2) -o $(TOOLCHAIN_ROOT)/$(3).tar.xz || \
+		wget --tries=5  $(2) -O $(TOOLCHAIN_ROOT)/$(3).tar.xz || \
 			{ rm -f $(TOOLCHAIN_ROOT)/$(3).tar.xz; cd $(TOOLCHAIN_ROOT) && rmdir $(1); echo Download failed; exit 1; }; \
 		tar xf $(TOOLCHAIN_ROOT)/$(3).tar.xz -C $(1) --strip-components=1 || \
 			{ rm $(TOOLCHAIN_ROOT)/$(3).tar.xz; echo Downloaded file is damaged; \
