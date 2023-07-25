@@ -5,7 +5,7 @@ SHELL				= /bin/bash
 ROOT				?= $(CURDIR)/..
 TOOLCHAIN_ROOT 			?= $(ROOT)/toolchains
 UNAME_M				:= $(shell uname -m)
-TARGET_ARCH			?= arm
+ARCH				?= arm
 
 # Download toolchain macro for saving some repetition
 # $(1) is $AARCH.._PATH		: i.e., path to the destination
@@ -45,7 +45,7 @@ define build_toolchain
 endef
 
 ifeq ($(UNAME_M),x86_64)
-ifeq ($(TARGET_ARCH),arm)
+ifeq ($(ARCH),arm)
 AARCH32_PATH 			?= $(TOOLCHAIN_ROOT)/aarch32
 AARCH32_CROSS_COMPILE 		?= $(AARCH32_PATH)/bin/arm-linux-gnueabihf-
 AARCH32_GCC_VERSION 		?= arm-gnu-toolchain-11.3.rel1-x86_64-arm-none-linux-gnueabihf
@@ -83,7 +83,7 @@ endef
 clang-toolchains:
 	$(call dl-clang,$(CLANG_VER),$(CLANG_PATH))
 
-else ifeq ($(TARGET_ARCH),riscv)
+else ifeq ($(ARCH),riscv)
 RISCV64_PATH 			?= $(TOOLCHAIN_ROOT)/riscv64
 RISCV64_CROSS_COMPILE 		?= $(RISCV64_PATH)/bin/riscv64-unknown-linux-gnu-
 RISCV64_GCC_RELEASE_DATE	?= 2023.07.07
