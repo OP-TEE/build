@@ -1,0 +1,2 @@
+BR2_riscv=y
+BR2_RISCV_64=y
