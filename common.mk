@@ -28,6 +28,7 @@ PYTHON3 ?= python3
 ROOT ?= $(shell pwd)/..
 
 UNAME_M				:= $(shell uname -m)
+ARCH				?= arm
 BUILD_PATH			?= $(ROOT)/build
 LINUX_PATH			?= $(ROOT)/linux
 UBOOT_PATH			?= $(ROOT)/u-boot
@@ -163,11 +164,11 @@ endif
 endif
 
 ifneq ($(COMPILE_S_KERNEL),)
-OPTEE_OS_COMMON_EXTRA_FLAGS ?= O=out/arm
-OPTEE_OS_BIN		    ?= $(OPTEE_OS_PATH)/out/arm/core/tee.bin
-OPTEE_OS_HEADER_V2_BIN	    ?= $(OPTEE_OS_PATH)/out/arm/core/tee-header_v2.bin
-OPTEE_OS_PAGER_V2_BIN	    ?= $(OPTEE_OS_PATH)/out/arm/core/tee-pager_v2.bin
-OPTEE_OS_PAGEABLE_V2_BIN    ?= $(OPTEE_OS_PATH)/out/arm/core/tee-pageable_v2.bin
+OPTEE_OS_COMMON_EXTRA_FLAGS ?= O=out/$(ARCH)
+OPTEE_OS_BIN		    ?= $(OPTEE_OS_PATH)/out/$(ARCH)/core/tee.bin
+OPTEE_OS_HEADER_V2_BIN	    ?= $(OPTEE_OS_PATH)/out/$(ARCH)/core/tee-header_v2.bin
+OPTEE_OS_PAGER_V2_BIN	    ?= $(OPTEE_OS_PATH)/out/$(ARCH)/core/tee-pager_v2.bin
+OPTEE_OS_PAGEABLE_V2_BIN    ?= $(OPTEE_OS_PATH)/out/$(ARCH)/core/tee-pageable_v2.bin
 ifeq ($(COMPILE_S_USER),)
 $(error COMPILE_S_USER must be defined as COMPILE_S_KERNEL=$(COMPILE_S_KERNEL) is defined)
 endif
@@ -186,31 +187,17 @@ endif
 ################################################################################
 # set the compiler when COMPILE_xxx are defined
 ################################################################################
+ifeq ($(ARCH),arm)
 CROSS_COMPILE_NS_USER   ?= "$(CCACHE)$(AARCH$(COMPILE_NS_USER)_CROSS_COMPILE)"
 CROSS_COMPILE_NS_KERNEL ?= "$(CCACHE)$(AARCH$(COMPILE_NS_KERNEL)_CROSS_COMPILE)"
 CROSS_COMPILE_S_USER    ?= "$(CCACHE)$(AARCH$(COMPILE_S_USER)_CROSS_COMPILE)"
 CROSS_COMPILE_S_KERNEL  ?= "$(CCACHE)$(AARCH$(COMPILE_S_KERNEL)_CROSS_COMPILE)"
-
-ifeq ($(COMPILE_S_USER),32)
-OPTEE_OS_TA_DEV_KIT_DIR	?= $(OPTEE_OS_PATH)/out/arm/export-ta_arm32
-OPTEE_OS_COMMON_EXTRA_FLAGS	+= CFG_USER_TA_TARGETS=ta_arm32
+else ifeq ($(ARCH),riscv)
+CROSS_COMPILE_NS_USER   ?= "$(CCACHE)$(RISCV$(COMPILE_NS_USER)_CROSS_COMPILE)"
+CROSS_COMPILE_NS_KERNEL ?= "$(CCACHE)$(RISCV$(COMPILE_NS_KERNEL)_CROSS_COMPILE)"
+CROSS_COMPILE_S_USER    ?= "$(CCACHE)$(RISCV$(COMPILE_S_USER)_CROSS_COMPILE)"
+CROSS_COMPILE_S_KERNEL  ?= "$(CCACHE)$(RISCV$(COMPILE_S_KERNEL)_CROSS_COMPILE)"
 endif
-ifeq ($(COMPILE_S_USER),64)
-OPTEE_OS_TA_DEV_KIT_DIR	?= $(OPTEE_OS_PATH)/out/arm/export-ta_arm64
-ifeq ($(MEASURED_BOOT_FTPM),y)
-# The fTPM TA can only be built for 32-bit so enable the 32-bit libraries as well
-OPTEE_OS_COMMON_EXTRA_FLAGS	+= CFG_USER_TA_TARGETS="ta_arm64 ta_arm32"
-else
-OPTEE_OS_COMMON_EXTRA_FLAGS	+= CFG_USER_TA_TARGETS=ta_arm64
-endif
-endif
-
-ifeq ($(COMPILE_S_KERNEL),64)
-OPTEE_OS_COMMON_EXTRA_FLAGS	+= CFG_ARM64_core=y
-else
-OPTEE_OS_COMMON_EXTRA_FLAGS	+= CFG_ARM64_core=n
-endif
-
 
 ################################################################################
 # defines, macros, configuration etc
@@ -249,14 +236,22 @@ all:
 ################################################################################
 # Build root
 ################################################################################
+ifeq ($(ARCH),arm)
 BUILDROOT_ARCH=aarch$(COMPILE_NS_USER)
+else ifeq ($(ARCH),riscv)
+BUILDROOT_ARCH=riscv$(COMPILE_NS_USER)
+endif
 ifeq ($(GDBSERVER),y)
 BUILDROOT_TOOLCHAIN=toolchain-br # Use toolchain supplied by buildroot
 DEFCONFIG_GDBSERVER=--br-defconfig build/br-ext/configs/gdbserver.conf
 else
 # Local toolchains (downloaded by "make toolchains")
 ifeq ($(UNAME_M),x86_64)
+ifeq ($(ARCH),arm)
 BUILDROOT_TOOLCHAIN=toolchain-aarch$(COMPILE_NS_USER)
+else ifeq ($(ARCH),riscv)
+BUILDROOT_TOOLCHAIN=toolchain-riscv$(COMPILE_NS_USER)
+endif
 else ifeq ($(UNAME_M),aarch64)
 ifeq ($(COMPILE_NS_USER),64)
 BUILDROOT_TOOLCHAIN=toolchain-aarch64-sdk
@@ -517,13 +512,57 @@ endef
 ################################################################################
 # OP-TEE
 ################################################################################
+ifeq ($(ARCH),arm)
+ifeq ($(COMPILE_S_USER),32)
+OPTEE_OS_TA_DEV_KIT_DIR	?= $(OPTEE_OS_PATH)/out/arm/export-ta_arm32
+OPTEE_OS_COMMON_EXTRA_FLAGS	+= CFG_USER_TA_TARGETS=ta_arm32
+endif
+ifeq ($(COMPILE_S_USER),64)
+OPTEE_OS_TA_DEV_KIT_DIR	?= $(OPTEE_OS_PATH)/out/arm/export-ta_arm64
+ifeq ($(MEASURED_BOOT_FTPM),y)
+# The fTPM TA can only be built for 32-bit so enable the 32-bit libraries as well
+OPTEE_OS_COMMON_EXTRA_FLAGS	+= CFG_USER_TA_TARGETS="ta_arm64 ta_arm32"
+else
+OPTEE_OS_COMMON_EXTRA_FLAGS	+= CFG_USER_TA_TARGETS=ta_arm64
+endif
+endif
+
+ifeq ($(COMPILE_S_KERNEL),64)
+OPTEE_OS_COMMON_EXTRA_FLAGS	+= CFG_ARM64_core=y
+else
+OPTEE_OS_COMMON_EXTRA_FLAGS	+= CFG_ARM64_core=n
+endif
+
+OPTEE_OS_TA_CROSS_COMPILE_FLAGS	+= CROSS_COMPILE_ta_arm64="$(CCACHE)$(AARCH64_CROSS_COMPILE)"
+OPTEE_OS_TA_CROSS_COMPILE_FLAGS	+= CROSS_COMPILE_ta_arm32="$(CCACHE)$(AARCH32_CROSS_COMPILE)"
+
+else ifeq ($(ARCH),riscv)
+
+ifeq ($(COMPILE_S_USER),32)
+OPTEE_OS_TA_DEV_KIT_DIR	?= $(OPTEE_OS_PATH)/out/riscv/export-ta_rv32
+OPTEE_OS_COMMON_EXTRA_FLAGS	+= CFG_USER_TA_TARGETS=ta_rv32
+endif
+ifeq ($(COMPILE_S_USER),64)
+OPTEE_OS_TA_DEV_KIT_DIR	?= $(OPTEE_OS_PATH)/out/riscv/export-ta_rv64
+OPTEE_OS_COMMON_EXTRA_FLAGS	+= CFG_USER_TA_TARGETS=ta_rv64
+endif
+
+ifeq ($(COMPILE_S_KERNEL),64)
+OPTEE_OS_COMMON_EXTRA_FLAGS	+= CFG_RV64_core=y
+else
+OPTEE_OS_COMMON_EXTRA_FLAGS	+= CFG_RV64_core=n
+endif
+
+OPTEE_OS_TA_CROSS_COMPILE_FLAGS	+= CROSS_COMPILE_ta_rv64="$(CCACHE)$(RISCV64_CROSS_COMPILE)"
+OPTEE_OS_TA_CROSS_COMPILE_FLAGS	+= CROSS_COMPILE_ta_rv32="$(CCACHE)$(RISCV32_CROSS_COMPILE)"
+endif
+
 OPTEE_OS_COMMON_FLAGS ?= \
 	$(OPTEE_OS_COMMON_EXTRA_FLAGS) \
 	PLATFORM=$(OPTEE_OS_PLATFORM) \
 	CROSS_COMPILE=$(CROSS_COMPILE_S_USER) \
 	CROSS_COMPILE_core=$(CROSS_COMPILE_S_KERNEL) \
-	CROSS_COMPILE_ta_arm64="$(CCACHE)$(AARCH64_CROSS_COMPILE)" \
-	CROSS_COMPILE_ta_arm32="$(CCACHE)$(AARCH32_CROSS_COMPILE)" \
+	$(OPTEE_OS_TA_CROSS_COMPILE_FLAGS) \
 	CFG_TEE_CORE_LOG_LEVEL=$(CFG_TEE_CORE_LOG_LEVEL) \
 	DEBUG=$(DEBUG) \
 	CFG_TEE_BENCHMARK=$(CFG_TEE_BENCHMARK) \
