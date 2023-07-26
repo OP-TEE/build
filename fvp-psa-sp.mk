@@ -28,8 +28,6 @@ BR2_PACKAGE_LIBOPENSSL		?= n
 BR2_PACKAGE_OPENSSL		?= n
 endif
 
-TS_RPC_UUID			?= n
-
 # TS SP configurations
 DEFAULT_SP_CONFIG		?= default-opteesp
 SP_BLOCK_STORAGE_CONFIG	?= $(DEFAULT_SP_CONFIG)
@@ -62,7 +60,6 @@ endef
 ifeq ($(SP_PACKAGING_METHOD),fip)
 $(eval $(call add-dtc-define,SPMC_TESTS))
 $(eval $(call add-dtc-define,TS_SMM_GATEWAY))
-$(eval $(call add-dtc-define,TS_RPC_UUID))
 
 TF_A_EXPORTS += DTC_CPPFLAGS="$(DTC_CPPFLAGS)"
 endif
@@ -74,16 +71,6 @@ OPTEE_OS_COMMON_EXTRA_FLAGS += \
 	CFG_DT=y \
 	CFG_MAP_EXT_DT_SECURE=y
 
-
-ifeq ($(TS_RPC_UUID),y)
-TS_RPC_UUID="bdcd76d7-825e-4751-963b-86d4f84943ac"
-SP_BLOCK_STORAGE_EXTRA_FLAGS +=-DTS_RPC_UUID=$(TS_RPC_UUID)
-SP_PSA_ITS_EXTRA_FLAGS +=-DTS_RPC_UUID=$(TS_RPC_UUID)
-SP_PSA_PS_EXTRA_FLAGS +=-DTS_RPC_UUID=$(TS_RPC_UUID)
-SP_PSA_CRYPTO_EXTRA_FLAGS +=-DTS_RPC_UUID=$(TS_RPC_UUID)
-SP_PSA_ATTESTATION_EXTRA_FLAGS +=-DTS_RPC_UUID=$(TS_RPC_UUID)
-SP_SMM_GATEWAY_EXTRA_FLAGS +=-DTS_RPC_UUID=$(TS_RPC_UUID)
-endif
 
 # The boot order of the SPs is determined by the order of calls here. This is
 # due to the SPMC not (yet) supporting the boot order field of the SP manifest.
@@ -105,9 +92,7 @@ OPTEE_OS_COMMON_EXTRA_FLAGS	+= CFG_SPMC_TESTS=y
 $(eval $(call build-sp,spm-test1,opteesp,5c9edbc3-7b3a-4367-9f83-7c191ae86a37,$(SP_SPMC_TEST_EXTRA_FLAGS)))
 $(eval $(call build-sp,spm-test2,opteesp,7817164c-c40c-4d1a-867a-9bb2278cf41a,$(SP_SPMC_TEST_EXTRA_FLAGS)))
 $(eval $(call build-sp,spm-test3,opteesp,23eb0100-e32a-4497-9052-2f11e584afa6,$(SP_SPMC_TEST_EXTRA_FLAGS)))
-ifeq ($(TS_RPC_UUID),y)
 $(eval $(call build-sp,spm-test4,opteesp,423762ed-7772-406f-99d8-0c27da0abbf8,$(SP_SPMC_TEST_EXTRA_FLAGS)))
-endif
 endif
 
 # Linux user space applications
