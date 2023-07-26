@@ -87,13 +87,11 @@
 			load-address = <0x0 0x7a40000>;
 		};
 
-#if TS_RPC_UUID
 		test_sp4 {
 			/* SP binary UUID */
 			uuid = <0xed623742 0x6f407277 0x270cd899 0xf8bb0ada>;
 			load-address = <0x0 0x7a80000>;
 		};
-#endif /* TS_RPC_UUID */
 #endif /* SPMC_TESTS */
 
 	};
