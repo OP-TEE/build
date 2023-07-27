@@ -86,11 +86,12 @@ KERNEL_IMAGE		?= $(LINUX_PATH)/arch/arm64/boot/Image
 KERNEL_IMAGEGZ		?= $(LINUX_PATH)/arch/arm64/boot/Image.gz
 KERNEL_UIMAGE		?= $(BINARIES_PATH)/uImage
 
-# Load and entry addresses
-KERNEL_ENTRY		?= 0x40400000
-KERNEL_LOADADDR		?= 0x40400000
-ROOTFS_ENTRY		?= 0x44000000
-ROOTFS_LOADADDR		?= 0x44000000
+# Load and entry addresses (u-boot only)
+# If you change this please also change in kconfigs/u-boot_qemu_v8.conf
+KERNEL_ENTRY		?= 0x42200000
+KERNEL_LOADADDR		?= 0x42200000
+ROOTFS_ENTRY		?= 0x45000000
+ROOTFS_LOADADDR		?= 0x45000000
 
 ifeq ($(SPMC_AT_EL),2)
 BL32_DEPS		?= hafnium optee-os
