@@ -474,13 +474,13 @@ run-only:
 		-nographic \
 		-serial tcp:localhost:54320 -serial tcp:localhost:54321 \
 		-smp $(QEMU_SMP) \
-		-s -S -machine virt,secure=on,mte=$(QEMU_MTE),gic-version=$(QEMU_GIC_VERSION),virtualization=$(QEMU_VIRT) \
+		-s -S -machine virt,acpi=off,secure=on,mte=$(QEMU_MTE),gic-version=$(QEMU_GIC_VERSION),virtualization=$(QEMU_VIRT) \
 		-cpu $(QEMU_CPU) \
 		-d unimp -semihosting-config enable=on,target=native \
 		-m $(QEMU_MEM) \
 		-bios bl1.bin		\
 		-initrd rootfs.cpio.gz \
-		-kernel Image -no-acpi \
+		-kernel Image \
 		-append 'console=ttyAMA0,38400 keep_bootcon root=/dev/vda2 $(QEMU_KERNEL_BOOTARGS)' \
 		$(QEMU_XEN) \
 		$(QEMU_EXTRA_ARGS)
