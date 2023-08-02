@@ -508,6 +508,7 @@ check: $(CHECK_DEPS)
 		export QEMU_GIC=$(QEMU_GIC_VERSION) && \
 		export QEMU_MEM=$(QEMU_MEM) && \
 		export QEMU_CPU=$(QEMU_CPU) && \
+		export QEMU_VIRT=$(QEMU_VIRT) && \
 		export XEN_BOOT=$(XEN_BOOT) && \
 		expect $(ROOT)/build/qemu-check.exp -- $(check-args) || \
 		(if [ "$(DUMP_LOGS_ON_ERROR)" ]; then \
