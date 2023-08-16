@@ -4,6 +4,13 @@
  */
 
 #if !SPMC_TESTS
+#if TS_LOGGING_SP
+logging_sp {
+	uuid = "da9dffbd-d590-40ed-975f-19c65a3d52d3";
+	load-address = <0x7e00000>;
+};
+#endif /* TS_LOGGING_SP */
+
 block_storage {
 	uuid = "63646e80-eb52-462f-ac4f-8cdf3987519c";
 	load-address = <0x7a00000>;

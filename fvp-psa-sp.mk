@@ -4,6 +4,8 @@ FVP_VIRTFS_AUTOMOUNT		?= y
 MEASURED_BOOT			?= y
 MEASURED_BOOT_FTPM		?= n
 TS_SMM_GATEWAY			?= y
+TS_LOGGING_SP			?= y
+TS_LOGGING_SP_LOG		?= "trusted-services-logs.txt"
 TS_UEFI_TESTS			?= n
 TS_FW_UPDATE			?= n
 TS_UEFI_AUTH_VAR 		?= y
@@ -49,6 +51,7 @@ SP_PSA_CRYPTO_CONFIG		?= $(DEFAULT_SP_CONFIG)
 SP_PSA_ATTESTATION_CONFIG	?= $(DEFAULT_SP_CONFIG)
 SP_SMM_GATEWAY_CONFIG		?= $(DEFAULT_SP_CONFIG)
 SP_FWU_CONFIG			?= $(DEFAULT_SP_CONFIG)
+SP_LOGGING_CONFIG		?= $(DEFAULT_SP_CONFIG)
 
 TF_A_FLAGS ?= \
 	BL32=$(OPTEE_OS_PAGER_V2_BIN) \
@@ -74,6 +77,7 @@ ifeq ($(SP_PACKAGING_METHOD),fip)
 $(eval $(call add-dtc-define,SPMC_TESTS))
 $(eval $(call add-dtc-define,TS_SMM_GATEWAY))
 $(eval $(call add-dtc-define,TS_FW_UPDATE))
+$(eval $(call add-dtc-define,TS_LOGGING_SP))
 
 TF_A_EXPORTS += DTC_CPPFLAGS="$(DTC_CPPFLAGS)"
 endif
@@ -89,6 +93,10 @@ OPTEE_OS_COMMON_EXTRA_FLAGS += \
 # The boot order of the SPs is determined by the order of calls here. This is
 # due to the SPMC not (yet) supporting the boot order field of the SP manifest.
 ifeq ($(SPMC_TESTS),n)
+# LOGGING SP
+ifeq ($(TS_LOGGING_SP),y)
+$(eval $(call build-sp,logging,config/$(SP_LOGGING_CONFIG),da9dffbd-d590-40ed-975f-19c65a3d52d3,$(SP_LOGGING_EXTRA_FLAGS)))
+endif
 # PSA SPs
 $(eval $(call build-sp,block-storage,config/$(SP_BLOCK_STORAGE_CONFIG),63646e80-eb52-462f-ac4f-8cdf3987519c,$(SP_BLOCK_STORAGE_EXTRA_FLAGS)))
 $(eval $(call build-sp,internal-trusted-storage,config/$(SP_PSA_ITS_CONFIG),dc1eef48-b17a-4ccf-ac8b-dfcff7711b14,$(SP_PSA_ITS_EXTRA_FLAGS)))
