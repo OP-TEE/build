@@ -39,6 +39,13 @@
 	sp_packages {
 		compatible = "arm,sp_pkg";
 #if !SPMC_TESTS
+#if TS_LOGGING_SP
+		logging_sp {
+			uuid = <0xbdff9dda 0xed4090d5 0xc6195f97 0xd3523d5a>;
+			load-address = <0x0 0x7e00000>;
+		};
+#endif /* TS_LOGGING_SP */
+
 		block_storage {
 			uuid = <0x806e6463 0x2f4652eb 0xdf8c4fac 0x9c518739>;
 			load-address = <0x0 0x7a00000>;
