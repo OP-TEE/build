@@ -162,12 +162,12 @@ linux-defconfig: $(LINUX_PATH)/.config
 
 LINUX_COMMON_FLAGS += ARCH=arm uImage LOADADDR=0xc2000000 \
 		      CROSS_COMPILE=$(CROSS_COMPILE_NS_KERNEL) \
-		      $(STM32MP1_DTS_BASENAME).dtb \
+		      st/$(STM32MP1_DTS_BASENAME).dtb \
 		      PATH=$$PATH:$(U_BOOT_PATH)/tools
 
 linux: linux-common
 	@$(call install_in_binaries,$(LINUX_PATH)/arch/arm/boot/$(LINUX_KERNEL_BIN))
-	@$(call install_in_binaries,$(LINUX_PATH)/arch/arm/boot/dts/$(LINUX_DTB_BIN))
+	@$(call install_in_binaries,$(LINUX_PATH)/arch/arm/boot/dts/st/$(LINUX_DTB_BIN))
 
 linux-defconfig-clean: linux-defconfig-clean-common
 
