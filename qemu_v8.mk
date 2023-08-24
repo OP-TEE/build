@@ -394,6 +394,9 @@ $(KERNEL_UIMAGE): u-boot linux | $(BINARIES_PATH)
 				-n "Linux kernel" \
 				-d $(BINARIES_PATH)/linux.bin $(KERNEL_UIMAGE)
 
+.PHONY: uImage
+uImage: $(KERNEL_UIMAGE)
+
 $(ROOTFS_UGZ): u-boot buildroot | $(BINARIES_PATH)
 	ln -sf $(ROOT)/out-br/images/rootfs.cpio.gz $(BINARIES_PATH)
 	$(MKIMAGE_PATH)/mkimage -A arm64 \
