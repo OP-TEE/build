@@ -225,6 +225,7 @@ endif
 	rm -f $(BINARIES_PATH)/bl32_extra2.bin
 	rm -f $(BINARIES_PATH)/tos_fw_config.dtb
 	rm -f $(BINARIES_PATH)/op-tee.pkg
+	rm -f $(BINARIES_PATH)/sec-op-tee.pkg
 ifeq ($(SPMC_AT_EL),1)
 	ln -sf $(TF_A_OUT)/fdts/spmc_el1_manifest.dtb \
 		$(BINARIES_PATH)/tos_fw_config.dtb
@@ -238,6 +239,7 @@ else ifeq ($(SPMC_AT_EL),2)
 		$(BINARIES_PATH)/tb_fw_config.dtb
 	ln -sf $(HAFNIUM_BIN) $(BINARIES_PATH)/bl32.bin
 	ln -sf $(TF_A_OUT)/op-tee.pkg $(BINARIES_PATH)/op-tee.pkg
+	ln -sf $(TF_A_OUT)/sec-op-tee.pkg $(BINARIES_PATH)/sec-op-tee.pkg
 else ifeq ($(SPMC_AT_EL),3)
 	ln -sf $(TF_A_OUT)/fdts/spmc_el3_manifest.dtb \
 		$(BINARIES_PATH)/tos_fw_config.dtb

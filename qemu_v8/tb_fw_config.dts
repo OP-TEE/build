@@ -14,5 +14,10 @@
 		       uuid = "486178e0-e7f8-11e3-bc5e-0002a5d5c51b";
 		       load-address = <0xe300000>;
 		};
+
+		sec-op-tee {
+		       uuid = "2ff4b5e4-af2f-11ed-b9d7-5133fc99cce9";
+		       load-address = <0xea00000>;
+		};
 	};
 };

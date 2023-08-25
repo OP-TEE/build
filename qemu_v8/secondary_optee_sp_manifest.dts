@@ -15,15 +15,15 @@
 	compatible = "arm,ffa-manifest-1.0";
 
 	/* Properties */
-	description = "op-tee";
+	description = "sec-op-tee";
 	ffa-version = <0x00010000>; /* 31:16 - Major, 15:0 - Minor */
-	uuid = <0xe0786148 0xe311f8e7 0x02005ebc 0x1bc5d5a5>;
+	uuid = <0xe4b5f42f 0xed112faf 0x3351d7b9 0xe9cc99fc>;
 	id = <1>;
 	execution-ctx-count = <8>;
 	exception-level = <2>; /* S-EL1 */
 	execution-state = <0>; /* AARCH64 */
-	load-address = <0xe300000>;
-	mem-size = <0x700000>;	/* OP-TEE specific extension */
+	load-address = <0xea00000>;
+	mem-size = <0x600000>;	/* OP-TEE specific extension */
 	entrypoint-offset = <0x4000>;
 	xlat-granule = <0>; /* 4KiB */
 	boot-order = <0>;

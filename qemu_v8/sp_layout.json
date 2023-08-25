@@ -2,5 +2,10 @@
 	"op-tee" : {
 		"image": "../../optee_os/out/arm/core/tee-pager_v2.bin",
 		"pm": "optee_sp_manifest.dts"
+	},
+
+	"sec-op-tee" : {
+		"image": "../../optee_os/out/arm/core/tee-pager_v2.bin",
+		"pm": "secondary_optee_sp_manifest.dts"
 	}
 }
