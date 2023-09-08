@@ -1,0 +1,12 @@
+// SPDX-License-Identifier: BSD-3-Clause
+/*
+ * Copyright (c) 2023, Arm Limited. All rights reserved.
+ */
+
+/ {
+	reserved-memory {
+		mm_communicate_carveout@881000000 {
+			reg = <0x00000008 0x81000000 0 0x00008000>;
+		};
+	};
+};

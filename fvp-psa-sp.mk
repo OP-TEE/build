@@ -107,5 +107,25 @@ $(eval $(call build-ts-app,psa-api-test/initial_attestation))
 endif
 ifeq ($(TS_UEFI_TESTS),y)
 $(eval $(call build-ts-app,uefi-test))
+
+# uefi-test uses MM Communicate via the arm-ffa-user driver and the message
+# payload is forwarded in a carveout memory area. Adding reserved-memory node to
+# the device tree to prevent Linux from using the carveout area for other
+# purposes.
+
+ORIGINAL_DTB := $(FVP_LINUX_DTB)
+CARVEOUT_ENTRY = $(ROOT)/build/fvp/mm_communicate_carveout.dtsi
+FVP_LINUX_DTB = $(ROOT)/out/fvp_with_mm_carveout.dtb
+
+$(FVP_LINUX_DTB): $(CARVEOUT_ENTRY) | linux
+	{ dtc -Idtb -Odts $(ORIGINAL_DTB); cat $(CARVEOUT_ENTRY); } | dtc -Idts -Odtb -o $(FVP_LINUX_DTB)
+
+boot-img: $(FVP_LINUX_DTB)
+
+.PHONY: carveout-dtb-clean
+carveout-dtb-clean:
+	rm -f $(FVP_LINUX_DTB)
+
+boot-img-clean: carveout-dtb-clean
 endif
 endif
