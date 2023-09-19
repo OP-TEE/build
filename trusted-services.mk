@@ -67,7 +67,7 @@ ffa-$1-sp:
 
 .PHONY: ffa-$1-sp-clean
 ffa-$1-sp-clean:
-	$$(MAKE) -C $(TS_BUILD_PATH)/$1 clean
+	- $$(MAKE) -C $(TS_BUILD_PATH)/$1 clean
 
 .PHONY: ffa-$1-sp-realclean
 ffa-$1-sp-realclean:
@@ -179,7 +179,7 @@ endif
 
 .PHONY: ffa-$1-clean
 ffa-$1-clean:
-	$$(MAKE) -C $(TS_BUILD_PATH)/$1 clean
+	- $$(MAKE) -C $(TS_BUILD_PATH)/$1 clean
 
 .PHONY: ffa-$1-realclean
 ffa-$1-realclean:
