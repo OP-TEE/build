@@ -2,7 +2,7 @@ the_ROM_image:
 {
 	image {
 	      { type=bootimage, file=../versal-vck190-bsp/project-spec/hw-description/vpl_gen_fixed.pdi }
-	      { type=bootloader, file=../versal-vck190-bsp/pre-built/linux/images/plm.elf }
+	      { type=bootloader, file=../versal-vck190-bsp/images/linux/plm.elf }
 	      { core=psm, file=../versal-vck190-bsp/pre-built/linux/images/psmfw.elf }
 	}
 
