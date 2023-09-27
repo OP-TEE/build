@@ -29,6 +29,7 @@
 	boot-order = <0>;
 	messaging-method = <0x3>; /* Direct messaging only */
 	ns-interrupts-action = <1>; /* NS_ACTION_ME */
+	notification-support;
 
 	/* Boot protocol */
 	gp-register-num = <0x0>;
