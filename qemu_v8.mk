@@ -65,6 +65,7 @@ UBOOT_BIN		?= $(UBOOT_PATH)/u-boot.bin
 MKIMAGE_PATH		?= $(UBOOT_PATH)/tools
 HAFNIUM_PATH		?= $(ROOT)/hafnium
 HAFNIUM_BIN		?= $(HAFNIUM_PATH)/out/reference/secure_qemu_aarch64_clang/hafnium.bin
+QEMU_DTB_PATH		?= $(ROOT)/out/qemu_v8.dtb
 
 ROOTFS_GZ		?= $(BINARIES_PATH)/rootfs.cpio.gz
 ROOTFS_UGZ		?= $(BINARIES_PATH)/rootfs.cpio.uboot
@@ -470,6 +471,24 @@ else
 QEMU_MTE	= off
 endif
 
+QEMU_ARGS := \
+	-nographic \
+	-smp $(QEMU_SMP) \
+	-s -S -machine virt,acpi=off,secure=on,mte=$(QEMU_MTE),gic-version=$(QEMU_GIC_VERSION),virtualization=$(QEMU_VIRT) \
+	-cpu $(QEMU_CPU) \
+	-d unimp -semihosting-config enable=on,target=native \
+	-m $(QEMU_MEM) \
+	-bios bl1.bin		\
+	-initrd rootfs.cpio.gz \
+	-kernel Image \
+	-append 'console=ttyAMA0,38400 keep_bootcon root=/dev/vda2 $(QEMU_KERNEL_BOOTARGS)' \
+	$(QEMU_XEN) \
+	$(QEMU_EXTRA_ARGS)
+	
+ifeq ($(QEMU_USE_CUSTOM_DTB),y)
+QEMU_DTB_ARG	?= -dtb $(QEMU_DTB_PATH)
+endif
+
 .PHONY: run-only
 run-only:
 	ln -sf $(ROOT)/out-br/images/rootfs.cpio.gz $(BINARIES_PATH)/
@@ -479,19 +498,16 @@ run-only:
 	$(call launch-terminal,$(QEMU_SW_PORT),"Secure World")
 	$(call wait-for-ports,$(QEMU_NW_PORT),$(QEMU_SW_PORT))
 	cd $(BINARIES_PATH) && $(QEMU_BUILD)/aarch64-softmmu/qemu-system-aarch64 \
-		-nographic \
 		-serial tcp:127.0.0.1:$(QEMU_NW_PORT) -serial tcp:127.0.0.1:$(QEMU_SW_PORT) \
-		-smp $(QEMU_SMP) \
-		-s -S -machine virt,acpi=off,secure=on,mte=$(QEMU_MTE),gic-version=$(QEMU_GIC_VERSION),virtualization=$(QEMU_VIRT) \
-		-cpu $(QEMU_CPU) \
-		-d unimp -semihosting-config enable=on,target=native \
-		-m $(QEMU_MEM) \
-		-bios bl1.bin		\
-		-initrd rootfs.cpio.gz \
-		-kernel Image \
-		-append 'console=ttyAMA0,38400 keep_bootcon root=/dev/vda2 $(QEMU_KERNEL_BOOTARGS)' \
-		$(QEMU_XEN) \
-		$(QEMU_EXTRA_ARGS)
+		$(QEMU_DTB_ARG) \
+		$(QEMU_ARGS)
+
+# Note: the generated DTB depends on $(QEMU_ARGS)
+.PHONY: dumpdtb
+dumpdtb:
+	cd $(BINARIES_PATH) && $(QEMU_BUILD)/aarch64-softmmu/qemu-system-aarch64 \
+		$(QEMU_ARGS) \
+		-machine dumpdtb=$(QEMU_DTB_PATH)
 
 ifneq ($(filter check check-rust,$(MAKECMDGOALS)),)
 CHECK_DEPS := all
