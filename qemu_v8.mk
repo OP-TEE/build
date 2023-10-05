@@ -115,8 +115,7 @@ TARGET_DEPS		+= $(KERNEL_UIMAGE) $(ROOTFS_UGZ)
 TARGET_CLEAN		+= u-boot-clean
 
 ifeq ($(XEN_BOOT),y)
-TARGET_DEPS		+= xen-create-image buildroot-domu
-TARGET_CLEAN		+= buildroot-domu-clean
+TARGET_DEPS		+= xen-create-image
 endif
 
 all: $(TARGET_DEPS)
@@ -441,7 +440,7 @@ run: all
 
 ifeq ($(XEN_BOOT),y)
 QEMU_CPU	?= cortex-a57
-QEMU_MEM 	?= 2048
+QEMU_MEM 	?= 3072
 QEMU_SMP	?= 4
 QEMU_VIRT	= true
 QEMU_XEN	?= -drive if=none,file=$(XEN_EXT4),format=raw,id=hd1 \

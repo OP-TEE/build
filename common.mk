@@ -355,31 +355,6 @@ buildroot-clean:
 buildroot-cleaner:
 	@rm -rf $(ROOT)/out-br
 
-.PHONY: buildroot-domu
-buildroot-domu: optee-os
-	@mkdir -p ../out-br-domu
-	@rm -f ../out-br-domu/build/optee_*/.stamp_*
-	@rm -f ../out-br-domu/extra.conf
-	@$(call append-br2-vars,../out-br-domu/extra.conf)
-	@(cd .. && $(PYTHON3) build/br-ext/scripts/make_def_config.py \
-		--br buildroot --out out-br-domu --br-ext build/br-ext \
-		--top-dir "$(ROOT)" \
-		--br-defconfig build/br-ext/configs/optee_$(BUILDROOT_ARCH) \
-		--br-defconfig build/br-ext/configs/optee_generic \
-		--br-defconfig build/br-ext/configs/$(BUILDROOT_TOOLCHAIN) \
-		$(DEFCONFIG_GDBSERVER) \
-		--br-defconfig out-br-domu/extra.conf \
-		--make-cmd $(MAKE))
-	@$(MAKE) $(br-make-flags) -C ../out-br-domu all
-
-.PHONY: buildroot-domu-clean
-buildroot-domu-clean:
-	@test ! -d $(ROOT)/out-br-domu || $(MAKE) -C $(ROOT)/out-br-domu clean
-
-.PHONY: buildroot-domu-cleaner
-buildroot-domu-cleaner:
-	@rm -rf $(ROOT)/out-br-domu
-
 ################################################################################
 # Linux
 ################################################################################
