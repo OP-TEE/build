@@ -166,7 +166,7 @@ run-only:
 	$(call wait-for-ports,54320,54321)
 	cd $(BINARIES_PATH) && $(QEMU_BUILD)/arm-softmmu/qemu-system-arm \
 		-nographic \
-		-serial tcp:localhost:54320 -serial tcp:localhost:54321 \
+		-serial tcp:127.0.0.1:54320 -serial tcp:127.0.0.1:54321 \
 		-smp $(QEMU_SMP) \
 		-s -S -machine virt,secure=on -cpu cortex-a15 \
 		-d unimp -semihosting-config enable=on,target=native \

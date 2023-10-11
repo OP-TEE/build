@@ -479,7 +479,7 @@ run-only:
 	$(call wait-for-ports,54320,54321)
 	cd $(BINARIES_PATH) && $(QEMU_BUILD)/aarch64-softmmu/qemu-system-aarch64 \
 		-nographic \
-		-serial tcp:localhost:54320 -serial tcp:localhost:54321 \
+		-serial tcp:127.0.0.1:54320 -serial tcp:127.0.0.1:54321 \
 		-smp $(QEMU_SMP) \
 		-s -S -machine virt,acpi=off,secure=on,mte=$(QEMU_MTE),gic-version=$(QEMU_GIC_VERSION),virtualization=$(QEMU_VIRT) \
 		-cpu $(QEMU_CPU) \
