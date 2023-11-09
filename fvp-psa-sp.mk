@@ -6,9 +6,15 @@ MEASURED_BOOT_FTPM		?= n
 TS_SMM_GATEWAY			?= y
 TS_UEFI_TESTS			?= n
 TS_FW_UPDATE			?= n
+TS_UEFI_AUTH_VAR 		?= y
 # Supported values: embedded, fip
 SP_PACKAGING_METHOD		?= embedded
 SPMC_TESTS			?= n
+
+ifneq ($(TS_UEFI_AUTH_VAR)-$(TS_SMM_GATEWAY),y-y)
+SP_SMM_GATEWAY_EXTRA_FLAGS += -DUEFI_AUTH_VAR=OFF
+TS_APP_UEFI_TEST_EXTRA_FLAGS += -DUEFI_AUTH_VAR=OFF
+endif
 
 # Enable the "HArdware Volatile Entropy Gathering and Expansion" daemon to
 # overcome low-entropy conditions in the FVP
