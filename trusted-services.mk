@@ -154,23 +154,17 @@ endif
 # Parameter list:
 # 1 - SP deployment name (e.g. psa-api-test/internal-trusted-storage,
 #     ts-demo, etc.)
-#
-# Each target will pass TS_APP_COMMON_FLAGS and
-# TS_APP_<ucfdpn>_EXTRA_FLAGS to cmake. ucfdpn is the upper case
-# deployment name with all / characters replaced by _ characters. These
-# variables allow setting extra build flags trough the environment.
+# 2 - Additional build flags
 
 define build-ts-app
 .PHONY: ffa-$1
-FFA_$1_UC_NAME:=$(shell echo $1 | tr a-z/ A-Z_)
 ffa-$1:
 	CROSS_COMPILE=$(subst $(CCACHE),,$(CROSS_COMPILE_NS_USER)) cmake -G"Unix Makefiles" \
 		-S $(TS_PATH)/deployments/$1/arm-linux -B $(TS_BUILD_PATH)/$1 \
 		-DCMAKE_INSTALL_PREFIX=$(TS_INSTALL_PREFIX) \
 		-Dlibts_DIR=${TS_INSTALL_PREFIX}/arm-linux/lib/cmake/libts \
 		-DCFG_FORCE_PREBUILT_LIBTS=On \
-		-DCMAKE_C_COMPILER_LAUNCHER=$(CCACHE) $(TS_APP_COMMON_FLAGS) \
-		$(TS_APP_${FFA_$1_UC_NAME}_EXTRA_FLAGS)
+		-DCMAKE_C_COMPILER_LAUNCHER=$(CCACHE) $(TS_APP_COMMON_FLAGS) $2
 	$$(MAKE) -C $(TS_BUILD_PATH)/$1 install
 
 ifneq ($1,libts)
@@ -205,23 +199,18 @@ ts-host-all-realclean:
 #
 # Parameter list:
 # 1 - deployment name (e.g. fwu-app )
-#
-# Each target will pass TS_HOST_COMMON_FLAGS and
-# TS_HOST_<ucfdpn>_EXTRA_FLAGS to cmake. ucfdpn is the upper case
-# deployment name with all / characters replaced by _ characters. These
-# variables allow setting extra build flags trough the environment.
+# 2 - Additional build flags
 
 define build-ts-host-app
 .PHONY: ts-host-$1
 $(if $1, ,$(error build-ts-host-app: missing deployment name argument))
 
-FFA_$1_UC_NAME:=$(shell echo $1 | tr a-z/ A-Z_)
 ts-host-$1:
 	cmake -G"Unix Makefiles" \
 		-S $(TS_PATH)/deployments/$1/linux-pc -B $(TS_BUILD_PATH)/$1 \
 		-DCMAKE_INSTALL_PREFIX=$(TS_INSTALL_PREFIX) \
-		-DCMAKE_C_COMPILER_LAUNCHER=$(CCACHE) $(TS_HOST_COMMON_FLAGS) \
-		$(TS_HOST_${FFA_$1_UC_NAME}_EXTRA_FLAGS)
+		-DCMAKE_C_COMPILER_LAUNCHER=$(CCACHE) \
+		$(TS_HOST_COMMON_FLAGS) $2
 	$$(MAKE) -C $(TS_BUILD_PATH)/$1 install
 
 .PHONY: ts-host-$1-clean

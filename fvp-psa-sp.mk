@@ -103,16 +103,16 @@ endif
 
 # Linux user space applications
 ifeq ($(SPMC_TESTS),n)
-$(eval $(call build-ts-app,libts))
-$(eval $(call build-ts-app,ts-service-test))
-$(eval $(call build-ts-app,psa-api-test/internal_trusted_storage))
-$(eval $(call build-ts-app,psa-api-test/protected_storage))
-$(eval $(call build-ts-app,psa-api-test/crypto))
+$(eval $(call build-ts-app,libts,$(TS_APP_LIBTS_EXTRA_FLAGS)))
+$(eval $(call build-ts-app,ts-service-test,$(TS_APP_TS_SERVICE_TEST_EXTRA_FLAGS)))
+$(eval $(call build-ts-app,psa-api-test/internal_trusted_storage,$(TS_APP_PSA_ITS_EXTRA_FLAGS)))
+$(eval $(call build-ts-app,psa-api-test/protected_storage,$(TS_APP_PSA_PS_EXTRA_FLAGS)))
+$(eval $(call build-ts-app,psa-api-test/crypto,$(TS_APP_PSA_CRYPTO_EXTRA_FLAGS)))
 ifeq ($(MEASURED_BOOT),y)
-$(eval $(call build-ts-app,psa-api-test/initial_attestation))
+$(eval $(call build-ts-app,psa-api-test/initial_attestation,$(TS_APP_PSA_IAT_EXTRA_FLAGS)))
 endif
 ifeq ($(TS_UEFI_TESTS),y)
-$(eval $(call build-ts-app,uefi-test))
+$(eval $(call build-ts-app,uefi-test,$(TS_APP_UEFI_TEST_EXTRA_FLAGS)))
 
 # uefi-test uses MM Communicate via the arm-ffa-user driver and the message
 # payload is forwarded in a carveout memory area. Adding reserved-memory node to
@@ -138,7 +138,7 @@ endif
 ifeq ($(TS_FW_UPDATE),y)
 
 # TODO: the fwu-tool is currently not needed.
-$(eval $(call  build-ts-host-app,fwu-tool))
+$(eval $(call build-ts-host-app,fwu-tool,$(TS_HOST_UEFI_TEST_EXTRA_FLAGS)))
 
 ffa-fwu-sp: ts-host-fwu-tool
 
