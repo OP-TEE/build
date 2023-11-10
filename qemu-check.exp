@@ -12,7 +12,11 @@
 
 set bios "../out/bios-qemu/bios.bin"
 set cmd1 "cd /mnt/host/build/qemu_v8/xen"
-set cmd2 "xl create guest.cfg"
+if {$::env(XEN_FFA) == "y"} {
+	set cmd2 "xl create guest_ffa.cfg"
+} else {
+	set cmd2 "xl create guest.cfg"
+}
 set cmd3 "xl console domu"
 set quiet 0
 set xtest_args ""
