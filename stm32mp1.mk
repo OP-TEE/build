@@ -56,7 +56,6 @@ OPTEE_PAGEABLE_BIN  	:= tee-pageable_v2.bin
 U_BOOT_BIN		:= u-boot.bin
 U_BOOT_DTB		:= u-boot.dtb
 LINUX_KERNEL_BIN 	:= uImage
-LINUX_DTB_BIN		:= $(STM32MP1_DTS_BASENAME).dtb
 
 ################################################################################
 # Paths to git projects and various binaries
@@ -167,7 +166,7 @@ LINUX_COMMON_FLAGS += ARCH=arm uImage LOADADDR=0xc2000000 \
 
 linux: linux-common
 	@$(call install_in_binaries,$(LINUX_PATH)/arch/arm/boot/$(LINUX_KERNEL_BIN))
-	@$(call install_in_binaries,$(LINUX_PATH)/arch/arm/boot/dts/st/$(LINUX_DTB_BIN))
+	@$(call install_in_binaries,$(LINUX_PATH)/arch/arm/boot/dts/st/$(STM32MP1_DTS_BASENAME).dtb)
 
 linux-defconfig-clean: linux-defconfig-clean-common
 
@@ -230,7 +229,7 @@ copy_images_to_br: tfa optee-os u-boot linux
 	$(call install_in_br_images,$(U_BOOT_BIN))
 	$(call install_in_br_images,$(U_BOOT_DTB))
 	$(call install_in_br_images,$(LINUX_KERNEL_BIN))
-	$(call install_in_br_images,$(LINUX_DTB_BIN))
+	$(call install_in_br_images,$(STM32MP1_DTS_BASENAME).dtb)
 	$(call install_in_br_images,$(OPTEE_HEADER_BIN))
 	$(call install_in_br_images,$(OPTEE_PAGER_BIN))
 	$(call install_in_br_images,$(OPTEE_PAGEABLE_BIN))
