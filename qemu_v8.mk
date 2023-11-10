@@ -417,6 +417,10 @@ $(ROOTFS_UGZ): u-boot buildroot | $(BINARIES_PATH)
 ################################################################################
 
 XEN_CONFIGS = .config $(ROOT)/build/kconfigs/xen.conf
+ifeq ($(XEN_DEBUG),y)
+XEN_CONFIGS += $(ROOT)/build/kconfigs/xen_debug.conf
+endif
+
 ifneq ($(filter 1 2 3,$(SPMC_AT_EL)),)
 XEN_FFA = y
 endif
