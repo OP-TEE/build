@@ -41,6 +41,7 @@ else
 $(error Unknown PLATFORM $(PLATFORM))
 endif
 
+STM32MP1_DTS_LINUX ?= $(STM32MP1_DTS_BASENAME)
 STM32MP1_DTS_U_BOOT ?= $(STM32MP1_DTS_BASENAME)
 STM32MP1_DEFCONFIG_U_BOOT ?= stm32mp15_defconfig
 
@@ -161,12 +162,12 @@ linux-defconfig: $(LINUX_PATH)/.config
 
 LINUX_COMMON_FLAGS += ARCH=arm uImage LOADADDR=0xc2000000 \
 		      CROSS_COMPILE=$(CROSS_COMPILE_NS_KERNEL) \
-		      st/$(STM32MP1_DTS_BASENAME).dtb \
+		      st/$(STM32MP1_DTS_LINUX).dtb \
 		      PATH=$$PATH:$(U_BOOT_PATH)/tools
 
 linux: linux-common
 	@$(call install_in_binaries,$(LINUX_PATH)/arch/arm/boot/$(LINUX_KERNEL_BIN))
-	@$(call install_in_binaries,$(LINUX_PATH)/arch/arm/boot/dts/st/$(STM32MP1_DTS_BASENAME).dtb)
+	@$(call install_in_binaries,$(LINUX_PATH)/arch/arm/boot/dts/st/$(STM32MP1_DTS_LINUX).dtb)
 
 linux-defconfig-clean: linux-defconfig-clean-common
 
@@ -229,7 +230,7 @@ copy_images_to_br: tfa optee-os u-boot linux
 	$(call install_in_br_images,$(U_BOOT_BIN))
 	$(call install_in_br_images,$(U_BOOT_DTB))
 	$(call install_in_br_images,$(LINUX_KERNEL_BIN))
-	$(call install_in_br_images,$(STM32MP1_DTS_BASENAME).dtb)
+	$(call install_in_br_images,$(STM32MP1_DTS_LINUX).dtb)
 	$(call install_in_br_images,$(OPTEE_HEADER_BIN))
 	$(call install_in_br_images,$(OPTEE_PAGER_BIN))
 	$(call install_in_br_images,$(OPTEE_PAGEABLE_BIN))
