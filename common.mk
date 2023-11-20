@@ -105,6 +105,10 @@ QEMU_VIRTFS_MOUNTPOINT	?= /mnt/host
 
 # End of QEMU shared folder settings
 
+# The ports used for the consoles that are spawned when running QEMU.
+QEMU_NW_PORT ?= 54320
+QEMU_SW_PORT ?= 54321
+
 ################################################################################
 # Mandatory for autotools (for specifying --host)
 ################################################################################

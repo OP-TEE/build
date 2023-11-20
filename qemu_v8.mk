@@ -475,12 +475,12 @@ run-only:
 	ln -sf $(ROOT)/out-br/images/rootfs.cpio.gz $(BINARIES_PATH)/
 	$(call check-terminal)
 	$(call run-help)
-	$(call launch-terminal,54320,"Normal World")
-	$(call launch-terminal,54321,"Secure World")
-	$(call wait-for-ports,54320,54321)
+	$(call launch-terminal,$(QEMU_NW_PORT),"Normal World")
+	$(call launch-terminal,$(QEMU_SW_PORT),"Secure World")
+	$(call wait-for-ports,$(QEMU_NW_PORT),$(QEMU_SW_PORT))
 	cd $(BINARIES_PATH) && $(QEMU_BUILD)/aarch64-softmmu/qemu-system-aarch64 \
 		-nographic \
-		-serial tcp:127.0.0.1:54320 -serial tcp:127.0.0.1:54321 \
+		-serial tcp:127.0.0.1:$(QEMU_NW_PORT) -serial tcp:127.0.0.1:$(QEMU_SW_PORT) \
 		-smp $(QEMU_SMP) \
 		-s -S -machine virt,acpi=off,secure=on,mte=$(QEMU_MTE),gic-version=$(QEMU_GIC_VERSION),virtualization=$(QEMU_VIRT) \
 		-cpu $(QEMU_CPU) \
