@@ -161,12 +161,12 @@ run-only:
 	ln -sf $(ROOT)/out-br/images/rootfs.cpio.gz $(BINARIES_PATH)/
 	$(call check-terminal)
 	$(call run-help)
-	$(call launch-terminal,54320,"Normal World")
-	$(call launch-terminal,54321,"Secure World")
-	$(call wait-for-ports,54320,54321)
+	$(call launch-terminal,$(QEMU_NW_PORT),"Normal World")
+	$(call launch-terminal,$(QEMU_SW_PORT),"Secure World")
+	$(call wait-for-ports,$(QEMU_NW_PORT),$(QEMU_SW_PORT))
 	cd $(BINARIES_PATH) && $(QEMU_BUILD)/arm-softmmu/qemu-system-arm \
 		-nographic \
-		-serial tcp:127.0.0.1:54320 -serial tcp:127.0.0.1:54321 \
+		-serial tcp:127.0.0.1:$(QEMU_NW_PORT) -serial tcp:127.0.0.1:$(QEMU_SW_PORT) \
 		-smp $(QEMU_SMP) \
 		-s -S -machine virt,secure=on -cpu cortex-a15 \
 		-d unimp -semihosting-config enable=on,target=native \
