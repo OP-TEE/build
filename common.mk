@@ -269,9 +269,6 @@ endif
 
 ifeq ($(XEN_BOOT),y)
 DEFCONFIG_XEN=--br-defconfig build/br-ext/configs/xen.conf
-# The version of Xen provided by Buildroot needs a few patches to work with
-# OP-TEE
-BR2_GLOBAL_PATCH_DIR=../build/br-ext/patches
 endif
 
 BR2_PER_PACKAGE_DIRECTORIES ?= y
