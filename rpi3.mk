@@ -99,6 +99,8 @@ tf-a: optee-os u-boot-env
 tf-a-clean:
 	$(TF_A_EXPORTS) $(MAKE) -C $(TF_A_PATH) $(TF_A_FLAGS) clean
 
+.PHONY: tf-a tf-a-clean
+
 ################################################################################
 # Das U-Boot
 ################################################################################
@@ -107,7 +109,6 @@ U-BOOT_DEFCONFIG_COMMON_FILES := \
 		$(U-BOOT_PATH)/configs/rpi_3_defconfig \
 		$(CURDIR)/kconfigs/u-boot_rpi3.conf
 
-.PHONY: u-boot
 u-boot: u-boot-defconfig
 	$(U-BOOT_EXPORTS) $(MAKE) -C $(U-BOOT_PATH) all
 	$(U-BOOT_EXPORTS) $(MAKE) -C $(U-BOOT_PATH) tools
@@ -128,9 +129,11 @@ u-boot-defconfig: $(U-BOOT_DEFCONFIG_COMMON_FILES)
 		ARCH=arm64 \
 		scripts/kconfig/merge_config.sh $(U-BOOT_DEFCONFIG_COMMON_FILES)
 
-.PHONY: u-boot-defconfig-clean
 u-boot-defconfig-clean:
 	rm -f $(U-BOOT_PATH)/.config
+
+.PHONY: u-boot u-boot-clean u-boot-defconfig u-boot-defconfig-clean u-boot-env \
+	u-boot-env-clean
 
 ################################################################################
 # Linux kernel
@@ -156,6 +159,8 @@ linux-clean: linux-clean-common
 LINUX_CLEANER_COMMON_FLAGS += ARCH=arm64
 
 linux-cleaner: linux-cleaner-common
+
+.PHONY: linux linux-defconfig-clean linux-clean linux-cleaner
 
 ################################################################################
 # OP-TEE
