@@ -66,10 +66,10 @@ MODULE_OUTPUT		?= $(ROOT)/module_output
 ################################################################################
 # Targets
 ################################################################################
-all: arm-tf buildroot optee-os u-boot linux update_bootfs update_rootfs \
+all: tf-a buildroot optee-os u-boot linux update_bootfs update_rootfs \
 	sdcard-image
-clean: arm-tf-clean buildroot-clean u-boot-clean \
-	optee-os-clean
+
+clean: tf-a-clean buildroot-clean u-boot-clean optee-os-clean
 
 include toolchain.mk
 
@@ -93,10 +93,10 @@ TF_A_FLAGS ?= \
 	RPI3_PRELOADED_DTB_BASE=0x00010000 \
 	SPD=opteed
 
-arm-tf: optee-os u-boot-env
+tf-a: optee-os u-boot-env
 	$(TF_A_EXPORTS) $(MAKE) -C $(TF_A_PATH) $(TF_A_FLAGS) all fip
 
-arm-tf-clean:
+tf-a-clean:
 	$(TF_A_EXPORTS) $(MAKE) -C $(TF_A_PATH) $(TF_A_FLAGS) clean
 
 ################################################################################
@@ -174,7 +174,7 @@ update_rootfs: linux
 	@mkdir -p --mode=755 $(BUILDROOT_TARGET_ROOT)/usr/bin
 	@cd $(MODULE_OUTPUT) && find . | cpio -pudm $(BUILDROOT_TARGET_ROOT)
 
-update_bootfs: arm-tf u-boot
+update_bootfs: tf-a u-boot
 	@mkdir -p --mode=755 $(BOOT_PARTITION_FILES)
 	@install -v -p --mode=755 $(LINUX_DTB_RPI3_B) $(BOOT_PARTITION_FILES)/bcm2710-rpi-3-b.dtb
 	@install -v -p --mode=755 $(LINUX_DTB_RPI3_BPLUS) $(BOOT_PARTITION_FILES)/bcm2710-rpi-3-b-plus.dtb
