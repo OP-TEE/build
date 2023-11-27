@@ -93,7 +93,7 @@ TF_A_FLAGS ?= \
 	RPI3_PRELOADED_DTB_BASE=0x00010000 \
 	SPD=opteed
 
-tf-a: optee-os u-boot-env
+tf-a: optee-os u-boot
 	$(TF_A_EXPORTS) $(MAKE) -C $(TF_A_PATH) $(TF_A_FLAGS) all fip
 
 tf-a-clean:
@@ -179,7 +179,7 @@ update_rootfs: linux
 	@mkdir -p --mode=755 $(BUILDROOT_TARGET_ROOT)/usr/bin
 	@cd $(MODULE_OUTPUT) && find . | cpio -pudm $(BUILDROOT_TARGET_ROOT)
 
-update_bootfs: tf-a u-boot
+update_bootfs: tf-a linux u-boot-env
 	@mkdir -p --mode=755 $(BOOT_PARTITION_FILES)
 	@install -v -p --mode=755 $(LINUX_DTB_RPI3_B) $(BOOT_PARTITION_FILES)/bcm2710-rpi-3-b.dtb
 	@install -v -p --mode=755 $(LINUX_DTB_RPI3_BPLUS) $(BOOT_PARTITION_FILES)/bcm2710-rpi-3-b-plus.dtb
