@@ -412,6 +412,9 @@ $(ROOTFS_UGZ): u-boot buildroot | $(BINARIES_PATH)
 				-n "Root file system" \
 				-d $(ROOTFS_GZ) $(ROOTFS_UGZ)
 
+.PHONY: uRootfs
+uRootfs: $(ROOTFS_UGZ)
+
 ################################################################################
 # XEN
 ################################################################################
