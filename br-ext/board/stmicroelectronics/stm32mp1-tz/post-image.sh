@@ -14,12 +14,14 @@ echo "- image directory path: ${1}" # Generic argument set by Buildroot
 echo "- genimage config file: ${2}"
 echo "- external bins path:   ${3}"
 echo "- bootfs overlay path:  ${4}"
+echo "- TF-A DTB basename:    ${5}"
 
 [ ! -z "${2}" -a -e ${2} ] || die "Error: missing argument genimage config file"
 [ ! -z "${3}" -a -d ${3} ] || die "Error: missing argument external binaries dir"
 [ -z "${4}" -o -d ${4} ] || die "Error: invalid bootfs overlay directory path"
 
 GENIMAGE_TMP="${BUILD_DIR}/genimage.tmp"
+GENIMAGE_IN="${BUILD_DIR}/genimage.in"
 
 # Create target bootfs filesystem
 # - Copy uImage and DTBs from path provided in arg $3 into boot/
@@ -34,6 +36,10 @@ for f in ${3}/*.dtb; do
 done
 [ -z "${4}" ] || { cp -ar ${4}/* ${BOOTFS_DIR} || exit 1; }
 
+# Set TF-A file name in genimage config file
+echo "[GEN] Generate genimage file for target ${5} GPT formating"
+sed s/TFA_BOARD_REV/${5}/g ${2} > ${GENIMAGE_IN}
+
 mkfs.ext2 -L bootfs -d ${BOOTFS_DIR} ${BINARIES_DIR}/bootfs.ext2 32M || exit 1
 
 # Generate image from generated partition images and genimage config file
@@ -44,4 +50,4 @@ genimage --rootpath "${ROOTPATH_TMP}" \
          --tmppath "${GENIMAGE_TMP}" \
          --inputpath "${BINARIES_DIR}" \
          --outputpath "${BINARIES_DIR}" \
-         --config ${2}
+         --config ${GENIMAGE_IN}
