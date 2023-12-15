@@ -1,0 +1,30 @@
+/dts-v1/;
+
+/ {
+    description = "U-Boot fitImage for plnx_aarch64 kernel";
+    #address-cells = <1>;
+
+    images {
+        ramdisk {
+            description = "ramdisk";
+            data = /incbin/("../../out-br/images/rootfs.cpio.gz");
+            type = "ramdisk";
+            arch = "arm64";
+            os = "linux";
+            compression = "gzip";
+            hash1 {
+                algo = "sha1";
+            };
+        };
+    };
+    configurations {
+        default = "conf1";
+        conf1 {
+            description = "Ramdisk";
+	    ramdisk = "ramdisk";
+            hash1 {
+                algo = "sha1";
+            };
+        };
+    };
+};

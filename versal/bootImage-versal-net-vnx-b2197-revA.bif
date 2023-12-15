@@ -1,0 +1,18 @@
+the_ROM_image:
+{
+	image {
+	      { type=bootimage, file=../versal-net-bsp/ksb_castle_peak_b0_optee_20240507.pdi }
+	}
+
+	image {
+	      id = 0x1c000006, name=apu_subsystem
+
+	      { type=raw, load=0x27100000, file=../u-boot/arch/arm/dts/versal-net-mini.dtb }
+
+	      { core=a78-0, cluster=0, exception_level=el-3, trustzone, file=../arm-trusted-firmware/build/versal_net/debug/bl31/bl31.elf }
+	      { core=a78-0, cluster=0, exception_level=el-2, file=../u-boot/u-boot.elf }
+	      { type=raw, load=0x22200000, file=../optee_os/out/arm/core/tee-raw.bin }
+	      { type=raw, load=0x27200000, file=../linux/arch/arm64/boot/Image }
+	      { type=raw, load=0x02100000, file=./versal/versal-net-vnx-b2197-revA.ub }
+	}
+}
