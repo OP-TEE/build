@@ -13,6 +13,7 @@ EXAMPLE = $(wildcard examples/*)
 
 HOST_TARGET := aarch64-unknown-linux-gnu
 TA_TARGET := aarch64-unknown-optee-trustzone
+TA_TARGET_NO_STD := aarch64-unknown-linux-gnu
 
 export RUST_TARGET_PATH = $(@D)
 export RUST_COMPILER_RT_ROOT = $(RUST_TARGET_PATH)/rust/rust/src/llvm-project/compiler-rt
@@ -32,6 +33,12 @@ endef
 
 define OPTEE_RUST_EXAMPLES_EXT_INSTALL_TARGET_CMDS
 	@$(foreach f,$(wildcard $(@D)/examples/*/ta/target/$(TA_TARGET)/release/*.ta), \
+		mkdir -p $(TARGET_DIR)/lib/optee_armtz && \
+		echo Installing $f && \
+		$(INSTALL) -v -p --mode=444 \
+			--target-directory=$(TARGET_DIR)/lib/optee_armtz $f \
+			&&) true
+	@$(foreach f,$(wildcard $(@D)/examples/*/ta/target/$(TA_TARGET_NO_STD)/release/*.ta), \
 		mkdir -p $(TARGET_DIR)/lib/optee_armtz && \
 		echo Installing $f && \
 		$(INSTALL) -v -p --mode=444 \
