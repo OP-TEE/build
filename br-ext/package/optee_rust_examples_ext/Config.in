@@ -11,6 +11,12 @@ config BR2_PACKAGE_OPTEE_RUST_EXAMPLES_EXT_SITE
 
 if BR2_PACKAGE_OPTEE_RUST_EXAMPLES_EXT
 
+config BR2_PACKAGE_OPTEE_RUST_EXAMPLES_EXT_SDK
+	string "OPTEE SDK path"
+	default ""
+	help
+	  The path to OP-TEE TA development SDK
+
 config BR2_PACKAGE_OPTEE_RUST_EXAMPLES_EXT_CROSS_COMPILE
 	string "OP-TEE Rust examples cross compiler"
 	default ""
