@@ -29,6 +29,9 @@ GICV3 = y
 QEMU_VIRTFS_AUTOMOUNT = y
 endif
 
+# Option to enable Rust examples
+RUST_ENABLE ?= y
+
 include common.mk
 
 DEBUG ?= 1
@@ -547,6 +550,7 @@ check: $(CHECK_DEPS)
 		export QEMU_VIRT=$(QEMU_VIRT) && \
 		export XEN_BOOT=$(XEN_BOOT) && \
 		export XEN_FFA=$(XEN_FFA) && \
+		export RUST_ENABLE=$(RUST_ENABLE) && \
 		expect $(ROOT)/build/qemu-check.exp -- $(check-args) || \
 		(if [ "$(DUMP_LOGS_ON_ERROR)" ]; then \
 			echo "== $$PWD/serial0.log:"; \
@@ -558,26 +562,6 @@ check: $(CHECK_DEPS)
 		fi; false)
 
 check-only: check
-
-check-rust: $(CHECK_DEPS)
-	ln -sf $(ROOT)/out-br/images/rootfs.cpio.gz $(BINARIES_PATH)/
-	cd $(BINARIES_PATH) && \
-		export QEMU=$(QEMU_BUILD)/aarch64-softmmu/qemu-system-aarch64 && \
-		export QEMU_SMP=$(QEMU_SMP) && \
-		export QEMU_MTE=$(QEMU_MTE) && \
-		export QEMU_GIC=$(QEMU_GIC_VERSION) && \
-		export QEMU_MEM=$(QEMU_MEM) && \
-		expect $(ROOT)/optee_rust/ci/qemu-check.exp -- $(check-args) || \
-		(if [ "$(DUMP_LOGS_ON_ERROR)" ]; then \
-			echo "== $$PWD/serial0.log:"; \
-			cat serial0.log; \
-			echo "== end of $$PWD/serial0.log:"; \
-			echo "== $$PWD/serial1.log:"; \
-			cat serial1.log; \
-			echo "== end of $$PWD/serial1.log:"; \
-		fi; false)
-
-check-only-rust: check-rust
 
 check-clean:
 	rm -f serial0.log serial1.log

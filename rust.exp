@@ -1,0 +1,176 @@
+#!/usr/bin/expect -f
+#
+# This script test OP-TEE rust examples. The return code is 0 for
+# success, >0 for error.
+#
+
+info "Test Rust example applications:\n"
+info "Running acipher-rs...\n"
+send -- "acipher-rs 256 teststring\r"
+expect {
+	-re "Success decrypt the above ciphertext as (\\d+) bytes plain text:" {
+		info "Test success\n"
+	}
+	timeout {
+		info "!!! Timeout: Test failed\n"
+		exit 1
+	}
+}
+
+expect "# "
+info "Running aes-rs...\n"
+send -- "aes-rs\r"
+expect {
+	-re "Prepare encode operation.*Encode buffer from TA.*Clear text and decoded text match" {
+		info "Test success\n"
+	}
+	timeout {
+		info "!!! Timeout: Test failed\n"
+		exit 1
+	}
+}
+
+expect "# "
+info "Running authentication-rs...\n"
+send -- "authentication-rs\r"
+expect {
+	-re "Clear text and decoded text match.*Success" {
+		info "Test success\n"
+	}
+	timeout {
+		info "!!! Timeout: Test failed\n"
+		exit 1
+	}
+}
+
+expect "# "
+info "Running big_int-rs...\n"
+send -- "big_int-rs\r"
+expect {
+	"Success" {
+		info "Test success\n"
+	}
+	timeout {
+		info "!!! Timeout: Test failed\n"
+		exit 1
+	}
+}
+
+expect "# "
+info "Running diffie_hellman-rs...\n"
+send -- "diffie_hellman-rs\r"
+expect {
+	-re "get key (\\d+) pair as public:.*private.*Derived share key as.*Success" {
+		info "Test success\n"
+	}
+	timeout {
+		info "!!! Timeout: Test failed\n"
+		exit 1
+	}
+}
+
+expect "# "
+info "Running digest-rs...\n"
+send -- "digest-rs message1 message2\r"
+expect {
+	-re "Get message hash as:.*Success" {
+		info "Test success\n"
+	}
+	timeout {
+		info "!!! Timeout: Test failed\n"
+		exit 1
+	}
+}
+
+expect "# "
+info "Running hello_world-rs...\n"
+send -- "hello_world-rs\r"
+expect {
+	-re "original value is 29.*inc value is 129.*dec value is 29.*Success" {
+		info "Test success\n"
+	}
+	timeout {
+		info "!!! Timeout: Test failed\n"
+		exit 1
+	}
+}
+
+expect "# "
+info "Running hotp-rs...\n"
+send -- "hotp-rs\r"
+expect {
+	-re "Get HOTP.*Success" {
+		info "Test success\n"
+	}
+	timeout {
+		info "!!! Timeout: Test failed\n"
+		exit 1
+	}
+}
+
+expect "# "
+info "Running random-rs...\n"
+send -- "random-rs\r"
+expect {
+	-re "Generate random UUID: \[a-z0-9]*-\[a-z0-9]*-\[a-z0-9]*-\[a-z0-9]*.*Success" {
+		info "Test success\n"
+	}
+	timeout {
+		info "!!! Timeout: Test failed\n"
+		exit 1
+	}
+}
+
+expect "# "
+info "Running secure_storage-rs...\n"
+send -- "secure_storage-rs\r"
+expect {
+	-re "We're done, close and release TEE resources" {
+		info "Test success\n"
+	}
+	timeout {
+		info "!!! Timeout: Test failed\n"
+		exit 1
+	}
+}
+
+expect "# "
+info "Running supp_plugin-rs...\n"
+send -- "supp_plugin-rs\r"
+expect {
+	-re "invoke commmand finished" {
+		info "Test success\n"
+	}
+	timeout {
+		info "!!! Timeout: Test failed\n"
+		exit 1
+	}
+}
+
+expect "# "
+info "Running time-rs...\n"
+send -- "time-rs\r"
+expect {
+	"Success" {
+		info "Test success\n"
+	}
+	timeout {
+		info "!!! Timeout: Test failed\n"
+		exit 1
+	}
+}
+
+expect "# "
+info "Running signature_verification-rs...\n"
+send -- "signature_verification-rs\r"
+expect {
+	"Success" {
+		info "Test success\n"
+	}
+	timeout {
+		info "!!! Timeout: Test failed\n"
+		exit 1
+	}
+}
+
+info "Rust examples tested successfully\n"
