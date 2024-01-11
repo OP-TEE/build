@@ -20,6 +20,11 @@ if {[info exists ::env(XEN_FFA)] && $::env(XEN_FFA) == "y"} {
 set cmd3 "xl console domu"
 set quiet 0
 set xtest_args ""
+if {[info exists ::env(RUST_ENABLE)] && $::env(RUST_ENABLE) == "y"} {
+	set rust_enable 1
+} else {
+	set rust_enable 0
+}
 
 # The time required to run some tests (e.g., key generation tests [4007.*])
 # can be significant and vary widely -- typically, from about one minute to
@@ -28,6 +33,7 @@ set xtest_args ""
 # ('xtest') with all testsuites enabled (regression+gp+pkcs11).
 set timeout 900
 set tests "all"
+set basedir [file dirname $argv0]
 
 # Parse command line
 set myargs $argv
@@ -179,6 +185,9 @@ if {$::env(XEN_BOOT) == "y"} {
 }
 if {$tests == "all" || $tests == "trusted-keys"} {
 	# Invoke Trusted Keys tests
-	set basedir [file dirname $argv0]
 	source $basedir/trusted-keys.exp
+}
+if {($tests == "all" || $tests == "rust") && $::rust_enable == 1} {
+	# Invoke Rust tests
+	source $basedir/rust.exp
 }
