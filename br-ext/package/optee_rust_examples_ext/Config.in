@@ -17,15 +17,39 @@ config BR2_PACKAGE_OPTEE_RUST_EXAMPLES_EXT_SDK
 	help
 	  The path to OP-TEE TA development SDK
 
-config BR2_PACKAGE_OPTEE_RUST_EXAMPLES_EXT_CROSS_COMPILE
-	string "OP-TEE Rust examples cross compiler"
-	default ""
+config BR2_PACKAGE_OPTEE_RUST_EXAMPLES_EXT_TARGET_HOST
+	string "OP-TEE Rust examples host Rust target"
+	default "aarch64-unknown-linux-gnu"
 	help
-	  some help
+	  The Rust target platform for building the client part of the Rust
+	  examples. For details regarding supported Rust target platforms,
+	  have a look here:
+	  https://doc.rust-lang.org/stable/rustc/platform-support.html
 
-config BR2_PACKAGE_OPTEE_RUST_EXAMPLES_TC_PATH_ENV
-       string "OP-TEE Rust examples toolchain path"
-       default ""
-       help
-         some help
+config BR2_PACKAGE_OPTEE_RUST_EXAMPLES_EXT_TARGET_TA
+	string "OP-TEE Rust examples TA Rust target"
+	default "aarch64-unknown-linux-gnu"
+	help
+	  The Rust target platform for building the TA part of the Rust
+	  examples. For details regarding supported Rust target platforms,
+	  have a look here:
+	  https://doc.rust-lang.org/stable/rustc/platform-support.html
+
+config BR2_PACKAGE_OPTEE_RUST_EXAMPLES_EXT_CROSS_COMPILE_HOST
+	string "OP-TEE Rust examples host cross compiler"
+	default "aarch64-linux-gnu-"
+	help
+	  Rust native compiler doesn't come with its own linker for most of
+	  the target platforms. Hence this options provides path to GCC linker
+	  in order to link client part of the Rust examples. For example:
+	  aarch64-linux-gnu- or path/to/aarch64-linux-gnu-
+
+config BR2_PACKAGE_OPTEE_RUST_EXAMPLES_EXT_CROSS_COMPILE_TA
+	string "OP-TEE Rust examples TA cross compiler"
+	default "aarch64-linux-gnu-"
+	help
+	  Rust native compiler doesn't come with its own linker for most of
+	  the target platforms. Hence this options provides path to GCC linker
+	  in order to link TA part of the Rust examples. For example:
+	  aarch64-linux-gnu- or path/to/aarch64-linux-gnu-
 endif
