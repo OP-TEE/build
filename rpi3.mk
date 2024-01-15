@@ -33,7 +33,7 @@ BR2_PACKAGE_HOST_GENIMAGE=y
 # directly into a parition on the image.
 BR2_TARGET_ROOTFS_EXT2=y
 BR2_TARGET_ROOTFS_EXT2_4=y
-BR2_TARGET_ROOTFS_EXT2_SIZE="128M"
+BR2_TARGET_ROOTFS_EXT2_SIZE="256M"
 
 ################################################################################
 # Paths to git projects and various binaries
