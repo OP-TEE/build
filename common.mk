@@ -32,7 +32,6 @@ ARCH				?= arm
 BUILD_PATH			?= $(ROOT)/build
 LINUX_PATH			?= $(ROOT)/linux
 UBOOT_PATH			?= $(ROOT)/u-boot
-BENCHMARK_APP_PATH		?= $(ROOT)/optee_benchmark
 OPTEE_OS_PATH			?= $(ROOT)/optee_os
 OPTEE_CLIENT_PATH		?= $(ROOT)/optee_client
 OPTEE_TEST_PATH			?= $(ROOT)/optee_test
@@ -42,9 +41,6 @@ BUILDROOT_TARGET_ROOT		?= $(ROOT)/out-br/target
 
 # default high verbosity. slow uarts shall specify lower if prefered
 CFG_TEE_CORE_LOG_LEVEL		?= 3
-
-# default disable latency benchmarks (over all OP-TEE layers)
-CFG_TEE_BENCHMARK		?= n
 
 # optee_test
 WITH_TLS_TESTS			?= y
@@ -277,8 +273,6 @@ BR2_PER_PACKAGE_DIRECTORIES ?= y
 BR2_PACKAGE_LIBOPENSSL ?= y
 BR2_PACKAGE_MMC_UTILS ?= y
 BR2_PACKAGE_OPENSSL ?= y
-BR2_PACKAGE_OPTEE_BENCHMARK_EXT ?= $(CFG_TEE_BENCHMARK)
-BR2_PACKAGE_OPTEE_BENCHMARK_EXT_SITE ?= $(BENCHMARK_APP_PATH)
 BR2_PACKAGE_OPTEE_CLIENT_EXT_SITE ?= $(OPTEE_CLIENT_PATH)
 BR2_PACKAGE_OPTEE_EXAMPLES_EXT ?= y
 BR2_PACKAGE_OPTEE_EXAMPLES_EXT_CROSS_COMPILE ?= $(CROSS_COMPILE_S_USER)
@@ -368,10 +362,6 @@ buildroot-cleaner:
 ################################################################################
 # Linux
 ################################################################################
-ifeq ($(CFG_TEE_BENCHMARK),y)
-LINUX_DEFCONFIG_BENCH ?= $(CURDIR)/kconfigs/tee_bench.conf
-endif
-
 LINUX_COMMON_FLAGS ?= LOCALVERSION= CROSS_COMPILE=$(CROSS_COMPILE_NS_KERNEL)
 
 .PHONY: linux-common
@@ -382,8 +372,7 @@ $(LINUX_PATH)/.config: $(LINUX_DEFCONFIG_COMMON_FILES)
 	cd $(LINUX_PATH) && \
 		ARCH=$(LINUX_DEFCONFIG_COMMON_ARCH) \
 		CROSS_COMPILE=$(CROSS_COMPILE_NS_KERNEL) \
-		scripts/kconfig/merge_config.sh $(LINUX_DEFCONFIG_COMMON_FILES) \
-			$(LINUX_DEFCONFIG_BENCH)
+		scripts/kconfig/merge_config.sh $(LINUX_DEFCONFIG_COMMON_FILES)
 
 .PHONY: linux-defconfig-clean-common
 linux-defconfig-clean-common:
@@ -552,7 +541,6 @@ OPTEE_OS_COMMON_FLAGS ?= \
 	$(OPTEE_OS_TA_CROSS_COMPILE_FLAGS) \
 	CFG_TEE_CORE_LOG_LEVEL=$(CFG_TEE_CORE_LOG_LEVEL) \
 	DEBUG=$(DEBUG) \
-	CFG_TEE_BENCHMARK=$(CFG_TEE_BENCHMARK) \
 	CFG_IN_TREE_EARLY_TAS="$(CFG_IN_TREE_EARLY_TAS)"
 
 .PHONY: optee-os-common
