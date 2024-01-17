@@ -246,7 +246,7 @@ BR2_ROOTFS_POST_IMAGE_SCRIPT=$(BREXT_BOARD_PATH)/post-image.sh
 
 ifeq ($(WITH_RPMB_TEST),y)
 # Use S30optee init.d script that runs tee-supplicant as root
-BR2_ROOTFS_OVERLAY=$(BREXT_BOARD_PATH)/overlay-$(BREXT_FLAVOR)-rpmb
+BR2_ROOTFS_OVERLAY=$(BREXT_BOARD_PATH)/overlay-rootfs-rpmb
 # Disable RPMB emulation in tee-supplicant
 BR2_PACKAGE_OPTEE_CLIENT_EXT_RPMB_EMU=n
 endif # WITH_RPMB_TEST
