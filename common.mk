@@ -355,7 +355,7 @@ buildroot: optee-os optee-rust
 		$(DEFCONFIG_FTPM) \
 		--br-defconfig out-br/extra.conf \
 		--make-cmd $(MAKE))
-	@export PATH=$${HOME}/.cargo/bin:$${PATH} && $(MAKE) $(br-make-flags) -C ../out-br all
+	@export PATH=$(HOME)/.cargo/bin:$(PATH) && $(MAKE) $(br-make-flags) -C ../out-br all
 
 .PHONY: buildroot-clean
 buildroot-clean:
