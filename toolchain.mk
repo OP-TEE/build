@@ -56,8 +56,10 @@ AARCH64_CROSS_COMPILE 		?= $(AARCH64_PATH)/bin/aarch64-linux-gnu-
 AARCH64_GCC_VERSION 		?= arm-gnu-toolchain-11.3.rel1-x86_64-aarch64-none-linux-gnu
 SRC_AARCH64_GCC 		?= https://developer.arm.com/-/media/Files/downloads/gnu/11.3.rel1/binrel/$(AARCH64_GCC_VERSION).tar.xz
 
+RUST_TOOLCHAIN_PATH 		?= $(TOOLCHAIN_ROOT)/rust
+
 .PHONY: toolchains
-toolchains: aarch32-toolchain aarch64-toolchain
+toolchains: aarch32-toolchain aarch64-toolchain rust-toolchain
 
 .PHONY: aarch32-toolchain
 aarch32-toolchain:
@@ -66,6 +68,24 @@ aarch32-toolchain:
 .PHONY: aarch64-toolchain
 aarch64-toolchain:
 	$(call dltc,$(AARCH64_PATH),$(SRC_AARCH64_GCC),$(AARCH64_GCC_VERSION))
+
+# Download the Rust toolchain
+define dl-rust-toolchain
+	@if [ ! -d "$(1)" ]; then \
+		mkdir -p $(1) && \
+		export RUSTUP_HOME=$(1)/.rustup && \
+		export CARGO_HOME=$(1)/.cargo && \
+		curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path && \
+		source "$(1)/.cargo/env" && \
+		rustup target install aarch64-unknown-linux-gnu && \
+		rustup target install arm-unknown-linux-gnueabihf && \
+		rustup default nightly-2023-12-18; \
+	fi
+endef
+
+.PHONY: rust-toolchain
+rust-toolchain:
+	$(call dl-rust-toolchain,$(RUST_TOOLCHAIN_PATH))
 
 CLANG_VER			?= 12.0.0
 CLANG_PATH			?= $(ROOT)/clang-$(CLANG_VER)

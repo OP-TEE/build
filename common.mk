@@ -331,7 +331,7 @@ br-make-flags := -j1
 endif
 
 .PHONY: buildroot
-buildroot: optee-os optee-rust
+buildroot: optee-os
 	@mkdir -p ../out-br
 	@rm -f ../out-br/build/optee_*/.stamp_*
 	@rm -f ../out-br/extra.conf
@@ -349,7 +349,7 @@ buildroot: optee-os optee-rust
 		$(DEFCONFIG_FTPM) \
 		--br-defconfig out-br/extra.conf \
 		--make-cmd $(MAKE))
-	@$(MAKE) $(br-make-flags) -C ../out-br all
+	@source $(RUST_TOOLCHAIN_PATH)/.cargo/env && $(MAKE) $(br-make-flags) -C ../out-br all
 
 .PHONY: buildroot-clean
 buildroot-clean:
@@ -550,22 +550,6 @@ optee-os-common:
 .PHONY: optee-os-clean-common
 optee-os-clean-common:
 	$(MAKE) -C $(OPTEE_OS_PATH) $(OPTEE_OS_COMMON_FLAGS) clean
-
-################################################################################
-# OP-TEE Rust
-################################################################################
-.PHONY: optee-rust
-optee-rust: $(OPTEE_RUST_PATH)/.done
-
-$(OPTEE_RUST_PATH)/.done:
-ifeq ($(RUST_ENABLE),y)
-	@(export OPTEE_DIR=$(ROOT) && \
-	  export CARGO_NET_GIT_FETCH_WITH_CLI=true && \
-	  cd $(OPTEE_RUST_PATH) && ./setup.sh && touch .done)
-endif
-
-optee-rust-clean:
-	rm -f $(OPTEE_RUST_PATH)/.done
 
 ################################################################################
 # fTPM Rules
