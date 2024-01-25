@@ -57,14 +57,14 @@ AARCH64_GCC_VERSION 		?= arm-gnu-toolchain-11.3.rel1-x86_64-aarch64-none-linux-g
 SRC_AARCH64_GCC 		?= https://developer.arm.com/-/media/Files/downloads/gnu/11.3.rel1/binrel/$(AARCH64_GCC_VERSION).tar.xz
 
 .PHONY: toolchains
-toolchains: aarch32 aarch64
+toolchains: aarch32-toolchain aarch64-toolchain
 
-.PHONY: aarch32
-aarch32:
+.PHONY: aarch32-toolchain
+aarch32-toolchain:
 	$(call dltc,$(AARCH32_PATH),$(SRC_AARCH32_GCC),$(AARCH32_GCC_VERSION))
 
-.PHONY: aarch64
-aarch64:
+.PHONY: aarch64-toolchain
+aarch64-toolchain:
 	$(call dltc,$(AARCH64_PATH),$(SRC_AARCH64_GCC),$(AARCH64_GCC_VERSION))
 
 CLANG_VER			?= 12.0.0
@@ -91,10 +91,10 @@ RISCV64_GCC_VERSION		?= riscv64-glibc-ubuntu-22.04-gcc-nightly-$(RISCV64_GCC_REL
 SRC_RISCV64_GCC			?= https://github.com/riscv-collab/riscv-gnu-toolchain/releases/download/$(RISCV64_GCC_RELEASE_DATE)/$(RISCV64_GCC_VERSION).tar.gz
 
 .PHONY: toolchains
-toolchains: riscv64
+toolchains: riscv64-toolchain
 
-.PHONY: riscv64
-riscv64:
+.PHONY: riscv64-toolchain
+riscv64-toolchain:
 	$(call dltc,$(RISCV64_PATH),$(SRC_RISCV64_GCC),$(RISCV64_GCC_VERSION))
 
 endif
@@ -115,10 +115,10 @@ AARCH64_PATH 			?= $(TOOLCHAIN_ROOT)/aarch64
 AARCH64_CROSS_COMPILE 		?= $(AARCH64_PATH)/bin/aarch64-linux-
 
 .PHONY: toolchains
-toolchains: aarch32 $(AARCH64_PATH)/.done
+toolchains: aarch32-toolchain $(AARCH64_PATH)/.done
 
-.PHONY: aarch32
-aarch32:
+.PHONY: aarch32-toolchain
+aarch32-toolchain:
 	$(call dltc,$(AARCH32_PATH),$(SRC_AARCH32_GCC),$(AARCH32_GCC_VERSION))
 
 $(AARCH64_PATH)/.done:
