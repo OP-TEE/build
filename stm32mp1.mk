@@ -208,10 +208,10 @@ LINUX_DEFCONFIG_COMMON_FILES := \
 
 linux-defconfig: $(LINUX_PATH)/.config
 
-LINUX_COMMON_FLAGS += ARCH=arm uImage LOADADDR=0xc2000000 \
+LINUX_COMMON_FLAGS += ARCH=arm LOADADDR=0xc2000000 \
 		      CROSS_COMPILE=$(CROSS_COMPILE_NS_KERNEL) \
-		      st/$(STM32MP1_DTS_LINUX).dtb \
 		      PATH=$$PATH:$(U_BOOT_PATH)/tools
+LINUX_COMMON_TARGETS += uImage st/$(STM32MP1_DTS_LINUX).dtb
 
 linux: linux-common
 	@$(call install_in_binaries,$(LINUX_PATH)/arch/arm/boot/$(LINUX_KERNEL_BIN))

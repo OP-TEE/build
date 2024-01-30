@@ -366,7 +366,7 @@ LINUX_COMMON_FLAGS ?= LOCALVERSION= CROSS_COMPILE=$(CROSS_COMPILE_NS_KERNEL)
 
 .PHONY: linux-common
 linux-common: linux-defconfig
-	$(MAKE) -C $(LINUX_PATH) $(LINUX_COMMON_FLAGS)
+	$(MAKE) -C $(LINUX_PATH) $(LINUX_COMMON_FLAGS) $(LINUX_COMMON_TARGETS)
 
 $(LINUX_PATH)/.config: $(LINUX_DEFCONFIG_COMMON_FILES)
 	cd $(LINUX_PATH) && \
@@ -378,15 +378,13 @@ $(LINUX_PATH)/.config: $(LINUX_DEFCONFIG_COMMON_FILES)
 linux-defconfig-clean-common:
 	rm -f $(LINUX_PATH)/.config
 
-# LINUX_CLEAN_COMMON_FLAGS should be defined in specific makefiles (hikey.mk,...)
 .PHONY: linux-clean-common
 linux-clean-common: linux-defconfig-clean
-	$(MAKE) -C $(LINUX_PATH) $(LINUX_CLEAN_COMMON_FLAGS) clean
+	$(MAKE) -C $(LINUX_PATH) $(LINUX_COMMON_FLAGS) clean
 
-# LINUX_CLEANER_COMMON_FLAGS should be defined in specific makefiles (hikey.mk,...)
 .PHONY: linux-cleaner-common
 linux-cleaner-common: linux-defconfig-clean
-	$(MAKE) -C $(LINUX_PATH) $(LINUX_CLEANER_COMMON_FLAGS) distclean
+	$(MAKE) -C $(LINUX_PATH) $(LINUX_COMMON_FLAGS) distclean
 
 ################################################################################
 # EDK2 / Tianocore
