@@ -124,7 +124,8 @@ LINUX_DEFCONFIG_COMMON_FILES ?= $(LINUX_PATH)/arch/arm64/configs/defconfig \
 .PHONY: linux-defconfig
 linux-defconfig: $(LINUX_PATH)/.config
 
-LINUX_COMMON_FLAGS += ARCH=arm64 Image rockchip/rk3399-rock-pi-4b.dtb \
+LINUX_COMMON_FLAGS += ARCH=arm64
+LINUX_COMMON_TARGETS += Image rockchip/rk3399-rock-pi-4b.dtb \
 			$(if $(filter y,$(LINUX_MODULES)),modules)
 
 .PHONY: linux
