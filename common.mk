@@ -364,6 +364,10 @@ buildroot-cleaner:
 ################################################################################
 LINUX_COMMON_FLAGS ?= LOCALVERSION= CROSS_COMPILE=$(CROSS_COMPILE_NS_KERNEL)
 
+.PHONY: linux-menuconfig-common
+linux-menuconfig-common: linux-defconfig
+	$(MAKE) -C $(LINUX_PATH) $(LINUX_COMMON_FLAGS) menuconfig
+
 .PHONY: linux-common
 linux-common: linux-defconfig
 	$(MAKE) -C $(LINUX_PATH) $(LINUX_COMMON_FLAGS) $(LINUX_COMMON_TARGETS)
