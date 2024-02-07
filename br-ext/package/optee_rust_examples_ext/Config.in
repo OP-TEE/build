@@ -52,4 +52,10 @@ config BR2_PACKAGE_OPTEE_RUST_EXAMPLES_EXT_CROSS_COMPILE_TA
 	  the target platforms. Hence this options provides path to GCC linker
 	  in order to link TA part of the Rust examples. For example:
 	  aarch64-linux-gnu- or path/to/aarch64-linux-gnu-
+
+config BR2_PACKAGE_OPTEE_RUST_EXAMPLES_EXT_TC_PATH
+	string "OP-TEE Rust toolchain installation path"
+	default ""
+	help
+	  The path to OP-TEE Rust toolchain installation directory
 endif

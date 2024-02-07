@@ -289,6 +289,7 @@ BR2_PACKAGE_OPTEE_RUST_EXAMPLES_EXT_TARGET_HOST ?= "$(AARCH$(COMPILE_NS_USER)_RU
 BR2_PACKAGE_OPTEE_RUST_EXAMPLES_EXT_TARGET_TA ?= "$(AARCH$(COMPILE_S_USER)_RUST_TARGET)"
 BR2_PACKAGE_OPTEE_RUST_EXAMPLES_EXT_SDK ?= $(OPTEE_OS_TA_DEV_KIT_DIR)
 BR2_PACKAGE_OPTEE_RUST_EXAMPLES_EXT_SITE ?= $(OPTEE_RUST_PATH)
+BR2_PACKAGE_OPTEE_RUST_EXAMPLES_EXT_TC_PATH ?= $(RUST_TOOLCHAIN_PATH)
 endif
 endif
 # The OPTEE_OS package builds nothing, it just installs files into the
@@ -349,7 +350,7 @@ buildroot: optee-os
 		$(DEFCONFIG_FTPM) \
 		--br-defconfig out-br/extra.conf \
 		--make-cmd $(MAKE))
-	@source $(RUST_TOOLCHAIN_PATH)/.cargo/env && $(MAKE) $(br-make-flags) -C ../out-br all
+	@$(MAKE) $(br-make-flags) -C ../out-br all
 
 .PHONY: buildroot-clean
 buildroot-clean:
