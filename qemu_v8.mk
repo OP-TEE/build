@@ -30,7 +30,7 @@ QEMU_VIRTFS_AUTOMOUNT = y
 endif
 
 # Option to enable Rust examples
-RUST_ENABLE ?= n
+RUST_ENABLE ?= y
 
 include common.mk
 

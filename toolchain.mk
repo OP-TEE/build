@@ -75,11 +75,7 @@ define dl-rust-toolchain
 		mkdir -p $(1) && \
 		export RUSTUP_HOME=$(1)/.rustup && \
 		export CARGO_HOME=$(1)/.cargo && \
-		curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path && \
-		source "$(1)/.cargo/env" && \
-		rustup target install aarch64-unknown-linux-gnu && \
-		rustup target install arm-unknown-linux-gnueabihf && \
-		rustup default nightly-2023-12-18; \
+		curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path; \
 	fi
 endef
 
