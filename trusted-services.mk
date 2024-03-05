@@ -153,11 +153,19 @@ ffa-$1:
 		-DCMAKE_INSTALL_PREFIX=$(TS_INSTALL_PREFIX) \
 		-Dlibts_DIR=${TS_INSTALL_PREFIX}/arm-linux/lib/cmake/libts \
 		-DCFG_FORCE_PREBUILT_LIBTS=On \
+		-Dlibpsats_DIR=${TS_INSTALL_PREFIX}/arm-linux/lib/cmake/libpsats \
+		-DCFG_FORCE_PREBUILT_LIBPSATS=On \
 		-DCMAKE_C_COMPILER_LAUNCHER=$(CCACHE) $(TS_APP_COMMON_FLAGS) $2
 	$$(MAKE) -C $(TS_BUILD_PATH)/$1 install
 
 ifneq ($1,libts)
-ffa-$1: ffa-libts
+
+ifeq ($1,libpsats)
+ffa-libpsats: ffa-libts
+else
+ffa-$1: ffa-libpsats
+endif
+
 endif
 
 .PHONY: ffa-$1-clean
