@@ -154,6 +154,7 @@ endif
 # Linux user space applications
 ifeq ($(SPMC_TESTS),n)
 $(eval $(call build-ts-app,libts,$(TS_APP_LIBTS_EXTRA_FLAGS)))
+$(eval $(call build-ts-app,libpsa,$(TS_APP_LIBPSA_EXTRA_FLAGS)))
 $(eval $(call build-ts-app,ts-service-test,$(TS_APP_TS_SERVICE_TEST_EXTRA_FLAGS)))
 $(eval $(call build-ts-app,psa-api-test/internal_trusted_storage,$(TS_APP_PSA_ITS_EXTRA_FLAGS)))
 $(eval $(call build-ts-app,psa-api-test/protected_storage,$(TS_APP_PSA_PS_EXTRA_FLAGS)))
