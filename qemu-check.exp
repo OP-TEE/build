@@ -109,11 +109,7 @@ open "serial1.log" "w+"
 spawn -open [open "|tail -f serial1.log"]
 set teecore $spawn_id
 if {[string first "aarch64" $::env(QEMU)] != -1} {
-	if {$::env(XEN_BOOT) == "y"} {
-		spawn $::env(QEMU) -nographic -serial mon:stdio -serial file:serial1.log -smp $::env(QEMU_SMP) -machine virt,acpi=off,secure=on,mte=$::env(QEMU_MTE),gic-version=$::env(QEMU_GIC),virtualization=true -cpu $::env(QEMU_CPU) -d unimp -semihosting-config enable=on,target=native -m $::env(QEMU_MEM) -bios bl1.bin -initrd rootfs.cpio.gz -kernel Image -append "console=ttyAMA0,38400 keep_bootcon root=/dev/vda2" -drive if=none,file=xen.ext4,format=raw,id=hd1 -device virtio-blk-device,drive=hd1 -fsdev local,id=fsdev0,path=../..,security_model=none -device virtio-9p-device,fsdev=fsdev0,mount_tag=host
-	} else {
-		spawn $::env(QEMU) -nographic -serial mon:stdio -serial file:serial1.log -smp $::env(QEMU_SMP) -machine virt,acpi=off,secure=on,mte=$::env(QEMU_MTE),gic-version=$::env(QEMU_GIC),virtualization=$::env(QEMU_VIRT) -cpu $::env(QEMU_CPU) -d unimp -semihosting-config enable=on,target=native -m $::env(QEMU_MEM) -bios bl1.bin -initrd rootfs.cpio.gz -kernel Image -append "console=ttyAMA0,38400 keep_bootcon root=/dev/vda2"
-	}
+	spawn sh -c "$::env(QEMU) $::env(QEMU_CHECK_ARGS)"
 } else {
 	spawn $::env(QEMU) -nographic -monitor none -machine virt -machine secure=on -cpu cortex-a15 -smp $::env(QEMU_SMP) -d unimp -semihosting-config enable=on,target=native -m 1057 -serial stdio -serial file:serial1.log -bios $bios
 }

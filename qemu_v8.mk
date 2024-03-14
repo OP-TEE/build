@@ -502,6 +502,23 @@ else
 QEMU_MTE	= off
 endif
 
+QEMU_BASE_ARGS = -nographic
+QEMU_BASE_ARGS += -smp $(QEMU_SMP)
+QEMU_BASE_ARGS += -cpu $(QEMU_CPU)
+QEMU_BASE_ARGS += -d unimp -semihosting-config enable=on,target=native
+QEMU_BASE_ARGS += -m $(QEMU_MEM)
+QEMU_BASE_ARGS += -bios bl1.bin
+QEMU_BASE_ARGS += -initrd rootfs.cpio.gz
+QEMU_BASE_ARGS += -kernel Image
+QEMU_BASE_ARGS += -append 'console=ttyAMA0,38400 keep_bootcon root=/dev/vda2 $(QEMU_KERNEL_BOOTARGS)'
+QEMU_BASE_ARGS += $(QEMU_XEN)
+QEMU_BASE_ARGS += $(QEMU_EXTRA_ARGS)
+QEMU_BASE_ARGS += -machine virt,acpi=off,secure=on,mte=$(QEMU_MTE),gic-version=$(QEMU_GIC_VERSION),virtualization=$(QEMU_VIRT)
+
+QEMU_RUN_ARGS = $(QEMU_BASE_ARGS)
+QEMU_RUN_ARGS += $(QEMU_RUN_ARGS_COMMON)
+QEMU_RUN_ARGS += -s -S -serial tcp:127.0.0.1:$(QEMU_NW_PORT) -serial tcp:127.0.0.1:$(QEMU_SW_PORT) 
+
 .PHONY: run-only
 run-only:
 	ln -sf $(ROOT)/out-br/images/rootfs.cpio.gz $(BINARIES_PATH)/
@@ -511,19 +528,7 @@ run-only:
 	$(call launch-terminal,$(QEMU_SW_PORT),"Secure World")
 	$(call wait-for-ports,$(QEMU_NW_PORT),$(QEMU_SW_PORT))
 	cd $(BINARIES_PATH) && $(QEMU_BUILD)/aarch64-softmmu/qemu-system-aarch64 \
-		-nographic \
-		-serial tcp:127.0.0.1:$(QEMU_NW_PORT) -serial tcp:127.0.0.1:$(QEMU_SW_PORT) \
-		-smp $(QEMU_SMP) \
-		-s -S -machine virt,acpi=off,secure=on,mte=$(QEMU_MTE),gic-version=$(QEMU_GIC_VERSION),virtualization=$(QEMU_VIRT) \
-		-cpu $(QEMU_CPU) \
-		-d unimp -semihosting-config enable=on,target=native \
-		-m $(QEMU_MEM) \
-		-bios bl1.bin		\
-		-initrd rootfs.cpio.gz \
-		-kernel Image \
-		-append 'console=ttyAMA0,38400 keep_bootcon root=/dev/vda2 $(QEMU_KERNEL_BOOTARGS)' \
-		$(QEMU_XEN) \
-		$(QEMU_EXTRA_ARGS)
+		$(QEMU_RUN_ARGS)
 
 ifneq ($(filter check check-rust,$(MAKECMDGOALS)),)
 CHECK_DEPS := all
@@ -539,16 +544,17 @@ ifneq ($(XTEST_ARGS),)
 check-args += --xtest-args "$(XTEST_ARGS)"
 endif
 
+QEMU_CHECK_ARGS = $(QEMU_BASE_ARGS)
+QEMU_CHECK_ARGS += -serial mon:stdio -serial file:serial1.log
+ifeq ($(XEN_BOOT),y)
+QEMU_CHECK_ARGS += -fsdev local,id=fsdev0,path=../..,security_model=none -device virtio-9p-device,fsdev=fsdev0,mount_tag=host
+endif
+
 check: $(CHECK_DEPS)
 	ln -sf $(ROOT)/out-br/images/rootfs.cpio.gz $(BINARIES_PATH)/
 	cd $(BINARIES_PATH) && \
 		export QEMU=$(QEMU_BUILD)/aarch64-softmmu/qemu-system-aarch64 && \
-		export QEMU_SMP=$(QEMU_SMP) && \
-		export QEMU_MTE=$(QEMU_MTE) && \
-		export QEMU_GIC=$(QEMU_GIC_VERSION) && \
-		export QEMU_MEM=$(QEMU_MEM) && \
-		export QEMU_CPU=$(QEMU_CPU) && \
-		export QEMU_VIRT=$(QEMU_VIRT) && \
+		export QEMU_CHECK_ARGS="$(QEMU_CHECK_ARGS)" && \
 		export XEN_BOOT=$(XEN_BOOT) && \
 		export XEN_FFA=$(XEN_FFA) && \
 		expect $(ROOT)/build/qemu-check.exp -- $(check-args) || \
