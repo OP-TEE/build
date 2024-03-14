@@ -421,11 +421,11 @@ QEMU_EXTRA_ARGS +=\
 
 ifeq ($(QEMU_VIRTFS_ENABLE),y)
 QEMU_CONFIGURE_PARAMS_COMMON +=  --enable-virtfs
-QEMU_EXTRA_ARGS +=\
+QEMU_RUN_ARGS_COMMON +=\
 	-fsdev local,id=fsdev0,path=$(QEMU_VIRTFS_HOST_DIR),security_model=none \
 	-device virtio-9p-device,fsdev=fsdev0,mount_tag=host
 ifeq ($(QEMU_PSS_ENABLE),y)
-QEMU_EXTRA_ARGS +=\
+QEMU_RUN_ARGS_COMMON +=\
 	  -fsdev local,id=fsdev1,path=$(QEMU_PSS_HOST_DIR),security_model=mapped-xattr \
 	  -device virtio-9p-device,fsdev=fsdev1,mount_tag=secure
 endif
