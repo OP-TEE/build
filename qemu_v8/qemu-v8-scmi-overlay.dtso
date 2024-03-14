@@ -1,0 +1,50 @@
+/dts-v1/;
+/plugin/;
+
+&{/} {
+	cpus {
+		cpu@0 {
+			clocks = <&scmi_dvfs 0>;
+		};
+
+		cpu@1 {
+			clocks = <&scmi_dvfs 0>;
+		};
+	};
+
+	firmware {
+		optee {
+			compatible = "linaro,optee-tz";
+			method = "smc";
+		};
+
+		scmi: scmi0 {
+			compatible = "linaro,scmi-optee";
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			linaro,optee-channel-id = <0x01>;
+
+			scmi_devpd: protocol@11 {
+				reg = <0x11>;
+				#power-domain-cells = <1>;
+			};
+
+			scmi_clk0: protocol@14 {
+				reg = <0x14>;
+				#clock-cells = <1>;
+			};
+
+			scmi_sensors0: protocol@15 {
+				reg = <0x15>;
+				#thermal-sensor-cells = <1>;
+			};
+
+			scmi_dvfs: protocol@13 {
+				reg = <0x13>;
+				#clock-cells = <1>;
+				linaro,optee-channel-id = <0x02>;
+			};
+		};
+	};
+};

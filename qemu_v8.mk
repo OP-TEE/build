@@ -73,6 +73,10 @@ KERNEL_IMAGE		?= $(LINUX_PATH)/arch/arm64/boot/Image
 KERNEL_IMAGEGZ		?= $(LINUX_PATH)/arch/arm64/boot/Image.gz
 KERNEL_UIMAGE		?= $(BINARIES_PATH)/uImage
 
+SCMI_DTSO 		?= $(ROOT)/build/qemu_v8/qemu-v8-scmi-overlay.dtso
+SCMI_DTBO 		?= $(BINARIES_PATH)/qemu-v8-scmi-overlay.dtbo
+SCMI_DTB 		?= $(BINARIES_PATH)/qemu-v8-scmi.dtb
+
 # Load and entry addresses (u-boot only)
 # If you change this please also change in kconfigs/u-boot_qemu_v8.conf
 KERNEL_ENTRY		?= 0x42200000
@@ -116,6 +120,10 @@ TARGET_CLEAN		+= u-boot-clean
 
 ifeq ($(XEN_BOOT),y)
 TARGET_DEPS		+= xen-create-image
+endif
+
+ifeq ($(WITH_SCMI),y)
+TARGET_DEPS		+= $(SCMI_DTB)
 endif
 
 all: $(TARGET_DEPS)
@@ -362,6 +370,11 @@ CFG_TEE_CORE_NB_CORE ?= $(QEMU_SMP)
 OPTEE_OS_COMMON_FLAGS += CFG_TEE_CORE_NB_CORE=$(CFG_TEE_CORE_NB_CORE)
 endif
 
+ifeq ($(WITH_SCMI),y)
+OPTEE_OS_COMMON_FLAGS += CFG_SCMI_SCPFW=y
+OPTEE_OS_COMMON_FLAGS += CFG_SCP_FIRMWARE=$(ROOT)/SCP-firmware
+endif
+
 OPTEE_OS_COMMON_FLAGS += $(OPTEE_OS_COMMON_FLAGS_SPMC_AT_EL_$(SPMC_AT_EL))
 
 optee-os: optee-os-common
@@ -515,7 +528,21 @@ QEMU_BASE_ARGS += $(QEMU_XEN)
 QEMU_BASE_ARGS += $(QEMU_EXTRA_ARGS)
 QEMU_BASE_ARGS += -machine virt,acpi=off,secure=on,mte=$(QEMU_MTE),gic-version=$(QEMU_GIC_VERSION),virtualization=$(QEMU_VIRT)
 
-QEMU_RUN_ARGS = $(QEMU_BASE_ARGS)
+ifeq ($(WITH_SCMI),y)
+QEMU_SCMI_ARGS 	= -dtb $(SCMI_DTB)
+
+$(SCMI_DTBO): $(SCMI_DTSO)
+	mkdir -p $(BINARIES_PATH)
+	dtc -I dts -O dtb -o $(SCMI_DTBO) $(SCMI_DTSO)
+
+$(SCMI_DTB): $(SCMI_DTBO) $(QEMU_BUILD)/.stamp_qemu linux arm-tf buildroot
+	ln -sf $(ROOT)/out-br/images/rootfs.cpio.gz $(BINARIES_PATH)/
+	cd $(BINARIES_PATH) && $(QEMU_BUILD)/aarch64-softmmu/qemu-system-aarch64 \
+		$(QEMU_BASE_ARGS) -machine dumpdtb=qemu_v8.dtb
+	cd $(BINARIES_PATH) && fdtoverlay -i qemu_v8.dtb -o $(SCMI_DTB) $(SCMI_DTBO)
+endif
+
+QEMU_RUN_ARGS = $(QEMU_BASE_ARGS) $(QEMU_SCMI_ARGS)
 QEMU_RUN_ARGS += $(QEMU_RUN_ARGS_COMMON)
 QEMU_RUN_ARGS += -s -S -serial tcp:127.0.0.1:$(QEMU_NW_PORT) -serial tcp:127.0.0.1:$(QEMU_SW_PORT) 
 
@@ -544,7 +571,7 @@ ifneq ($(XTEST_ARGS),)
 check-args += --xtest-args "$(XTEST_ARGS)"
 endif
 
-QEMU_CHECK_ARGS = $(QEMU_BASE_ARGS)
+QEMU_CHECK_ARGS = $(QEMU_BASE_ARGS) $(QEMU_SCMI_ARGS)
 QEMU_CHECK_ARGS += -serial mon:stdio -serial file:serial1.log
 ifeq ($(XEN_BOOT),y)
 QEMU_CHECK_ARGS += -fsdev local,id=fsdev0,path=../..,security_model=none -device virtio-9p-device,fsdev=fsdev0,mount_tag=host
