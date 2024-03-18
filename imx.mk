@@ -26,7 +26,6 @@ U-BOOT_PATH		?= $(ROOT)/u-boot
 
 FIRMWARE_BIN_SHA256_SUM ?= 63ec62f5d229cbed00918c8449173933f1c9d594c59396b8dd217e94f47138b0
 FIRMWARE_BIN		?= firmware-imx-8.0.bin
-FIRMWARE_BIN		?= firmware-imx-8.0.bin
 FIRMWARE_BIN_URL	?= https://www.nxp.com/lgfiles/NMG/MAD/YOCTO/$(FIRMWARE_BIN)
 FIRMWARE_VERSION	?= firmware-imx-8.0
 FIRMWARE_PATH		?= $(ROOT)/out-firmware/$(FIRMWARE_VERSION)
