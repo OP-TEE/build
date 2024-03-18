@@ -38,7 +38,7 @@ BOOT_IMG		?= $(ROOT)/out/boot.img
 # Targets
 ################################################################################
 all: tfa u-boot linux optee-os buildroot flash-image
-clean: tfa-clean buildroot-clean u-boot-clean optee-os-clean
+clean: ddr-firmware-clean optee-os-clean tfa-clean u-boot-clean buildroot-clean
 
 include toolchain.mk
 
