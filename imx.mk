@@ -53,7 +53,7 @@ TF_A_EXPORTS = CROSS_COMPILE="$(CCACHE)$(AARCH64_CROSS_COMPILE)"
 TF_A_FLAGS  = PLAT=$(TFA_PLATFORM) SPD=opteed DEBUG_CONSOLE=1 DEBUG=0 V=1
 TF_A_FLAGS += BL32=$(ROOT)/optee_os/out/arm/core/tee-raw.bin
 
-tfa: optee-os u-boot
+tfa: optee-os
 	$(TF_A_EXPORTS) $(MAKE) -C $(TF_A_PATH) $(TF_A_FLAGS) all fip
 
 tfa-clean:
