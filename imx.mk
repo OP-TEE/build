@@ -13,6 +13,7 @@ OPTEE_OS_PLATFORM ?= imx-mx8mqevk
 U_BOOT_DEFCONFIG  ?= imx8mq_evk_defconfig
 U_BOOT_DT         ?= imx8mq-evk.dtb
 LINUX_DT          ?= imx8mq-evk.dtb
+MKIMAGE_SOC       ?= iMX8MQ
 
 BR2_TARGET_GENERIC_GETTY_PORT ?= ttymxc0
 BR2_TARGET_ROOTFS_EXT2 ?= y
@@ -25,6 +26,7 @@ include common.mk
 ################################################################################
 FIRMWARE_PATH		?= $(ROOT)/out-firmware
 MKIMAGE_PATH		?= $(ROOT)/imx-mkimage
+MKIMAGE_SOC_PATH	?= $(MKIMAGE_PATH)/iMX8M
 TF_A_PATH		?= $(ROOT)/trusted-firmware-a
 
 FIRMWARE_VERSION	?= firmware-imx-8.0
@@ -151,17 +153,17 @@ ddr-firmware-clean:
 ################################################################################
 mkimage: u-boot
 	ln -sf $(OPTEE_OS_PATH)/out/arm/core/tee-raw.bin \
-		$(MKIMAGE_PATH)/iMX8M/tee.bin
+		$(MKIMAGE_SOC_PATH)/tee.bin
 	ln -sf $(TF_A_PATH)/build/$(TFA_PLATFORM)/release/bl31.bin \
-		$(MKIMAGE_PATH)/iMX8M/
+		$(MKIMAGE_SOC_PATH)/
 	ln -sf $(FIRMWARE_PATH)/$(FIRMWARE_VERSION)/firmware/ddr/synopsys/lpddr4_pmu_train_*.bin \
-		$(MKIMAGE_PATH)/iMX8M/
-	ln -sf $(UBOOT_PATH)/u-boot-nodtb.bin $(MKIMAGE_PATH)/iMX8M/
-	ln -sf $(UBOOT_PATH)/spl/u-boot-spl.bin $(MKIMAGE_PATH)/iMX8M/
+		$(MKIMAGE_SOC_PATH)/
+	ln -sf $(UBOOT_PATH)/u-boot-nodtb.bin $(MKIMAGE_SOC_PATH)/
+	ln -sf $(UBOOT_PATH)/spl/u-boot-spl.bin $(MKIMAGE_SOC_PATH)/
 	ln -sf $(UBOOT_PATH)/arch/arm/dts/$(U_BOOT_DT) \
-		$(MKIMAGE_PATH)/iMX8M/fsl-$(U_BOOT_DT)
-	ln -sf $(UBOOT_PATH)/tools/mkimage $(MKIMAGE_PATH)/iMX8M/mkimage_uboot
-	$(MAKE) -C $(MKIMAGE_PATH) SOC=iMX8M flash_spl_uboot
+		$(MKIMAGE_SOC_PATH)/fsl-$(U_BOOT_DT)
+	ln -sf $(UBOOT_PATH)/tools/mkimage $(MKIMAGE_SOC_PATH)/mkimage_uboot
+	$(MAKE) -C $(MKIMAGE_PATH) SOC=$(MKIMAGE_SOC) flash_spl_uboot
 #> +If you want to run with HDMI, copy signed_hdmi_imx8m.bin to imx-mkimage/iMX8M
 #> +make SOC=iMX8M flash_spl_uboot or make SOC=iMX8M flash_hdmi_spl_uboot to
 #> +generate flash.bin.
@@ -240,5 +242,5 @@ endif
 
 	dd if=$(BOOT_IMG).fat of=$(BOOT_IMG) bs=$(FLASH_PARTITIONS_BLOCK_SIZE) \
 		seek=$(FLASH_PARTITION_BOOT_START_BLOCK) conv=fsync,notrunc
-	dd if=$(MKIMAGE_PATH)/iMX8M/flash.bin of=$(BOOT_IMG) bs=1k seek=33 \
+	dd if=$(MKIMAGE_SOC_PATH)/flash.bin of=$(BOOT_IMG) bs=1k seek=33 \
 		conv=fsync,notrunc
