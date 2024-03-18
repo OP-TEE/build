@@ -10,6 +10,9 @@ override COMPILE_S_KERNEL  := 64
 
 TFA_PLATFORM      ?= imx8mq
 OPTEE_OS_PLATFORM ?= imx-mx8mqevk
+U_BOOT_DEFCONFIG  ?= imx8mq_evk_defconfig
+U_BOOT_DT         ?= imx8mq-evk.dtb
+LINUX_DT          ?= imx8mq-evk.dtb
 
 BR2_TARGET_GENERIC_GETTY_PORT ?= ttymxc0
 BR2_TARGET_ROOTFS_EXT2 ?= y
@@ -63,11 +66,11 @@ tfa-clean:
 
 U-BOOT_EXPORTS = CROSS_COMPILE="$(CCACHE)$(AARCH64_CROSS_COMPILE)"
 
-U-BOOT_DEFCONFIG_FILES := $(UBOOT_PATH)/configs/imx8mq_evk_defconfig \
+U-BOOT_DEFCONFIG_FILES := $(UBOOT_PATH)/configs/$(U_BOOT_DEFCONFIG) \
 			  $(BUILD_PATH)/kconfigs/uboot_imx8.conf
 
 $(UBOOT_PATH)/.config: $(U-BOOT_DEFCONFIG_FILES)
-	$(U-BOOT_EXPORTS) $(MAKE) -C $(UBOOT_PATH) imx8mq_evk_defconfig
+	$(U-BOOT_EXPORTS) $(MAKE) -C $(UBOOT_PATH) $(U_BOOT_DEFCONFIG)
 	(cd $(UBOOT_PATH) && ARCH=arm64 scripts/kconfig/merge_config.sh \
 		$(U-BOOT_DEFCONFIG_FILES))
 
@@ -155,8 +158,8 @@ mkimage: u-boot
 		$(MKIMAGE_PATH)/iMX8M/
 	ln -sf $(UBOOT_PATH)/u-boot-nodtb.bin $(MKIMAGE_PATH)/iMX8M/
 	ln -sf $(UBOOT_PATH)/spl/u-boot-spl.bin $(MKIMAGE_PATH)/iMX8M/
-	ln -sf $(UBOOT_PATH)/arch/arm/dts/imx8mq-evk.dtb \
-		$(MKIMAGE_PATH)/iMX8M/fsl-imx8mq-evk.dtb
+	ln -sf $(UBOOT_PATH)/arch/arm/dts/$(U_BOOT_DT) \
+		$(MKIMAGE_PATH)/iMX8M/fsl-$(U_BOOT_DT)
 	ln -sf $(UBOOT_PATH)/tools/mkimage $(MKIMAGE_PATH)/iMX8M/mkimage_uboot
 	$(MAKE) -C $(MKIMAGE_PATH) SOC=iMX8M flash_spl_uboot
 #> +If you want to run with HDMI, copy signed_hdmi_imx8m.bin to imx-mkimage/iMX8M
@@ -225,7 +228,7 @@ flash-image-only: $(ROOT)/out-br/images/ramdisk.img $(ROOT)/out/boot.scr
 	mformat -i $(BOOT_IMG).fat -n 64 -h 255 -T 131072 -v "BOOT IMG" -C ::
 	mcopy -i $(BOOT_IMG).fat $(LINUX_PATH)/arch/arm64/boot/Image ::
 	mcopy -i $(BOOT_IMG).fat \
-		$(LINUX_PATH)/arch/arm64/boot/dts/freescale/imx8mq-evk.dtb ::
+		$(LINUX_PATH)/arch/arm64/boot/dts/freescale/$(LINUX_DT) ::
 	mcopy -i $(BOOT_IMG).fat $(ROOT)/out/boot.scr ::
 
 ifeq ($(USE_PERSISTENT_ROOTFS),1)
