@@ -75,7 +75,10 @@ $(UBOOT_PATH)/.config: $(U-BOOT_DEFCONFIG_FILES)
 u-boot-defconfig: $(UBOOT_PATH)/.config
 
 .PHONY: u-boot
-u-boot: u-boot-defconfig
+u-boot: u-boot-defconfig tfa ddr-firmware
+	cp $(FIRMWARE_PATH)/$(FIRMWARE_VERSION)/firmware/ddr/synopsys/lpddr4_pmu_train_*.bin \
+		$(TF_A_PATH)/build/$(TFA_PLATFORM)/release/bl31.bin \
+		$(UBOOT_PATH)
 	$(U-BOOT_EXPORTS) $(MAKE) -C $(UBOOT_PATH)
 
 .PHONY: u-boot-clean
@@ -133,7 +136,7 @@ $(FIRMWARE_PATH)/.unpacked: $(FIRMWARE_PATH)/$(FIRMWARE_BIN)
 	(cd $(FIRMWARE_PATH) && \
 	 chmod 711 $(FIRMWARE_BIN) && ./$(FIRMWARE_BIN) --auto-accept)
 	touch $(FIRMWARE_PATH)/.unpacked
-	
+
 .PHONY: ddr-firmware
 ddr-firmware: $(FIRMWARE_PATH)/.unpacked
 
@@ -143,7 +146,7 @@ ddr-firmware-clean:
 ################################################################################
 # imx-mkimage
 ################################################################################
-mkimage: u-boot tfa ddr-firmware
+mkimage: u-boot
 	ln -sf $(OPTEE_OS_PATH)/out/arm/core/tee-raw.bin \
 		$(MKIMAGE_PATH)/iMX8M/tee.bin
 	ln -sf $(TF_A_PATH)/build/$(TFA_PLATFORM)/release/bl31.bin \
