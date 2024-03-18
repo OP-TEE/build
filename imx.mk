@@ -20,8 +20,8 @@ include common.mk
 ################################################################################
 # Paths to git projects and various binaries
 ################################################################################
+MKIMAGE_PATH		?= $(ROOT)/imx-mkimage
 TF_A_PATH		?= $(ROOT)/trusted-firmware-a
-
 U-BOOT_PATH		?= $(ROOT)/u-boot
 
 FIRMWARE_VERSION	?= firmware-imx-8.0
@@ -31,7 +31,6 @@ FIRMWARE_BIN_URL	?= https://www.nxp.com/lgfiles/NMG/MAD/YOCTO/$(FIRMWARE_BIN)
 FIRMWARE_PATH		?= $(ROOT)/out-firmware/$(FIRMWARE_VERSION)
 LPDDR_BIN_PATH		?= $(FIRMWARE_PATH)/firmware/ddr/synopsys
 
-MKIMAGE_PATH		?= $(ROOT)/imx-mkimage
 BOOT_IMG		?= $(ROOT)/out/boot.img
 
 ################################################################################
