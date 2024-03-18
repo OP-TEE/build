@@ -70,9 +70,8 @@ U-BOOT_DEFCONFIG_FILES := $(U-BOOT_PATH)/configs/imx8mq_evk_defconfig \
 
 $(U-BOOT_PATH)/.config: $(U-BOOT_DEFCONFIG_FILES)
 	$(U-BOOT_EXPORTS) $(MAKE) -C $(U-BOOT_PATH) imx8mq_evk_defconfig
-	(cd $(U-BOOT_PATH) && \
-                ARCH=arm64 \
-                scripts/kconfig/merge_config.sh $(U-BOOT_DEFCONFIG_FILES))
+	(cd $(U-BOOT_PATH) && ARCH=arm64 scripts/kconfig/merge_config.sh \
+		$(U-BOOT_DEFCONFIG_FILES))
 
 .PHONY: u-boot-defconfig
 u-boot-defconfig: $(U-BOOT_PATH)/.config
