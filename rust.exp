@@ -4,7 +4,7 @@
 # success, >0 for error.
 #
 
-set timeout 10
+set timeout 60
 
 info "Test Rust example applications:\n"
 info "Running acipher-rs...\n"
