@@ -37,6 +37,10 @@ FIRMWARE_BIN_URL	?= https://www.nxp.com/lgfiles/NMG/MAD/YOCTO/$(FIRMWARE_BIN)
 
 BOOT_IMG		?= $(ROOT)/out/boot.img
 
+# Uncomment board config snippet
+#include imx8mp-evk.inc.mk
+#include imx8mp-verdin.inc.mk
+
 ################################################################################
 # Targets
 ################################################################################
