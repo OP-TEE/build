@@ -13,6 +13,7 @@ OPTEE_OS_PLATFORM ?= imx-mx8mqevk
 U_BOOT_DEFCONFIG  ?= imx8mq_evk_defconfig
 U_BOOT_DT         ?= imx8mq-evk.dtb
 LINUX_DT          ?= imx8mq-evk.dtb
+MKIMAGE_DT        ?= fsl-imx8mq-evk.dtb
 MKIMAGE_SOC       ?= iMX8MQ
 
 BR2_TARGET_GENERIC_GETTY_PORT ?= ttymxc0
@@ -161,7 +162,7 @@ mkimage: u-boot
 	ln -sf $(UBOOT_PATH)/u-boot-nodtb.bin $(MKIMAGE_SOC_PATH)/
 	ln -sf $(UBOOT_PATH)/spl/u-boot-spl.bin $(MKIMAGE_SOC_PATH)/
 	ln -sf $(UBOOT_PATH)/arch/arm/dts/$(U_BOOT_DT) \
-		$(MKIMAGE_SOC_PATH)/fsl-$(U_BOOT_DT)
+		$(MKIMAGE_SOC_PATH)/$(MKIMAGE_DT)
 	ln -sf $(UBOOT_PATH)/tools/mkimage $(MKIMAGE_SOC_PATH)/mkimage_uboot
 	$(MAKE) -C $(MKIMAGE_PATH) SOC=$(MKIMAGE_SOC) flash_spl_uboot
 #> +If you want to run with HDMI, copy signed_hdmi_imx8m.bin to imx-mkimage/iMX8M
