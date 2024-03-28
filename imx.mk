@@ -25,6 +25,12 @@ include common.mk
 ################################################################################
 # Paths to git projects and various binaries
 ################################################################################
+ifeq ($(DEBUG),1)
+TF_A_BUILD		?= debug
+else
+TF_A_BUILD		?= release
+endif
+
 FIRMWARE_PATH		?= $(ROOT)/out-firmware
 MKIMAGE_PATH		?= $(ROOT)/imx-mkimage
 MKIMAGE_SOC_PATH	?= $(MKIMAGE_PATH)/iMX8M
@@ -82,9 +88,11 @@ u-boot-defconfig: $(UBOOT_PATH)/.config
 
 .PHONY: u-boot
 u-boot: u-boot-defconfig tfa ddr-firmware
+	# Copy DDR4 firmware
 	cp $(FIRMWARE_PATH)/$(FIRMWARE_VERSION)/firmware/ddr/synopsys/lpddr4_pmu_train_*.bin \
-		$(TF_A_PATH)/build/$(TFA_PLATFORM)/release/bl31.bin \
 		$(UBOOT_PATH)
+	# Copy BL31 binary from TF-A
+	cp $(TF_A_PATH)/build/$(TFA_PLATFORM)/$(TF_A_BUILD)/bl31.bin $(UBOOT_PATH)
 	$(U-BOOT_EXPORTS) $(MAKE) -C $(UBOOT_PATH)
 
 .PHONY: u-boot-clean
@@ -155,7 +163,7 @@ ddr-firmware-clean:
 mkimage: u-boot
 	ln -sf $(OPTEE_OS_PATH)/out/arm/core/tee-raw.bin \
 		$(MKIMAGE_SOC_PATH)/tee.bin
-	ln -sf $(TF_A_PATH)/build/$(TFA_PLATFORM)/release/bl31.bin \
+	ln -sf $(TF_A_PATH)/build/$(TFA_PLATFORM)/$(TF_A_BUILD)/bl31.bin \
 		$(MKIMAGE_SOC_PATH)/
 	ln -sf $(FIRMWARE_PATH)/$(FIRMWARE_VERSION)/firmware/ddr/synopsys/lpddr4_pmu_train_*.bin \
 		$(MKIMAGE_SOC_PATH)/
