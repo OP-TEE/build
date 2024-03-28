@@ -180,6 +180,9 @@ mkimage: u-boot
 	ln -sf $(UBOOT_PATH)/arch/arm/dts/$(U_BOOT_DT) \
 		$(MKIMAGE_SOC_PATH)/$(MKIMAGE_DT)
 	ln -sf $(UBOOT_PATH)/tools/mkimage $(MKIMAGE_SOC_PATH)/mkimage_uboot
+	# imx8mp: allow to override TEE_LOAD_ADDR
+	# https://github.com/nxp-imx/imx-mkimage/pull/3
+	sed -i 's/TEE_LOAD_ADDR =  /TEE_LOAD_ADDR ?= /' $(MKIMAGE_SOC_PATH)/soc.mak
 	$(MAKE) -C $(MKIMAGE_PATH) SOC=$(MKIMAGE_SOC) flash_spl_uboot
 #> +If you want to run with HDMI, copy signed_hdmi_imx8m.bin to imx-mkimage/iMX8M
 #> +make SOC=iMX8M flash_spl_uboot or make SOC=iMX8M flash_hdmi_spl_uboot to
