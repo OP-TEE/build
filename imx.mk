@@ -43,6 +43,14 @@ FIRMWARE_BIN_URL	?= https://www.nxp.com/lgfiles/NMG/MAD/YOCTO/$(FIRMWARE_BIN)
 
 BOOT_IMG		?= $(ROOT)/out/boot.img
 
+# Set the variable to include the board config snippet
+# Default value is empty, will select the imx8mq-evk board.
+# Possible values: "imx8mp-evk" or "imx8mp-verdin"
+IMX_BOARD ?=
+ifneq (,$(IMX_BOARD))
+include $(IMX_BOARD).inc.mk
+endif
+
 ################################################################################
 # Targets
 ################################################################################
