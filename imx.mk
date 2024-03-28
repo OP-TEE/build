@@ -82,9 +82,11 @@ u-boot-defconfig: $(UBOOT_PATH)/.config
 
 .PHONY: u-boot
 u-boot: u-boot-defconfig tfa ddr-firmware
+	# Copy DDR4 firmware
 	cp $(FIRMWARE_PATH)/$(FIRMWARE_VERSION)/firmware/ddr/synopsys/lpddr4_pmu_train_*.bin \
-		$(TF_A_PATH)/build/$(TFA_PLATFORM)/release/bl31.bin \
 		$(UBOOT_PATH)
+	# Copy BL31 binary from TF-A
+	cp $(TF_A_PATH)/build/$(TFA_PLATFORM)/*/bl31.bin $(UBOOT_PATH)
 	$(U-BOOT_EXPORTS) $(MAKE) -C $(UBOOT_PATH)
 
 .PHONY: u-boot-clean
@@ -155,7 +157,7 @@ ddr-firmware-clean:
 mkimage: u-boot
 	ln -sf $(OPTEE_OS_PATH)/out/arm/core/tee-raw.bin \
 		$(MKIMAGE_SOC_PATH)/tee.bin
-	ln -sf $(TF_A_PATH)/build/$(TFA_PLATFORM)/release/bl31.bin \
+	ln -sf $(TF_A_PATH)/build/$(TFA_PLATFORM)/*/bl31.bin \
 		$(MKIMAGE_SOC_PATH)/
 	ln -sf $(FIRMWARE_PATH)/$(FIRMWARE_VERSION)/firmware/ddr/synopsys/lpddr4_pmu_train_*.bin \
 		$(MKIMAGE_SOC_PATH)/
