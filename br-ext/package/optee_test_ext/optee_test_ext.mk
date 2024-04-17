@@ -29,30 +29,18 @@ define OPTEE_TEST_EXT_PREPARE_GP_SUITE
 endef
 
 define OPTEE_TEST_EXT_BUILD_TAS
-	@$(foreach f,$(call uniq,$(foreach t,$(OPTEE_TEST_EXT_TAS),$(wildcard $(@D)/ta/$(t)/Makefile))), \
-		echo Building $f && \
-			$(MAKE) CROSS_COMPILE="$(shell echo $(BR2_PACKAGE_OPTEE_TEST_EXT_CROSS_COMPILE))" \
-			O=out TA_DEV_KIT_DIR=$(OPTEE_TEST_EXT_SDK) \
-			PYTHON3=$(HOST_DIR)/bin/python3 \
-			$(TARGET_CONFIGURE_OPTS) -C $(dir $f) all &&) true
+	$(MAKE) -j$$(nproc) CROSS_COMPILE="$(shell echo $(BR2_PACKAGE_OPTEE_TEST_EXT_CROSS_COMPILE))" \
+		O=out TA_DEV_KIT_DIR=$(OPTEE_TEST_EXT_SDK) \
+		PYTHON3=$(HOST_DIR)/bin/python3 \
+		$(TARGET_CONFIGURE_OPTS) -C $(BUILD_DIR)/optee_test_ext-$(OPTEE_TEST_EXT_VERSION)/ta -f $(@D)/ta/Makefile.gmake all
 endef
 
 define OPTEE_TEST_EXT_INSTALL_TAS
-	@$(foreach f,$(wildcard $(@D)/ta/*/out/*.ta), \
+	@$(foreach f,$(wildcard $(@D)/ta/*/out/ta/*/*.ta), \
 		mkdir -p $(TARGET_DIR)/lib/optee_armtz && \
 		$(INSTALL) -v -p  --mode=444 \
 			--target-directory=$(TARGET_DIR)/lib/optee_armtz $f \
 			&&) true
-endef
-
-
-define OPTEE_TEST_EXT_BUILD_GP_TAS
-	@$(foreach f,$(wildcard $(shell echo $(@D)/host/xtest/gp-suite/TTAs_Internal_API_1_1_1/*/*/{*/,}code_files/Makefile)), \
-		echo Building $f && \
-			$(MAKE) CROSS_COMPILE="$(shell echo $(BR2_PACKAGE_OPTEE_TEST_EXT_CROSS_COMPILE))" \
-			O=out TA_DEV_KIT_DIR=$(OPTEE_TEST_EXT_SDK) \
-			$(TARGET_CONFIGURE_OPTS) -C $(dir $f) all &&) true
-
 endef
 
 define OPTEE_TEST_EXT_INSTALL_GP_TAS
@@ -64,7 +52,6 @@ define OPTEE_TEST_EXT_INSTALL_GP_TAS
 endef
 
 OPTEE_TEST_EXT_POST_BUILD_HOOKS += OPTEE_TEST_EXT_BUILD_TAS
-OPTEE_TEST_EXT_POST_BUILD_HOOKS += OPTEE_TEST_EXT_BUILD_GP_TAS
 OPTEE_TEST_EXT_POST_INSTALL_TARGET_HOOKS += OPTEE_TEST_EXT_INSTALL_TAS
 OPTEE_TEST_EXT_POST_INSTALL_TARGET_HOOKS += OPTEE_TEST_EXT_INSTALL_GP_TAS
 
