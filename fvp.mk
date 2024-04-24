@@ -52,19 +52,9 @@ else
 EDK2_BUILD		?= RELEASE
 endif
 EDK2_BIN		?= $(EDK2_PLATFORMS_PATH)/Build/ArmVExpress-FVP-AArch64/$(EDK2_BUILD)_$(EDK2_TOOLCHAIN)/FV/FVP_$(EDK2_ARCH)_EFI.fd
-FVP_USE_BASE_PLAT	?= n
-ifeq ($(FVP_USE_BASE_PLAT),y)
 FVP_PATH		?= $(ROOT)/Base_RevC_AEMvA_pkg/models/Linux64_GCC-9.3
 FVP_BIN			?= FVP_Base_RevC-2xAEMvA
 FVP_LINUX_DTB		?= $(LINUX_PATH)/arch/arm64/boot/dts/arm/fvp-base-revc.dtb
-else
-FVP_PATH		?= $(ROOT)/Foundation_Platformpkg/models/Linux64_GCC-9.3
-FVP_BIN			?= Foundation_Platform
-FVP_LINUX_DTB		?= $(LINUX_PATH)/arch/arm64/boot/dts/arm/foundation-v8-gicv3-psci.dtb
-endif
-ifeq ($(wildcard $(FVP_PATH)),)
-$(error $(FVP_PATH) does not exist)
-endif
 GRUB_PATH		?= $(ROOT)/grub
 GRUB_CONFIG_PATH	?= $(BUILD_PATH)/fvp/grub
 OUT_PATH		?= $(ROOT)/out
@@ -122,10 +112,6 @@ FVP_VIRTFS_MOUNTPOINT	?= /mnt/host
 
 ifeq ($(FVP_VIRTFS_AUTOMOUNT),y)
 $(call force,FVP_VIRTFS_ENABLE,y,required by FVP_VIRTFS_AUTOMOUNT)
-endif
-
-ifneq ($(FVP_USE_BASE_PLAT),y)
-$(call force,FVP_VIRTFS_ENABLE,n,only supported on FVP Base Platform)
 endif
 
 BR2_ROOTFS_POST_BUILD_SCRIPT = $(ROOT)/build/br-ext/board/fvp/post-build.sh
@@ -303,7 +289,6 @@ boot-img-clean:
 run: all
 	$(MAKE) run-only
 
-ifeq ($(FVP_USE_BASE_PLAT),y)
 FVP_ARGS ?= \
 	-C bp.ve_sysregs.exit_on_shutdown=1 \
 	-C cache_state_modelled=0 \
@@ -335,17 +320,6 @@ ifeq ($(TS_LOGGING_SP),y)
 endif
 ifeq ($(FVP_VIRTFS_ENABLE),y)
 	FVP_ARGS += -C bp.virtiop9device.root_path=$(FVP_VIRTFS_HOST_DIR)
-endif
-else
-FVP_ARGS ?= \
-	--arm-v8.0 \
-	--cores=4 \
-	--secure-memory \
-	--visualization \
-	--gicv3 \
-	--data="$(TF_A_PATH)/build/fvp/$(TF_A_BUILD)/bl1.bin"@0x0 \
-	--data="$(TF_A_PATH)/build/fvp/$(TF_A_BUILD)/fip.bin"@0x8000000 \
-	--block-device=$(BOOT_IMG)
 endif
 
 run-only:
