@@ -42,24 +42,15 @@ TF_A_BUILD		?= debug
 else
 TF_A_BUILD		?= release
 endif
-EDK2_PATH		?= $(ROOT)/edk2
-EDK2_PLATFORMS_PATH	?= $(ROOT)/edk2-platforms
-EDK2_TOOLCHAIN		?= GCC49
-EDK2_ARCH		?= AARCH64
-ifeq ($(DEBUG),1)
-EDK2_BUILD		?= DEBUG
-else
-EDK2_BUILD		?= RELEASE
-endif
-EDK2_BIN		?= $(EDK2_PLATFORMS_PATH)/Build/ArmVExpress-FVP-AArch64/$(EDK2_BUILD)_$(EDK2_TOOLCHAIN)/FV/FVP_$(EDK2_ARCH)_EFI.fd
 FVP_PATH		?= $(ROOT)/Base_RevC_AEMvA_pkg/models/Linux64_GCC-9.3
 FVP_BIN			?= FVP_Base_RevC-2xAEMvA
 FVP_LINUX_DTB		?= $(LINUX_PATH)/arch/arm64/boot/dts/arm/fvp-base-revc.dtb
-GRUB_PATH		?= $(ROOT)/grub
-GRUB_CONFIG_PATH	?= $(BUILD_PATH)/fvp/grub
 OUT_PATH		?= $(ROOT)/out
-BINARIES_PATH	?= $(ROOT)/out/bin
-GRUB_BIN		?= $(OUT_PATH)/bootaa64.efi
+BINARIES_PATH		?= $(ROOT)/out/bin
+UBOOT_PATH		?= $(ROOT)/u-boot
+UBOOT_BIN		?= $(UBOOT_PATH)/u-boot.bin
+MKIMAGE_PATH		?= $(UBOOT_PATH)/tools
+UBOOT_BOOT_SCRIPT	?= $(OUT_PATH)/boot.scr
 BOOT_IMG		?= $(OUT_PATH)/boot-fat.uefi.img
 FTPM_PATH		?= $(ROOT)/ms-tpm-20-ref/Samples/ARM32-FirmwareTPM/optee_ta
 
@@ -80,9 +71,8 @@ endif
 ################################################################################
 # Targets
 ################################################################################
-all: arm-tf optee-os ftpm boot-img linux edk2
-clean: arm-tf-clean boot-img-clean buildroot-clean edk2-clean grub-clean \
-	ftpm-clean optee-os-clean
+all: arm-tf optee-os ftpm boot-img linux u-boot
+clean: arm-tf-clean boot-img-clean buildroot-clean ftpm-clean optee-os-clean u-boot-clean
 
 include toolchain.mk
 
@@ -127,7 +117,7 @@ TF_A_FLAGS ?= \
 	BL32=$(OPTEE_OS_HEADER_V2_BIN) \
 	BL32_EXTRA1=$(OPTEE_OS_PAGER_V2_BIN) \
 	BL32_EXTRA2=$(OPTEE_OS_PAGEABLE_V2_BIN) \
-	BL33=$(EDK2_BIN) \
+	BL33=$(UBOOT_BIN) \
 	ARM_TSP_RAM_LOCATION=tdram \
 	FVP_USE_GIC_DRIVER=FVP_GICV3 \
 	PLAT=fvp \
@@ -148,28 +138,11 @@ else
 		      EVENT_LOG_LEVEL=20
 endif
 
-arm-tf: optee-os edk2
+arm-tf: optee-os u-boot
 	$(TF_A_EXPORTS) $(MAKE) -C $(TF_A_PATH) $(TF_A_FLAGS) all fip
 
 arm-tf-clean:
 	$(TF_A_EXPORTS) $(MAKE) -C $(TF_A_PATH) $(TF_A_FLAGS) clean
-
-################################################################################
-# EDK2 / Tianocore
-################################################################################
-define edk2-env
-	export WORKSPACE=$(EDK2_PLATFORMS_PATH)
-endef
-
-define edk2-call
-	$(EDK2_TOOLCHAIN)_$(EDK2_ARCH)_PREFIX=$(AARCH64_CROSS_COMPILE) \
-	build -n `getconf _NPROCESSORS_ONLN` -a $(EDK2_ARCH) \
-		-t $(EDK2_TOOLCHAIN) -p Platform/ARM/VExpressPkg/ArmVExpress-FVP-AArch64.dsc -b $(EDK2_BUILD)
-endef
-
-edk2: edk2-common
-
-edk2-clean: edk2-clean-common
 
 ################################################################################
 # Linux kernel
@@ -223,60 +196,46 @@ optee-os-clean: ftpm-clean optee-os-clean-common
 buildroot: linux-ftpm-module
 
 ################################################################################
-# grub
+# U-Boot
 ################################################################################
-grub-flags := CC="$(CCACHE)gcc" \
-	TARGET_CC="$(AARCH64_CROSS_COMPILE)gcc" \
-	TARGET_OBJCOPY="$(AARCH64_CROSS_COMPILE)objcopy" \
-	TARGET_NM="$(AARCH64_CROSS_COMPILE)nm" \
-	TARGET_RANLIB="$(AARCH64_CROSS_COMPILE)ranlib" \
-	TARGET_STRIP="$(AARCH64_CROSS_COMPILE)strip" \
-	--disable-werror
+UBOOT_DEFCONFIG_FILES := $(ROOT)/build/kconfigs/u-boot_fvp.conf
 
-GRUB_MODULES += boot chain configfile echo efinet eval ext2 fat font gettext \
-		gfxterm gzio help linux loadenv lsefi normal part_gpt \
-		part_msdos read regexp search search_fs_file search_fs_uuid \
-		search_label terminal terminfo test tftp time
+UBOOT_COMMON_FLAGS ?= CROSS_COMPILE=$(CROSS_COMPILE_NS_KERNEL)
 
-$(GRUB_PATH)/configure: $(GRUB_PATH)/configure.ac
-	cd $(GRUB_PATH) && ./autogen.sh
+$(UBOOT_PATH)/.config: $(UBOOT_DEFCONFIG_FILES)
+	cd $(UBOOT_PATH) && scripts/kconfig/merge_config.sh $(UBOOT_DEFCONFIG_FILES)
 
-$(GRUB_PATH)/Makefile: $(GRUB_PATH)/configure
-	cd $(GRUB_PATH) && ./configure --target=aarch64 --enable-boot-time $(grub-flags)
+.PHONY: u-boot-defconfig
+u-boot-defconfig: $(UBOOT_PATH)/.config
 
-.PHONY: grub
-grub: $(GRUB_PATH)/Makefile | $(OUT_PATH)
-	$(MAKE) -C $(GRUB_PATH) && \
-	cd $(GRUB_PATH) && ./grub-mkimage \
-		--output=$(GRUB_BIN) \
-		--config=$(GRUB_CONFIG_PATH)/grub.cfg \
-		--format=arm64-efi \
-		--directory=grub-core \
-		--prefix=/boot/grub \
-		$(GRUB_MODULES)
+.PHONY: u-boot
+u-boot: u-boot-defconfig
+	$(MAKE) -C $(UBOOT_PATH) $(UBOOT_COMMON_FLAGS)
 
-.PHONY: grub-clean
-grub-clean:
-	@if [ -e $(GRUB_PATH)/Makefile ]; then $(MAKE) -C $(GRUB_PATH) clean; fi
-	@rm -f $(GRUB_BIN)
-	@rm -f $(GRUB_PATH)/configure
+.PHONY: u-boot-clean
+u-boot-clean:
+	$(MAKE) -C $(UBOOT_PATH) $(UBOOT_COMMON_FLAGS) distclean
 
+$(UBOOT_BOOT_SCRIPT): $(BUILD_PATH)/fvp/uboot_boot_cmd.txt u-boot | $(OUT_PATH)
+	$(MKIMAGE_PATH)/mkimage -A arm64 \
+				-O linux \
+				-T script \
+				-C none \
+				-d $(BUILD_PATH)/fvp/uboot_boot_cmd.txt \
+				$(UBOOT_BOOT_SCRIPT)
 
 ################################################################################
 # Boot Image
 ################################################################################
 
 .PHONY: boot-img
-boot-img: grub buildroot
+boot-img: buildroot u-boot $(UBOOT_BOOT_SCRIPT)
 	rm -f $(BOOT_IMG)
 	mformat -i $(BOOT_IMG) -n 64 -h 255 -T 131072 -v "BOOT IMG" -C ::
 	mcopy -i $(BOOT_IMG) $(LINUX_PATH)/arch/arm64/boot/Image ::
 	mcopy -i $(BOOT_IMG) $(FVP_LINUX_DTB) ::/fvp.dtb
-	mmd -i $(BOOT_IMG) ::/EFI
-	mmd -i $(BOOT_IMG) ::/EFI/BOOT
 	mcopy -i $(BOOT_IMG) $(ROOT)/out-br/images/rootfs.cpio.gz ::/initrd.img
-	mcopy -i $(BOOT_IMG) $(GRUB_BIN) ::/EFI/BOOT/bootaa64.efi
-	mcopy -i $(BOOT_IMG) $(GRUB_CONFIG_PATH)/grub.cfg ::/EFI/BOOT/grub.cfg
+	mcopy -i $(BOOT_IMG) $(UBOOT_BOOT_SCRIPT) ::
 
 .PHONY: boot-img-clean
 boot-img-clean:
