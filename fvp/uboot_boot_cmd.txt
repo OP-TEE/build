@@ -1,0 +1,6 @@
+fatload virtio 0 ${kernel_addr_r} Image
+fatload virtio 0 ${fdt_addr_r} fvp.dtb
+# The number of transferred bytes is saved in the "filesize" environment variable.
+fatload virtio 0 ${ramdisk_addr_r} initrd.img
+setenv bootargs "console=ttyAMA0,115200 earlycon=pl011,0x1c090000 root=/dev/ram0 ignore_loglevel efi=noruntime"
+booti ${kernel_addr_r} ${ramdisk_addr_r}:${filesize} ${fdt_addr_r}
