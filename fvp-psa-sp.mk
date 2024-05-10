@@ -14,6 +14,20 @@ SP_PACKAGING_METHOD		?= embedded
 SPMC_TESTS			?= n
 SPMC_AT_EL			?= 1
 
+# Behaves a similar way like BRANCH_PROTECTION in TF-A:
+# unset: Default value. mbranch-protection flag is not provided
+# 0: Turns off all types of branch protection
+# 1: Enables all types of branch protection features
+# 2: Return address signing to its standard level
+# 3: Extend the signing to include leaf functions
+# 4: Turn on branch target identification mechanism
+TS_BRANCH_PROTECTION		?= unset
+BRANCH_PROTECTION_OPTIONS	:= unset 0 1 2 3 4
+
+ifeq ($(filter $(TS_BRANCH_PROTECTION),$(BRANCH_PROTECTION_OPTIONS)),)
+  $(error TS_BRANCH_PROTECTION is not set to a valid option)
+endif
+
 ifneq ($(TS_UEFI_AUTH_VAR)-$(TS_SMM_GATEWAY),y-y)
 SP_SMM_GATEWAY_EXTRA_FLAGS += -DUEFI_AUTH_VAR=OFF
 TS_APP_UEFI_TEST_EXTRA_FLAGS += -DUEFI_AUTH_VAR=OFF
@@ -80,6 +94,32 @@ OPTEE_OS_COMMON_EXTRA_FLAGS += \
 	CFG_DT=y \
 	CFG_MAP_EXT_DT_SECURE=y
 
+# If branch protection is unset, do not pass it
+ifeq ($(filter $(TS_BRANCH_PROTECTION),unset),)
+TF_A_FLAGS              += BRANCH_PROTECTION=$(TS_BRANCH_PROTECTION)
+TS_APP_COMMON_FLAGS	+= -DBRANCH_PROTECTION=$(TS_BRANCH_PROTECTION)
+SP_COMMON_FLAGS		+= -DBRANCH_PROTECTION=$(TS_BRANCH_PROTECTION)
+endif
+
+# Branch Target Identification enablement
+ifneq ($(filter $(TS_BRANCH_PROTECTION),1 4),)
+OPTEE_OS_COMMON_EXTRA_FLAGS += CFG_CORE_BTI=y
+OPTEE_OS_COMMON_EXTRA_FLAGS += CFG_TA_BTI=y
+
+FVP_EXTRA_ARGS += -C cluster0.has_branch_target_exception=2
+FVP_EXTRA_ARGS += -C cluster1.has_branch_target_exception=2
+FVP_EXTRA_ARGS += -C cluster0.has_arm_v8-5=1
+FVP_EXTRA_ARGS += -C cluster1.has_arm_v8-5=1
+endif
+
+# Pointer Authentication enablement
+ifneq ($(filter $(TS_BRANCH_PROTECTION),1 2 3),)
+OPTEE_OS_COMMON_EXTRA_FLAGS += CFG_CORE_PAUTH=y
+OPTEE_OS_COMMON_EXTRA_FLAGS += CFG_TA_PAUTH=y
+
+FVP_EXTRA_ARGS += -C cluster0.has_pointer_authentication=2
+FVP_EXTRA_ARGS += -C cluster1.has_pointer_authentication=2
+endif
 
 # The boot order of the SPs is determined by the order of calls here. This is
 # due to the SPMC not (yet) supporting the boot order field of the SP manifest.
