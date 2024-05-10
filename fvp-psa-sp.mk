@@ -13,6 +13,12 @@ TS_UEFI_INTERNAL_CRYPTO	?= n
 SP_PACKAGING_METHOD		?= embedded
 SPMC_TESTS			?= n
 SPMC_AT_EL			?= 1
+TS_BTI_ENABLED			?= unset
+
+ifeq ($(TS_BTI_ENABLED), y)
+TS_APP_COMMON_FLAGS		+= -DBTI_ENABLED=ON
+SP_COMMON_FLAGS			+= -DBTI_ENABLED=ON
+endif
 
 ifneq ($(TS_UEFI_AUTH_VAR)-$(TS_SMM_GATEWAY),y-y)
 SP_SMM_GATEWAY_EXTRA_FLAGS += -DUEFI_AUTH_VAR=OFF
@@ -53,6 +59,10 @@ SP_SMM_GATEWAY_CONFIG		?= $(DEFAULT_SP_CONFIG)
 SP_FWU_CONFIG			?= $(DEFAULT_SP_CONFIG)
 SP_LOGGING_CONFIG		?= $(DEFAULT_SP_CONFIG)
 
+ifeq ($(TS_BTI_ENABLED), y)
+	TF_A_FLAGS += BRANCH_PROTECTION=4
+endif
+
 LINUX_DEFCONFIG_COMMON_FILES ?= $(CURDIR)/kconfigs/fvp_trusted-services.conf
 
 include fvp.mk
@@ -80,6 +90,15 @@ OPTEE_OS_COMMON_EXTRA_FLAGS += \
 	CFG_DT=y \
 	CFG_MAP_EXT_DT_SECURE=y
 
+ifeq ($(TS_BTI_ENABLED), y)
+	OPTEE_OS_COMMON_EXTRA_FLAGS += CFG_CORE_BTI=y
+	OPTEE_OS_COMMON_EXTRA_FLAGS += CFG_TA_BTI=y
+
+	FVP_EXTRA_ARGS += -C cluster0.has_branch_target_exception=2
+	FVP_EXTRA_ARGS += -C cluster1.has_branch_target_exception=2
+	FVP_EXTRA_ARGS += -C cluster0.has_arm_v8-5=1
+	FVP_EXTRA_ARGS += -C cluster1.has_arm_v8-5=1
+endif
 
 # The boot order of the SPs is determined by the order of calls here. This is
 # due to the SPMC not (yet) supporting the boot order field of the SP manifest.
