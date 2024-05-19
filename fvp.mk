@@ -57,6 +57,16 @@ UBOOT_BOOT_SCRIPT	?= $(OUT_PATH)/boot.scr
 BOOT_IMG		?= $(OUT_PATH)/boot-fat.uefi.img
 FTPM_PATH		?= $(ROOT)/ms-tpm-20-ref/Samples/ARM32-FirmwareTPM/optee_ta
 
+# Option to configure FF-A and SPM:
+# n:	disabled
+# 3:	not supported, SPMC and SPMD at EL3 (in TF-A)
+# 2:	not supported, SPMC at S-EL2 (in Hafnium), SPMD at EL3 (in TF-A)
+# 1:	SPMC at S-EL1 (in OP-TEE), SPMD at EL3 (in TF-A)
+SPMC_AT_EL ?= n
+ifneq ($(filter-out n 1,$(SPMC_AT_EL)),)
+$(error Unsupported SPMC_AT_EL value $(SPMC_AT_EL))
+endif
+
 ifeq ($(MEASURED_BOOT),y)
 # By default enable FTPM for backwards compatibility.
 MEASURED_BOOT_FTPM ?= y
@@ -117,14 +127,9 @@ TF_A_EXPORTS ?= \
 	CROSS_COMPILE="$(CCACHE)$(AARCH64_CROSS_COMPILE)"
 
 TF_A_FLAGS ?= \
-	BL32=$(OPTEE_OS_HEADER_V2_BIN) \
-	BL32_EXTRA1=$(OPTEE_OS_PAGER_V2_BIN) \
-	BL32_EXTRA2=$(OPTEE_OS_PAGEABLE_V2_BIN) \
 	BL33=$(UBOOT_BIN) \
-	ARM_TSP_RAM_LOCATION=tdram \
 	FVP_USE_GIC_DRIVER=FVP_GICV3 \
 	PLAT=fvp \
-	SPD=opteed \
 	DEBUG=$(TF_A_DEBUG) \
 	LOG_LEVEL=$(TF_A_LOGLVL)
 
@@ -140,6 +145,18 @@ else
 		      TRUSTED_BOARD_BOOT=1 \
 		      EVENT_LOG_LEVEL=20
 endif
+
+TF_A_FLAGS_BL32_OPTEE  = BL32=$(OPTEE_OS_HEADER_V2_BIN)
+TF_A_FLAGS_BL32_OPTEE += BL32_EXTRA1=$(OPTEE_OS_PAGER_V2_BIN)
+TF_A_FLAGS_BL32_OPTEE += BL32_EXTRA2=$(OPTEE_OS_PAGEABLE_V2_BIN)
+TF_A_FLAGS_BL32_OPTEE += ARM_TSP_RAM_LOCATION=tdram
+
+TF_A_FLAGS_SPMC_AT_EL_n  = $(TF_A_FLAGS_BL32_OPTEE) SPD=opteed
+TF_A_FLAGS_SPMC_AT_EL_1  = BL32=$(OPTEE_OS_PAGER_V2_BIN) SPD=spmd
+TF_A_FLAGS_SPMC_AT_EL_1 += CTX_INCLUDE_EL2_REGS=0 SPMD_SPM_AT_SEL2=0
+TF_A_FLAGS_SPMC_AT_EL_1 += SPMC_OPTEE=1
+
+TF_A_FLAGS += $(TF_A_FLAGS_SPMC_AT_EL_$(SPMC_AT_EL))
 
 arm-tf: optee-os u-boot
 	$(TF_A_EXPORTS) $(MAKE) -C $(TF_A_PATH) $(TF_A_FLAGS) all fip
@@ -183,6 +200,9 @@ linux-cleaner: linux-cleaner-common
 # OP-TEE
 ################################################################################
 OPTEE_OS_COMMON_FLAGS += CFG_ARM_GICV3=y
+OPTEE_OS_COMMON_FLAGS_SPMC_AT_EL_1 = CFG_CORE_SEL1_SPMC=y
+
+OPTEE_OS_COMMON_FLAGS += $(OPTEE_OS_COMMON_FLAGS_SPMC_AT_EL_$(SPMC_AT_EL))
 
 ifeq ($(MEASURED_BOOT),y)
 	OPTEE_OS_COMMON_FLAGS += CFG_DT=y CFG_CORE_TPM_EVENT_LOG=y
