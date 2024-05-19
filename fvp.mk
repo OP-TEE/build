@@ -37,9 +37,12 @@ ifeq ($(MEASURED_BOOT),y)
 # Prefer release mode for TF-A if using Measured Boot, debug may exhaust memory.
 TF_A_BUILD		?= release
 endif
-ifeq ($(DEBUG),1)
+TF_A_DEBUG		?= $(DEBUG)
+ifeq ($(TF_A_DEBUG),1)
+TF_A_LOGLVL		?= 40
 TF_A_BUILD		?= debug
 else
+TF_A_LOGLVL 		?= 20
 TF_A_BUILD		?= release
 endif
 FVP_PATH		?= $(ROOT)/Base_RevC_AEMvA_pkg/models/Linux64_GCC-9.3
@@ -121,14 +124,14 @@ TF_A_FLAGS ?= \
 	ARM_TSP_RAM_LOCATION=tdram \
 	FVP_USE_GIC_DRIVER=FVP_GICV3 \
 	PLAT=fvp \
-	SPD=opteed
+	SPD=opteed \
+	DEBUG=$(TF_A_DEBUG) \
+	LOG_LEVEL=$(TF_A_LOGLVL)
 
 ifneq ($(MEASURED_BOOT),y)
-	TF_A_FLAGS += DEBUG=$(DEBUG) \
-		          MEASURED_BOOT=0
+	TF_A_FLAGS += MEASURED_BOOT=0
 else
-	TF_A_FLAGS += DEBUG=0 \
-		      MBEDTLS_DIR=$(ROOT)/mbedtls  \
+	TF_A_FLAGS += MBEDTLS_DIR=$(ROOT)/mbedtls  \
 		      ARM_ROTPK_LOCATION=devel_rsa \
 		      GENERATE_COT=1 \
 		      MEASURED_BOOT=1 \
