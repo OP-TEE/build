@@ -53,6 +53,8 @@ BINARIES_PATH		?= $(ROOT)/out/bin
 UBOOT_PATH		?= $(ROOT)/u-boot
 UBOOT_BIN		?= $(UBOOT_PATH)/u-boot.bin
 MKIMAGE_PATH		?= $(UBOOT_PATH)/tools
+HAFNIUM_PATH		?= $(ROOT)/hafnium
+HAFNIUM_BIN		?= $(HAFNIUM_PATH)/out/reference/secure_aem_v8a_fvp_vhe_clang/hafnium.bin
 UBOOT_BOOT_SCRIPT	?= $(OUT_PATH)/boot.scr
 BOOT_IMG		?= $(OUT_PATH)/boot-fat.uefi.img
 FTPM_PATH		?= $(ROOT)/ms-tpm-20-ref/Samples/ARM32-FirmwareTPM/optee_ta
@@ -60,10 +62,10 @@ FTPM_PATH		?= $(ROOT)/ms-tpm-20-ref/Samples/ARM32-FirmwareTPM/optee_ta
 # Option to configure FF-A and SPM:
 # n:	disabled
 # 3:	not supported, SPMC and SPMD at EL3 (in TF-A)
-# 2:	not supported, SPMC at S-EL2 (in Hafnium), SPMD at EL3 (in TF-A)
+# 2:	SPMC at S-EL2 (in Hafnium), SPMD at EL3 (in TF-A)
 # 1:	SPMC at S-EL1 (in OP-TEE), SPMD at EL3 (in TF-A)
 SPMC_AT_EL ?= n
-ifneq ($(filter-out n 1,$(SPMC_AT_EL)),)
+ifneq ($(filter-out n 1 2,$(SPMC_AT_EL)),)
 $(error Unsupported SPMC_AT_EL value $(SPMC_AT_EL))
 endif
 
@@ -113,6 +115,15 @@ FVP_VIRTFS_HOST_DIR	?= $(ROOT)
 FVP_VIRTFS_AUTOMOUNT	?= n
 FVP_VIRTFS_MOUNTPOINT	?= /mnt/host
 
+ifeq ($(SPMC_AT_EL),2)
+BL32_DEPS		?= hafnium optee-os
+else
+BL32_DEPS		?= optee-os
+endif
+
+BL33_BIN		?= $(UBOOT_BIN)
+BL33_DEPS		?= u-boot
+
 ifeq ($(FVP_VIRTFS_AUTOMOUNT),y)
 $(call force,FVP_VIRTFS_ENABLE,y,required by FVP_VIRTFS_AUTOMOUNT)
 endif
@@ -156,10 +167,16 @@ TF_A_FLAGS_SPMC_AT_EL_1  = BL32=$(OPTEE_OS_PAGER_V2_BIN) SPD=spmd
 TF_A_FLAGS_SPMC_AT_EL_1 += CTX_INCLUDE_EL2_REGS=0 SPMD_SPM_AT_SEL2=0
 TF_A_FLAGS_SPMC_AT_EL_1 += ARM_SPMC_MANIFEST_DTS=../build/fvp/spmc_el1_partitions_manifest.dts
 TF_A_FLAGS_SPMC_AT_EL_1 += SPMC_OPTEE=1
+TF_A_FLAGS_SPMC_AT_EL_2  = SPD=spmd
+TF_A_FLAGS_SPMC_AT_EL_2 += SP_LAYOUT_FILE=../build/fvp/sp_layout.json
+TF_A_FLAGS_SPMC_AT_EL_2 += BL32=$(HAFNIUM_BIN)
+TF_A_FLAGS_SPMC_AT_EL_2 += ARM_SPMC_MANIFEST_DTS=../build/fvp/spmc_el2_optee_sp_manifest.dts
+TF_A_FLAGS_SPMC_AT_EL_2 += CTX_INCLUDE_PAUTH_REGS=1
+TF_A_FLAGS_SPMC_AT_EL_2 += CTX_INCLUDE_MTE_REGS=1
 
 TF_A_FLAGS += $(TF_A_FLAGS_SPMC_AT_EL_$(SPMC_AT_EL))
 
-arm-tf: optee-os u-boot
+arm-tf: $(BL32_DEPS) $(BL33_DEPS)
 	$(TF_A_EXPORTS) $(MAKE) -C $(TF_A_PATH) $(TF_A_FLAGS) all fip
 
 arm-tf-clean:
@@ -202,6 +219,9 @@ linux-cleaner: linux-cleaner-common
 ################################################################################
 OPTEE_OS_COMMON_FLAGS += CFG_ARM_GICV3=y
 OPTEE_OS_COMMON_FLAGS_SPMC_AT_EL_1 = CFG_CORE_SEL1_SPMC=y
+OPTEE_OS_COMMON_FLAGS_SPMC_AT_EL_2 = CFG_CORE_SEL2_SPMC=y
+OPTEE_OS_COMMON_FLAGS_SPMC_AT_EL_2 += CFG_ARM_GICV3=n CFG_CORE_HAFNIUM_INTC=y
+OPTEE_OS_COMMON_FLAGS_SPMC_AT_EL_2 += CFG_CORE_WORKAROUND_NSITR_CACHE_PRIME=n
 
 OPTEE_OS_COMMON_FLAGS += $(OPTEE_OS_COMMON_FLAGS_SPMC_AT_EL_$(SPMC_AT_EL))
 
@@ -212,6 +232,22 @@ endif
 optee-os: optee-os-common
 
 optee-os-clean: ftpm-clean optee-os-clean-common
+
+################################################################################
+# Hafnium
+################################################################################
+
+HAFNIUM_EXPORTS = PATH=$(HAFNIUM_PATH)/prebuilts/linux-x64/clang/bin:$(HAFNIUM_PATH)/prebuilts/linux-x64/dtc:$(PATH)
+
+.hafnium_checkout:
+	git -C $(HAFNIUM_PATH) submodule update --init
+	touch $@
+
+hafnium: $(HAFNIUM_BIN)
+
+$(HAFNIUM_BIN): .hafnium_checkout | $(OUT_PATH)
+	$(HAFNIUM_EXPORTS) $(MAKE) -C $(HAFNIUM_PATH) $(HAFNIUM_FLAGS) all
+
 
 ################################################################################
 # Buildroot
