@@ -334,6 +334,14 @@ FVP_ARGS ?= \
 	-C bp.secureflashloader.fname=$(TF_A_PATH)/build/fvp/$(TF_A_BUILD)/bl1.bin \
 	-C bp.flashloader0.fname=$(TF_A_PATH)/build/fvp/$(TF_A_BUILD)/fip.bin \
 	-C bp.virtioblockdevice.image_path=$(BOOT_IMG)
+ifeq ($(FVP_NETWORK_SUPPORT),y)
+	FVP_ARGS += -C bp.hostbridge.userNetworking=true \
+		    -C bp.hostbridge.userNetPorts="5555=5555,8080=80,8022=22" \
+		    -C bp.smsc_91c111.enabled=1 \
+		    -C bp.smsc_91c111.mac_address=auto \
+		    -C bp.virtio_net.enabled=1 \
+		    -C bp.virtio_net.hostbridge.userNetworking=1
+endif
 ifeq ($(TS_LOGGING_SP),y)
 	FVP_ARGS += -C bp.pl011_uart2.out_file=$(TS_LOGGING_SP_LOG)
 endif
