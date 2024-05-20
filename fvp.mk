@@ -334,6 +334,36 @@ FVP_ARGS ?= \
 	-C bp.secureflashloader.fname=$(TF_A_PATH)/build/fvp/$(TF_A_BUILD)/bl1.bin \
 	-C bp.flashloader0.fname=$(TF_A_PATH)/build/fvp/$(TF_A_BUILD)/fip.bin \
 	-C bp.virtioblockdevice.image_path=$(BOOT_IMG)
+ifeq ($(SPMC_AT_EL),2)
+	FVP_ARGS += -C cluster0.gicv3.extended-interrupt-range-support=1 \
+		    -C cluster0.has_generic_authentication=1 \
+		    -C cluster0.has_pointer_authentication=2 \
+		    -C cluster0.has_branch_target_exception=1 \
+		    -C cluster0.has_arm_v8-4=1 \
+		    -C cluster0.has_large_system_ext=1 \
+		    -C cluster0.has_large_va=1 \
+		    -C cluster0.has_rndr=1 \
+		    -C cluster0.memory_tagging_support_level=3 \
+		    -C cluster1.gicv3.extended-interrupt-range-support=1 \
+		    -C cluster1.has_generic_authentication=1 \
+		    -C cluster1.has_pointer_authentication=2 \
+		    -C cluster1.has_branch_target_exception=1 \
+		    -C cluster1.has_arm_v8-4=1 \
+		    -C cluster1.has_large_system_ext=1 \
+		    -C cluster1.has_large_va=1 \
+		    -C cluster1.has_rndr=1 \
+		    -C cluster1.memory_tagging_support_level=3 \
+		    -C gic_distributor.extended-ppi-count=64 \
+		    -C gic_distributor.extended-spi-count=1024 \
+		    -C pci.pci_smmuv3.mmu.SMMU_AIDR=0x2 \
+		    -C pci.pci_smmuv3.mmu.SMMU_IDR0=0x0046123B \
+		    -C pci.pci_smmuv3.mmu.SMMU_IDR1=0x00600002 \
+		    -C pci.pci_smmuv3.mmu.SMMU_IDR3=0x1714 \
+		    -C pci.pci_smmuv3.mmu.SMMU_IDR5=0xFFFF0475 \
+		    -C pci.pci_smmuv3.mmu.SMMU_S_IDR1=0xA0000002 \
+		    -C pci.pci_smmuv3.mmu.SMMU_S_IDR2=0 \
+		    -C pci.pci_smmuv3.mmu.SMMU_S_IDR3=0
+endif
 ifeq ($(FVP_NETWORK_SUPPORT),y)
 	FVP_ARGS += -C bp.hostbridge.userNetworking=true \
 		    -C bp.hostbridge.userNetPorts="5555=5555,8080=80,8022=22" \
