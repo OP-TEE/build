@@ -342,6 +342,16 @@ ifeq ($(FVP_NETWORK_SUPPORT),y)
 		    -C bp.virtio_net.enabled=1 \
 		    -C bp.virtio_net.hostbridge.userNetworking=1
 endif
+ifeq ($(FVP_NO_VISUALISATION),y)
+	FVP_ARGS += -C bp.vis.disable_visualisation=1 \
+		    -C bp.terminal_0.start_telnet=0 \
+		    -C bp.terminal_1.mode=raw \
+		    -C bp.terminal_1.start_telnet=0 \
+		    -C bp.terminal_2.mode=raw \
+		    -C bp.terminal_2.start_telnet=0 \
+		    -C bp.terminal_3.mode=raw \
+		    -C bp.terminal_3.start_telnet=0
+endif
 ifeq ($(TS_LOGGING_SP),y)
 	FVP_ARGS += -C bp.pl011_uart2.out_file=$(TS_LOGGING_SP_LOG)
 endif
