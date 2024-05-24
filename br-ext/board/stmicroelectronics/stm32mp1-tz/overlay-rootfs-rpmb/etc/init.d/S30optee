@@ -5,10 +5,12 @@
 #
 # tee-supplicant is run as root user ID to access /dev/teepriv0
 # and eMMC resources including its RPMB partition.
+# The board has a single eMMC device so ask tee-supplicant to find it
+# (--unique-rpmb)
 
 DAEMON="tee-supplicant"
 DAEMON_PATH="/usr/sbin"
-DAEMON_ARGS="-d /dev/teepriv0"
+DAEMON_ARGS="-d /dev/teepriv0 --unique-rpmb"
 PIDFILE="/var/run/$DAEMON.pid"
 
 start() {
