@@ -156,6 +156,19 @@ run: all
 	$(MAKE) run-only
 
 QEMU_SMP ?= 2
+QEMU_MEM ?= 1057
+
+QEMU_BASE_ARGS = -nographic
+QEMU_BASE_ARGS += -smp $(QEMU_SMP)
+QEMU_BASE_ARGS += -d unimp -semihosting-config enable=on,target=native
+QEMU_BASE_ARGS += -m $(QEMU_MEM)
+QEMU_BASE_ARGS += -bios bl1.bin
+QEMU_BASE_ARGS += -machine virt,secure=on -cpu cortex-a15
+QEMU_BASE_ARGS += $(QEMU_EXTRA_ARGS)
+
+QEMU_RUN_ARGS = $(QEMU_BASE_ARGS)
+QEMU_RUN_ARGS += $(QEMU_RUN_ARGS_COMMON)
+QEMU_RUN_ARGS += -s -S -serial tcp:127.0.0.1:$(QEMU_NW_PORT) -serial tcp:127.0.0.1:$(QEMU_SW_PORT)
 
 .PHONY: run-only
 run-only:
@@ -166,14 +179,7 @@ run-only:
 	$(call launch-terminal,$(QEMU_SW_PORT),"Secure World")
 	$(call wait-for-ports,$(QEMU_NW_PORT),$(QEMU_SW_PORT))
 	cd $(BINARIES_PATH) && $(QEMU_BUILD)/arm-softmmu/qemu-system-arm \
-		-nographic \
-		-serial tcp:127.0.0.1:$(QEMU_NW_PORT) -serial tcp:127.0.0.1:$(QEMU_SW_PORT) \
-		-smp $(QEMU_SMP) \
-		-s -S -machine virt,secure=on -cpu cortex-a15 \
-		-d unimp -semihosting-config enable=on,target=native \
-		-m 1057 \
-		-bios bl1.bin \
-		$(QEMU_EXTRA_ARGS)
+		$(QEMU_RUN_ARGS)
 
 ifneq ($(filter check,$(MAKECMDGOALS)),)
 CHECK_DEPS := all
@@ -190,11 +196,15 @@ ifneq ($(XTEST_ARGS),)
 check-args += --xtest-args "$(XTEST_ARGS)"
 endif
 
+QEMU_CHECK_ARGS = $(QEMU_BASE_ARGS)
+QEMU_CHECK_ARGS += -monitor none
+QEMU_CHECK_ARGS += -serial stdio -serial file:serial1.log
+
 check: $(CHECK_DEPS)
 	ln -sf $(ROOT)/out-br/images/rootfs.cpio.gz $(BINARIES_PATH)/
 	cd $(BINARIES_PATH) && \
 		export QEMU=$(QEMU_BUILD)/arm-softmmu/qemu-system-arm && \
-		export QEMU_SMP=$(QEMU_SMP) && \
+		export QEMU_CHECK_ARGS="$(QEMU_CHECK_ARGS)" && \
 		export XEN_BOOT=n && \
 		expect $(ROOT)/build/qemu-check.exp -- $(check-args) || \
 		(if [ "$(DUMP_LOGS_ON_ERROR)" ]; then \

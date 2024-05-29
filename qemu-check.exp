@@ -4,7 +4,6 @@
 # tests in the guest. The return code is 0 for success, >0 for error.
 #
 # Options:
-#   --bios    Path to the binary to be run [../out/bios-qemu/bios.bin]
 #   -q        Suppress output to stdout (quiet)
 #   --tests   Type of tests to run, values: all, xtest and trusted-keys
 #   --timeout Timeout for each test (sub)case, in seconds [480]
@@ -40,7 +39,6 @@ set myargs $argv
 while {[llength $myargs]} {
 	set myargs [lassign $myargs arg]
 	switch -exact -- $arg {
-		"--bios"	{set myargs [lassign $myargs ::bios]}
 		"--tests"	{set myargs [lassign $myargs ::tests]}
 		"--timeout"	{set myargs [lassign $myargs ::timeout]}
 		"-q"		{set ::quiet 1}
@@ -114,11 +112,7 @@ info "Starting QEMU..."
 open "serial1.log" "w+"
 spawn -open [open "|tail -f serial1.log"]
 set teecore $spawn_id
-if {[string first "aarch64" $::env(QEMU)] != -1} {
-	spawn sh -c "$::env(QEMU) $::env(QEMU_CHECK_ARGS)"
-} else {
-	spawn $::env(QEMU) -nographic -monitor none -machine virt -machine secure=on -cpu cortex-a15 -smp $::env(QEMU_SMP) -d unimp -semihosting-config enable=on,target=native -m 1057 -serial stdio -serial file:serial1.log -bios $bios
-}
+spawn sh -c "$::env(QEMU) $::env(QEMU_CHECK_ARGS)"
 expect {
 	"Kernel panic" {
 		info "!!! Kernel panic\n"
