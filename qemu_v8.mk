@@ -506,7 +506,9 @@ QEMU_SMP 	?= 2
 QEMU_MEM 	?= 1057
 endif
 
-ifeq ($(SPMC_AT_EL),n)
+ifeq ($(XEN_BOOT),y)
+QEMU_SME	= off
+else ifeq ($(SPMC_AT_EL),n)
 QEMU_SME	= on
 else
 QEMU_SME	= off
