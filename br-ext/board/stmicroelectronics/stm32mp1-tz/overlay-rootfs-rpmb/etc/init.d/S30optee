@@ -5,6 +5,9 @@
 #
 # tee-supplicant is run as root user ID to access /dev/teepriv0
 # and eMMC resources including its RPMB partition.
+#
+# If a unique eMMC device is found on the system, retrieve its CID
+# and pass it to tee-supplcant.
 
 DAEMON="tee-supplicant"
 DAEMON_PATH="/usr/sbin"
@@ -21,6 +24,19 @@ start() {
 		echo "FAIL"
 		return "$status"
 	fi
+	# Find eMMC CID if only 1 eMMC device is found
+	CID=""
+	for f in /sys/class/mmc_host/mmc*/mmc*\:*/cid; do
+	  # POSIX shells don't expand globbing patterns that match no file
+	  [ -e $f ] || break
+	  devtype=$(echo $f | sed 's/cid/type/')
+	  [ ! -e $devtype ] && continue
+	  [ "$(cat $devtype)" != "MMC" ] && continue
+	  [ "$CID" ] && { echo $0: Multiple eMMC devices found, not chosing one automatically >&2; break; }
+	  CID=$(cat $f)
+	done
+	[ "$CID" ] && DAEMON_ARGS="$DAEMON_ARGS --rpmb-cid $CID"
+	# Start tee-supplicant daemon
 	printf 'Starting %s: ' "$DAEMON"
 	start-stop-daemon -S -q -p "$PIDFILE" -c root -x "$DAEMON_PATH/$DAEMON" \
 		-- $DAEMON_ARGS
