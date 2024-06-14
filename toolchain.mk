@@ -82,7 +82,7 @@ aarch64-toolchain:
 rust-toolchain:
 	$(call dl-rust-toolchain,$(RUST_TOOLCHAIN_PATH))
 
-CLANG_VER			?= 12.0.0
+CLANG_VER			?= 18.1.6
 CLANG_PATH			?= $(ROOT)/clang-$(CLANG_VER)
 
 # Download the Clang compiler with LLVM tools and compiler-rt libraries
