@@ -13,12 +13,15 @@ TS_UEFI_INTERNAL_CRYPTO	?= n
 SP_PACKAGING_METHOD		?= embedded
 SPMC_TESTS			?= n
 SPMC_AT_EL			?= 1
-TS_BTI_ENABLED			?= unset
 
-ifeq ($(TS_BTI_ENABLED), y)
-TS_APP_COMMON_FLAGS		+= -DBTI_ENABLED=ON
-SP_COMMON_FLAGS			+= -DBTI_ENABLED=ON
-endif
+# Behaves a similar way like BRANCH_PROTECTION in TF-A:
+# unset: Default value. mbranch-protection flag is not provided
+# 0: Turns off all types of branch protection
+# 1: Enables all types of branch protection features
+# 2: Return address signing to its standard level
+# 3: Extend the signing to include leaf functions
+# 4: Turn on branch target identification mechanism
+TS_BRANCH_PROTECTION		?= unset
 
 ifneq ($(TS_UEFI_AUTH_VAR)-$(TS_SMM_GATEWAY),y-y)
 SP_SMM_GATEWAY_EXTRA_FLAGS += -DUEFI_AUTH_VAR=OFF
@@ -59,10 +62,6 @@ SP_SMM_GATEWAY_CONFIG		?= $(DEFAULT_SP_CONFIG)
 SP_FWU_CONFIG			?= $(DEFAULT_SP_CONFIG)
 SP_LOGGING_CONFIG		?= $(DEFAULT_SP_CONFIG)
 
-ifeq ($(TS_BTI_ENABLED), y)
-	TF_A_FLAGS += BRANCH_PROTECTION=4
-endif
-
 LINUX_DEFCONFIG_COMMON_FILES ?= $(CURDIR)/kconfigs/fvp_trusted-services.conf
 
 include fvp.mk
@@ -90,7 +89,15 @@ OPTEE_OS_COMMON_EXTRA_FLAGS += \
 	CFG_DT=y \
 	CFG_MAP_EXT_DT_SECURE=y
 
-ifeq ($(TS_BTI_ENABLED), y)
+# If branch protection is unset, do not pass it
+ifeq ($(filter $(TS_BRANCH_PROTECTION),unset),)
+TF_A_FLAGS              += BRANCH_PROTECTION=$(TS_BRANCH_PROTECTION)
+TS_APP_COMMON_FLAGS	+= -DBRANCH_PROTECTION=$(TS_BRANCH_PROTECTION)
+SP_COMMON_FLAGS		+= -DBRANCH_PROTECTION=$(TS_BRANCH_PROTECTION)
+endif
+
+# Branch Target Identification enablement
+ifneq ($(filter $(TS_BRANCH_PROTECTION),1 4),)
 	OPTEE_OS_COMMON_EXTRA_FLAGS += CFG_CORE_BTI=y
 	OPTEE_OS_COMMON_EXTRA_FLAGS += CFG_TA_BTI=y
 
@@ -98,6 +105,15 @@ ifeq ($(TS_BTI_ENABLED), y)
 	FVP_EXTRA_ARGS += -C cluster1.has_branch_target_exception=2
 	FVP_EXTRA_ARGS += -C cluster0.has_arm_v8-5=1
 	FVP_EXTRA_ARGS += -C cluster1.has_arm_v8-5=1
+endif
+
+# Pointer Authentication enablement
+ifneq ($(filter $(TS_BRANCH_PROTECTION),1 2 3),)
+	OPTEE_OS_COMMON_EXTRA_FLAGS += CFG_CORE_PAUTH=y
+	OPTEE_OS_COMMON_EXTRA_FLAGS += CFG_TA_PAUTH=y
+
+	FVP_EXTRA_ARGS += -C cluster0.has_pointer_authentication=2
+	FVP_EXTRA_ARGS += -C cluster1.has_pointer_authentication=2
 endif
 
 # The boot order of the SPs is determined by the order of calls here. This is
