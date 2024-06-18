@@ -30,7 +30,10 @@ QEMU_VIRTFS_AUTOMOUNT = y
 endif
 
 # Option to enable Rust examples
+# Currently supported only on x86_64 hosts
+ifeq ($(UNAME_M),x86_64)
 RUST_ENABLE ?= y
+endif
 
 include common.mk
 
