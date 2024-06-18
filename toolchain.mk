@@ -158,3 +158,16 @@ $(AARCH64_PATH)/.done:
 $(AARCH32_PATH)/.done:
 	$(call build_toolchain,aarch32,$(AARCH32_PATH),arm,gnueabihf)
 endif
+
+# Recipe to build Clang from sources and install it in
+# $(TOOLCHAIN_ROOT)/clang-x.y.z/bin
+
+CLANG_BUILD_VER_MAJ=18
+CLANG_BUILD_VER=$(CLANG_BUILD_VER_MAJ).1.7
+CLANG_BUILD_IMAGE=clang-$(CLANG_BUILD_VER)-$(UNAME_M)
+
+clang-toolchains-build:
+	docker build --build-arg VER_MAJ=$(CLANG_BUILD_VER_MAJ) --build-arg VER=$(CLANG_BUILD_VER) -t $(CLANG_BUILD_IMAGE) clang/
+	id=$$(docker create $(CLANG_BUILD_IMAGE)) && \
+		docker cp $${id}:/root/clang-$(CLANG_BUILD_VER) $(TOOLCHAIN_ROOT) && \
+		docker rm $${id}
