@@ -45,8 +45,10 @@ CFG_TEE_CORE_LOG_LEVEL		?= 3
 # optee_test
 WITH_TLS_TESTS			?= y
 ifneq ($(COMPILER),clang)
-# assuming GCC toolchain from toolchain.mk
+ifeq ($(UNAME_M),x86_64)
+# assuming GCC toolchain from toolchain.mk (GCC <= 11)
 WITH_CXX_TESTS			?= y
+endif
 endif
 
 CCACHE ?= $(shell which ccache) # Don't remove this comment (space is needed)
