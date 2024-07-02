@@ -37,9 +37,12 @@ ifeq ($(MEASURED_BOOT),y)
 # Prefer release mode for TF-A if using Measured Boot, debug may exhaust memory.
 TF_A_BUILD		?= release
 endif
-ifeq ($(DEBUG),1)
+TF_A_DEBUG		?= $(DEBUG)
+ifeq ($(TF_A_DEBUG),1)
+TF_A_LOGLVL		?= 40
 TF_A_BUILD		?= debug
 else
+TF_A_LOGLVL 		?= 20
 TF_A_BUILD		?= release
 endif
 FVP_PATH		?= $(ROOT)/Base_RevC_AEMvA_pkg/models/Linux64_GCC-9.3
@@ -50,9 +53,21 @@ BINARIES_PATH		?= $(ROOT)/out/bin
 UBOOT_PATH		?= $(ROOT)/u-boot
 UBOOT_BIN		?= $(UBOOT_PATH)/u-boot.bin
 MKIMAGE_PATH		?= $(UBOOT_PATH)/tools
+HAFNIUM_PATH		?= $(ROOT)/hafnium
+HAFNIUM_BIN		?= $(HAFNIUM_PATH)/out/reference/secure_aem_v8a_fvp_vhe_clang/hafnium.bin
 UBOOT_BOOT_SCRIPT	?= $(OUT_PATH)/boot.scr
 BOOT_IMG		?= $(OUT_PATH)/boot-fat.uefi.img
 FTPM_PATH		?= $(ROOT)/ms-tpm-20-ref/Samples/ARM32-FirmwareTPM/optee_ta
+
+# Option to configure FF-A and SPM:
+# n:	disabled
+# 3:	not supported, SPMC and SPMD at EL3 (in TF-A)
+# 2:	SPMC at S-EL2 (in Hafnium), SPMD at EL3 (in TF-A)
+# 1:	SPMC at S-EL1 (in OP-TEE), SPMD at EL3 (in TF-A)
+SPMC_AT_EL ?= n
+ifneq ($(filter-out n 1 2,$(SPMC_AT_EL)),)
+$(error Unsupported SPMC_AT_EL value $(SPMC_AT_EL))
+endif
 
 ifeq ($(MEASURED_BOOT),y)
 # By default enable FTPM for backwards compatibility.
@@ -100,6 +115,15 @@ FVP_VIRTFS_HOST_DIR	?= $(ROOT)
 FVP_VIRTFS_AUTOMOUNT	?= n
 FVP_VIRTFS_MOUNTPOINT	?= /mnt/host
 
+ifeq ($(SPMC_AT_EL),2)
+BL32_DEPS		?= hafnium optee-os
+else
+BL32_DEPS		?= optee-os
+endif
+
+BL33_BIN		?= $(UBOOT_BIN)
+BL33_DEPS		?= u-boot
+
 ifeq ($(FVP_VIRTFS_AUTOMOUNT),y)
 $(call force,FVP_VIRTFS_ENABLE,y,required by FVP_VIRTFS_AUTOMOUNT)
 endif
@@ -114,21 +138,16 @@ TF_A_EXPORTS ?= \
 	CROSS_COMPILE="$(CCACHE)$(AARCH64_CROSS_COMPILE)"
 
 TF_A_FLAGS ?= \
-	BL32=$(OPTEE_OS_HEADER_V2_BIN) \
-	BL32_EXTRA1=$(OPTEE_OS_PAGER_V2_BIN) \
-	BL32_EXTRA2=$(OPTEE_OS_PAGEABLE_V2_BIN) \
 	BL33=$(UBOOT_BIN) \
-	ARM_TSP_RAM_LOCATION=tdram \
 	FVP_USE_GIC_DRIVER=FVP_GICV3 \
 	PLAT=fvp \
-	SPD=opteed
+	DEBUG=$(TF_A_DEBUG) \
+	LOG_LEVEL=$(TF_A_LOGLVL)
 
 ifneq ($(MEASURED_BOOT),y)
-	TF_A_FLAGS += DEBUG=$(DEBUG) \
-		          MEASURED_BOOT=0
+	TF_A_FLAGS += MEASURED_BOOT=0
 else
-	TF_A_FLAGS += DEBUG=0 \
-		      MBEDTLS_DIR=$(ROOT)/mbedtls  \
+	TF_A_FLAGS += MBEDTLS_DIR=$(ROOT)/mbedtls  \
 		      ARM_ROTPK_LOCATION=devel_rsa \
 		      GENERATE_COT=1 \
 		      MEASURED_BOOT=1 \
@@ -138,7 +157,26 @@ else
 		      EVENT_LOG_LEVEL=20
 endif
 
-arm-tf: optee-os u-boot
+TF_A_FLAGS_BL32_OPTEE  = BL32=$(OPTEE_OS_HEADER_V2_BIN)
+TF_A_FLAGS_BL32_OPTEE += BL32_EXTRA1=$(OPTEE_OS_PAGER_V2_BIN)
+TF_A_FLAGS_BL32_OPTEE += BL32_EXTRA2=$(OPTEE_OS_PAGEABLE_V2_BIN)
+TF_A_FLAGS_BL32_OPTEE += ARM_TSP_RAM_LOCATION=tdram
+
+TF_A_FLAGS_SPMC_AT_EL_n  = $(TF_A_FLAGS_BL32_OPTEE) SPD=opteed
+TF_A_FLAGS_SPMC_AT_EL_1  = BL32=$(OPTEE_OS_PAGER_V2_BIN) SPD=spmd
+TF_A_FLAGS_SPMC_AT_EL_1 += CTX_INCLUDE_EL2_REGS=0 SPMD_SPM_AT_SEL2=0
+TF_A_FLAGS_SPMC_AT_EL_1 += ARM_SPMC_MANIFEST_DTS=../build/fvp/spmc_el1_partitions_manifest.dts
+TF_A_FLAGS_SPMC_AT_EL_1 += SPMC_OPTEE=1
+TF_A_FLAGS_SPMC_AT_EL_2  = SPD=spmd
+TF_A_FLAGS_SPMC_AT_EL_2 += SP_LAYOUT_FILE=../build/fvp/sp_layout.json
+TF_A_FLAGS_SPMC_AT_EL_2 += BL32=$(HAFNIUM_BIN)
+TF_A_FLAGS_SPMC_AT_EL_2 += ARM_SPMC_MANIFEST_DTS=../build/fvp/spmc_el2_optee_sp_manifest.dts
+TF_A_FLAGS_SPMC_AT_EL_2 += CTX_INCLUDE_PAUTH_REGS=1
+TF_A_FLAGS_SPMC_AT_EL_2 += CTX_INCLUDE_MTE_REGS=1
+
+TF_A_FLAGS += $(TF_A_FLAGS_SPMC_AT_EL_$(SPMC_AT_EL))
+
+arm-tf: $(BL32_DEPS) $(BL33_DEPS)
 	$(TF_A_EXPORTS) $(MAKE) -C $(TF_A_PATH) $(TF_A_FLAGS) all fip
 
 arm-tf-clean:
@@ -180,6 +218,12 @@ linux-cleaner: linux-cleaner-common
 # OP-TEE
 ################################################################################
 OPTEE_OS_COMMON_FLAGS += CFG_ARM_GICV3=y
+OPTEE_OS_COMMON_FLAGS_SPMC_AT_EL_1 = CFG_CORE_SEL1_SPMC=y
+OPTEE_OS_COMMON_FLAGS_SPMC_AT_EL_2 = CFG_CORE_SEL2_SPMC=y
+OPTEE_OS_COMMON_FLAGS_SPMC_AT_EL_2 += CFG_ARM_GICV3=n CFG_CORE_HAFNIUM_INTC=y
+OPTEE_OS_COMMON_FLAGS_SPMC_AT_EL_2 += CFG_CORE_WORKAROUND_NSITR_CACHE_PRIME=n
+
+OPTEE_OS_COMMON_FLAGS += $(OPTEE_OS_COMMON_FLAGS_SPMC_AT_EL_$(SPMC_AT_EL))
 
 ifeq ($(MEASURED_BOOT),y)
 	OPTEE_OS_COMMON_FLAGS += CFG_DT=y CFG_CORE_TPM_EVENT_LOG=y
@@ -188,6 +232,22 @@ endif
 optee-os: optee-os-common
 
 optee-os-clean: ftpm-clean optee-os-clean-common
+
+################################################################################
+# Hafnium
+################################################################################
+
+HAFNIUM_EXPORTS = PATH=$(HAFNIUM_PATH)/prebuilts/linux-x64/clang/bin:$(HAFNIUM_PATH)/prebuilts/linux-x64/dtc:$(PATH)
+
+.hafnium_checkout:
+	git -C $(HAFNIUM_PATH) submodule update --init
+	touch $@
+
+hafnium: $(HAFNIUM_BIN)
+
+$(HAFNIUM_BIN): .hafnium_checkout | $(OUT_PATH)
+	$(HAFNIUM_EXPORTS) $(MAKE) -C $(HAFNIUM_PATH) $(HAFNIUM_FLAGS) all
+
 
 ################################################################################
 # Buildroot
@@ -253,19 +313,19 @@ FVP_ARGS ?= \
 	-C cache_state_modelled=0 \
 	-C pctl.startup=0.0.0.0 \
 	-C cluster0.NUM_CORES=4 \
-	-C cluster1.NUM_CORES=4 \
 	-C cluster0.cpu0.enable_crc32=1 \
 	-C cluster0.cpu1.enable_crc32=1 \
 	-C cluster0.cpu2.enable_crc32=1 \
 	-C cluster0.cpu3.enable_crc32=1 \
-	-C cluster1.cpu0.enable_crc32=1 \
-	-C cluster1.cpu1.enable_crc32=1 \
-	-C cluster1.cpu2.enable_crc32=1 \
-	-C cluster1.cpu3.enable_crc32=1 \
 	-C cluster0.cpu0.semihosting-cwd="$(BINARIES_PATH)" \
 	-C cluster0.cpu1.semihosting-cwd="$(BINARIES_PATH)" \
 	-C cluster0.cpu2.semihosting-cwd="$(BINARIES_PATH)" \
 	-C cluster0.cpu3.semihosting-cwd="$(BINARIES_PATH)" \
+	-C cluster1.NUM_CORES=4 \
+	-C cluster1.cpu0.enable_crc32=1 \
+	-C cluster1.cpu1.enable_crc32=1 \
+	-C cluster1.cpu2.enable_crc32=1 \
+	-C cluster1.cpu3.enable_crc32=1 \
 	-C cluster1.cpu0.semihosting-cwd="$(BINARIES_PATH)" \
 	-C cluster1.cpu1.semihosting-cwd="$(BINARIES_PATH)" \
 	-C cluster1.cpu2.semihosting-cwd="$(BINARIES_PATH)" \
@@ -274,6 +334,54 @@ FVP_ARGS ?= \
 	-C bp.secureflashloader.fname=$(TF_A_PATH)/build/fvp/$(TF_A_BUILD)/bl1.bin \
 	-C bp.flashloader0.fname=$(TF_A_PATH)/build/fvp/$(TF_A_BUILD)/fip.bin \
 	-C bp.virtioblockdevice.image_path=$(BOOT_IMG)
+ifeq ($(SPMC_AT_EL),2)
+	FVP_ARGS += -C cluster0.gicv3.extended-interrupt-range-support=1 \
+		    -C cluster0.has_generic_authentication=1 \
+		    -C cluster0.has_pointer_authentication=2 \
+		    -C cluster0.has_branch_target_exception=1 \
+		    -C cluster0.has_arm_v8-4=1 \
+		    -C cluster0.has_large_system_ext=1 \
+		    -C cluster0.has_large_va=1 \
+		    -C cluster0.has_rndr=1 \
+		    -C cluster0.memory_tagging_support_level=3 \
+		    -C cluster1.gicv3.extended-interrupt-range-support=1 \
+		    -C cluster1.has_generic_authentication=1 \
+		    -C cluster1.has_pointer_authentication=2 \
+		    -C cluster1.has_branch_target_exception=1 \
+		    -C cluster1.has_arm_v8-4=1 \
+		    -C cluster1.has_large_system_ext=1 \
+		    -C cluster1.has_large_va=1 \
+		    -C cluster1.has_rndr=1 \
+		    -C cluster1.memory_tagging_support_level=3 \
+		    -C gic_distributor.extended-ppi-count=64 \
+		    -C gic_distributor.extended-spi-count=1024 \
+		    -C pci.pci_smmuv3.mmu.SMMU_AIDR=0x2 \
+		    -C pci.pci_smmuv3.mmu.SMMU_IDR0=0x0046123B \
+		    -C pci.pci_smmuv3.mmu.SMMU_IDR1=0x00600002 \
+		    -C pci.pci_smmuv3.mmu.SMMU_IDR3=0x1714 \
+		    -C pci.pci_smmuv3.mmu.SMMU_IDR5=0xFFFF0475 \
+		    -C pci.pci_smmuv3.mmu.SMMU_S_IDR1=0xA0000002 \
+		    -C pci.pci_smmuv3.mmu.SMMU_S_IDR2=0 \
+		    -C pci.pci_smmuv3.mmu.SMMU_S_IDR3=0
+endif
+ifeq ($(FVP_NETWORK_SUPPORT),y)
+	FVP_ARGS += -C bp.hostbridge.userNetworking=true \
+		    -C bp.hostbridge.userNetPorts="5555=5555,8080=80,8022=22" \
+		    -C bp.smsc_91c111.enabled=1 \
+		    -C bp.smsc_91c111.mac_address=auto \
+		    -C bp.virtio_net.enabled=1 \
+		    -C bp.virtio_net.hostbridge.userNetworking=1
+endif
+ifeq ($(FVP_NO_VISUALISATION),y)
+	FVP_ARGS += -C bp.vis.disable_visualisation=1 \
+		    -C bp.terminal_0.start_telnet=0 \
+		    -C bp.terminal_1.mode=raw \
+		    -C bp.terminal_1.start_telnet=0 \
+		    -C bp.terminal_2.mode=raw \
+		    -C bp.terminal_2.start_telnet=0 \
+		    -C bp.terminal_3.mode=raw \
+		    -C bp.terminal_3.start_telnet=0
+endif
 ifeq ($(TS_LOGGING_SP),y)
 	FVP_ARGS += -C bp.pl011_uart2.out_file=$(TS_LOGGING_SP_LOG)
 endif

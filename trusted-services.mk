@@ -91,7 +91,7 @@ $(TS_INSTALL_PREFIX)/sp_layout.json: ffa-sp-all
 optee-os-common: $(TS_INSTALL_PREFIX)/sp_layout.json
 
 # Configure TF-A to load the SPs from FIP by BL2
-TF_A_FIP_SP_FLAGS += ARM_BL2_SP_LIST_DTS=$(ROOT)/build/fvp/bl2_sp_list.dtsi \
+TF_A_FLAGS += ARM_BL2_SP_LIST_DTS=$(ROOT)/build/fvp/bl2_sp_list.dtsi \
 		SP_LAYOUT_FILE=$(TS_INSTALL_PREFIX)/sp_layout.json
 endif
 
