@@ -57,11 +57,14 @@ endef
 
 ifeq ($(UNAME_M),x86_64)
 ifeq ($(ARCH),arm)
+# Please keep in sync with br-ext/configs/toolchain-aarch32
+# and below for aarch64 host
 AARCH32_PATH 			?= $(TOOLCHAIN_ROOT)/aarch32
 AARCH32_CROSS_COMPILE 		?= $(AARCH32_PATH)/bin/arm-linux-gnueabihf-
 AARCH32_GCC_VERSION 		?= arm-gnu-toolchain-11.3.rel1-x86_64-arm-none-linux-gnueabihf
 SRC_AARCH32_GCC 		?= https://developer.arm.com/-/media/Files/downloads/gnu/11.3.rel1/binrel/$(AARCH32_GCC_VERSION).tar.xz
 
+# Please keep in sync with br-ext/configs/toolchain-aarch64
 AARCH64_PATH 			?= $(TOOLCHAIN_ROOT)/aarch64
 AARCH64_CROSS_COMPILE 		?= $(AARCH64_PATH)/bin/aarch64-linux-gnu-
 AARCH64_GCC_VERSION 		?= arm-gnu-toolchain-11.3.rel1-x86_64-aarch64-none-linux-gnu
@@ -116,6 +119,8 @@ endif
 
 else ifeq ($(UNAME_M),aarch64)
 
+# Please keep in sync with br-ext/configs/toolchain-aarch32
+# and above for x86_64 host
 AARCH32_PATH 			?= $(TOOLCHAIN_ROOT)/aarch32
 AARCH32_CROSS_COMPILE 		?= $(AARCH32_PATH)/bin/arm-linux-gnueabihf-
 AARCH32_GCC_VERSION 		?= arm-gnu-toolchain-11.3.rel1-aarch64-arm-none-linux-gnueabihf

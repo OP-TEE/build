@@ -1,9 +1,7 @@
-# Please keep in sync with the downloaded riscv64 toolchain in toolchain.mk
+# Please keep GCC version and headers in sync with br-ext/configs/sdk-common
 BR2_TOOLCHAIN_EXTERNAL=y
 BR2_TOOLCHAIN_EXTERNAL_CUSTOM=y
-BR2_TOOLCHAIN_EXTERNAL_PATH="%TOP_DIR%/toolchains/riscv64"
-BR2_TOOLCHAIN_EXTERNAL_CUSTOM_PREFIX="riscv64-unknown-linux-gnu"
-BR2_TOOLCHAIN_EXTERNAL_GCC_12=y
+BR2_TOOLCHAIN_EXTERNAL_GCC_14=y
 BR2_TOOLCHAIN_EXTERNAL_HEADERS_6_1=y
 BR2_TOOLCHAIN_EXTERNAL_CUSTOM_GLIBC=y
 BR2_TOOLCHAIN_EXTERNAL_CXX=y
