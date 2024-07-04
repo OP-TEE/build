@@ -1,3 +1,5 @@
+# Please keep GCC version and headers in sync with
+# br-ext/configs/toolchain-common-sdk
 BR2_CCACHE=y
 BR2_CCACHE_USE_BASEDIR=y
 BR2_GCC_VERSION_14_X=y

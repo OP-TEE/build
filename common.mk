@@ -258,12 +258,12 @@ BUILDROOT_TOOLCHAIN=toolchain-riscv$(COMPILE_NS_USER)
 endif
 else ifeq ($(UNAME_M),aarch64)
 ifeq ($(COMPILE_NS_USER),64)
-BUILDROOT_TOOLCHAIN=toolchain-aarch64-sdk
+BUILDROOT_TOOLCHAIN=toolchain-aarch64-sdk toolchain-common-sdk
 else
 BUILDROOT_TOOLCHAIN=toolchain-aarch32
 endif
 else
-BUILDROOT_TOOLCHAIN=toolchain-aarch$(COMPILE_NS_USER)-sdk
+BUILDROOT_TOOLCHAIN=toolchain-aarch$(COMPILE_NS_USER)-sdk toolchain-common-sdk
 endif
 endif
 
@@ -344,7 +344,8 @@ buildroot: optee-os
 		--top-dir "$(ROOT)" \
 		--br-defconfig build/br-ext/configs/optee_$(BUILDROOT_ARCH) \
 		--br-defconfig build/br-ext/configs/optee_generic \
-		--br-defconfig build/br-ext/configs/$(BUILDROOT_TOOLCHAIN) \
+		$(addprefix --br-defconfig build/br-ext/configs/, \
+			    $(BUILDROOT_TOOLCHAIN)) \
 		$(DEFCONFIG_GDBSERVER) \
 		$(DEFCONFIG_XEN) \
 		$(DEFCONFIG_TSS) \

@@ -1,3 +1,4 @@
+# Please keep in sync with the downloaded AArch32 toolchain in toolchain.mk
 BR2_TOOLCHAIN_EXTERNAL=y
 BR2_TOOLCHAIN_EXTERNAL_CUSTOM=y
 BR2_TOOLCHAIN_EXTERNAL_PATH="%TOP_DIR%/toolchains/aarch32"
