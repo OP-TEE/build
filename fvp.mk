@@ -244,7 +244,7 @@ optee-os-clean: ftpm-clean optee-os-clean-common
 hafnium: $(HAFNIUM_BIN)
 
 $(HAFNIUM_BIN): .hafnium_checkout | $(OUT_PATH)
-	$(MAKE) -C $(HAFNIUM_PATH) $(HAFNIUM_FLAGS) all
+	$(MAKE) -C $(HAFNIUM_PATH) $(HAFNIUM_FLAGS) PLATFORM=secure_aem_v8a_fvp_vhe
 
 
 ################################################################################
