@@ -169,6 +169,6 @@ ffa-fwu-fash-img-clean:
 
 clean: ffa-fwu-fash-img-clean
 
-clean: ts-host-all-clean ffa-test-all-clean ffa-sp-all-clean linux-arm-ffa-tee-clean linux-arm-ffa-user-clean
+clean: ts-host-all-clean ffa-test-all-clean ffa-sp-all-clean linux-arm-ffa-user-clean
 
 endif
