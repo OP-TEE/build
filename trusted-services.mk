@@ -96,19 +96,8 @@ TF_A_FLAGS += ARM_BL2_SP_LIST_DTS=$(ROOT)/build/fvp/bl2_sp_list.dtsi \
 endif
 
 ################################################################################
-# Linux FF-A user space drivers
+# Linux FF-A user space driver
 ################################################################################
-.PHONY: linux-arm-ffa-tee linux-arm-ffa-tee-clean
-all: linux-arm-ffa-tee
-
-linux-arm-ffa-tee: linux
-	mkdir -p $(OUT_PATH)/linux-arm-ffa-tee
-	$(MAKE) -C $(ROOT)/linux-arm-ffa-tee $(LINUX_COMMON_FLAGS) install \
-		TARGET_DIR=$(OUT_PATH)/linux-arm-ffa-tee
-
-linux-arm-ffa-tee-clean:
-	$(MAKE) -C $(ROOT)/linux-arm-ffa-tee clean
-
 # This driver is only used by the uefi-test app or the spmc tests
 ifneq ($(filter y, $(TS_UEFI_TESTS) $(SPMC_TESTS)),)
 .PHONY: linux-arm-ffa-user linux-arm-ffa-user-clean
