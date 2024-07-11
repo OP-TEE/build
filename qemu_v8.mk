@@ -532,17 +532,17 @@ run: all
 
 ifeq ($(XEN_BOOT),y)
 QEMU_VIRT	= true
+QEMU_XEN	?= -drive if=none,file=$(XEN_EXT4),format=raw,id=hd1 \
+		   -device virtio-blk-device,drive=hd1
 else ifeq ($(SPMC_AT_EL),2)
 QEMU_VIRT	= true
 else
 QEMU_VIRT	= false
 endif
 
-ifeq ($(XEN_BOOT),y)
+ifeq ($(QEMU_VIRT),true)
 QEMU_MEM 	?= 3072
 QEMU_SMP	?= 4
-QEMU_XEN	?= -drive if=none,file=$(XEN_EXT4),format=raw,id=hd1 \
-		   -device virtio-blk-device,drive=hd1
 else
 QEMU_SMP 	?= 2
 QEMU_MEM 	?= 1057
