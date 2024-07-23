@@ -458,9 +458,25 @@ define launch-terminal
 		$(LAUNCH_TERMINAL) "$(BUILD_PATH)/soc_term.py $(1)" &
 endef
 else
+tmux := $(TMUX)
+tmux_window := $(shell echo OPTEE_$$RANDOM)
 gnome-terminal := $(shell command -v gnome-terminal 2>/dev/null)
 konsole := $(shell command -v konsole 2>/dev/null)
 xterm := $(shell command -v xterm 2>/dev/null)
+
+ifdef tmux
+define launch-terminal
+	@if tmux list-windows -F '#W' | grep -q $(tmux_window); then \
+		nc -z 127.0.0.1 $(1) || \
+			tmux split-window -d -h -t $(tmux_window) "$(BUILD_PATH)/soc_term.py $(1)" ; \
+	else \
+		nc -z 127.0.0.1 $(1) || \
+			tmux new-window -d -n $(tmux_window) "$(BUILD_PATH)/soc_term.py $(1)" ; \
+	fi
+
+	@echo "* $(2)'s terminal has been spawned in $(tmux_window)."
+endef
+else
 ifdef gnome-terminal
 define launch-terminal
 	@nc -z  127.0.0.1 $(1) || \
@@ -480,10 +496,11 @@ define launch-terminal
 endef
 else
 check-terminal := @echo "Error: could not find gnome-terminal, konsole nor xterm" ; false
-endif
-endif
-endif
-endif
+endif # xterm
+endif # konsole
+endif # gnome-terminal
+endif # tmux
+endif # LAUNCH_TERMINAL
 
 define wait-for-ports
 	@while ! nc -z 127.0.0.1 $(1) || ! nc -z 127.0.0.1 $(2); do sleep 1; done
