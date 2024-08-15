@@ -29,13 +29,13 @@ GICV3 = y
 QEMU_VIRTFS_AUTOMOUNT = y
 endif
 
-include common.mk
-
 # Option to enable Rust examples
 # Currently supported only on x86_64 hosts
-ifeq ($(UNAME_M),x86_64)
+ifeq ($(shell uname -m),x86_64)
 RUST_ENABLE ?= y
 endif
+
+include common.mk
 
 DEBUG ?= 1
 
