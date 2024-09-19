@@ -164,6 +164,9 @@ expect {
 
 expect "# "
 info "Running signature_verification-rs...\n"
+# This one can take up to 6 minutes when CFG_CORE_DEBUG_CHECK_STACKS=y
+# (3-4 minutes is common on my machine)
+set timeout 400
 send -- "signature_verification-rs\r"
 expect {
 	"Success" {
