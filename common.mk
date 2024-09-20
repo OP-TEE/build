@@ -38,9 +38,13 @@ OPTEE_TEST_PATH			?= $(ROOT)/optee_test
 OPTEE_EXAMPLES_PATH		?= $(ROOT)/optee_examples
 OPTEE_RUST_PATH			?= $(ROOT)/optee_rust
 BUILDROOT_TARGET_ROOT		?= $(ROOT)/out-br/target
+MS_TPM_20_REF_PATH		?= $(ROOT)/ms-tpm-20-ref
 
 # default high verbosity. slow uarts shall specify lower if prefered
 CFG_TEE_CORE_LOG_LEVEL		?= 3
+
+# Only configure with TPM reference source if the directory exists
+CFG_MS_TPM_20_REF		?= $(wildcard $(MS_TPM_20_REF_PATH))
 
 # optee_test
 WITH_TLS_TESTS			?= y
@@ -269,6 +273,10 @@ endif
 
 ifeq ($(XEN_BOOT),y)
 DEFCONFIG_XEN=--br-defconfig build/br-ext/configs/xen.conf
+endif
+
+ifneq ($(CFG_MS_TPM_20_REF),y)
+DEFCONFIG_TSS ?= --br-defconfig build/br-ext/configs/tss
 endif
 
 BR2_PER_PACKAGE_DIRECTORIES ?= y
@@ -554,7 +562,12 @@ OPTEE_OS_TA_CROSS_COMPILE_FLAGS	+= CROSS_COMPILE_ta_rv64="$(CCACHE)$(RISCV64_CRO
 OPTEE_OS_TA_CROSS_COMPILE_FLAGS	+= CROSS_COMPILE_ta_rv32="$(CCACHE)$(RISCV32_CROSS_COMPILE)"
 endif
 
-CFG_IN_TREE_EARLY_TAS ?= trusted_keys/f04a0fe7-1f5d-4b9b-abf7-619b85b4ce8c
+ifeq ($(CFG_IN_TREE_EARLY_TAS),)
+CFG_IN_TREE_EARLY_TAS = trusted_keys/f04a0fe7-1f5d-4b9b-abf7-619b85b4ce8c
+ifneq ($(CFG_MS_TPM_20_REF),)
+CFG_IN_TREE_EARLY_TAS += ftpm/bc50d971-d4c9-42c4-82cb-343fb7f37896
+endif
+endif
 
 OPTEE_OS_COMMON_FLAGS ?= \
 	$(OPTEE_OS_COMMON_EXTRA_FLAGS) \
@@ -564,7 +577,8 @@ OPTEE_OS_COMMON_FLAGS ?= \
 	$(OPTEE_OS_TA_CROSS_COMPILE_FLAGS) \
 	CFG_TEE_CORE_LOG_LEVEL=$(CFG_TEE_CORE_LOG_LEVEL) \
 	DEBUG=$(DEBUG) \
-	CFG_IN_TREE_EARLY_TAS="$(CFG_IN_TREE_EARLY_TAS)"
+	CFG_IN_TREE_EARLY_TAS="$(CFG_IN_TREE_EARLY_TAS)" \
+	CFG_MS_TPM_20_REF="$(CFG_MS_TPM_20_REF)"
 
 .PHONY: optee-os-common
 optee-os-common:
