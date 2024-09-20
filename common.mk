@@ -37,7 +37,9 @@ OPTEE_CLIENT_PATH		?= $(ROOT)/optee_client
 OPTEE_TEST_PATH			?= $(ROOT)/optee_test
 OPTEE_EXAMPLES_PATH		?= $(ROOT)/optee_examples
 OPTEE_RUST_PATH			?= $(ROOT)/optee_rust
+OPTEE_FTPM_PATH			?= $(ROOT)/optee_ftpm
 BUILDROOT_TARGET_ROOT		?= $(ROOT)/out-br/target
+MS_TPM_20_REF_PATH		?= $(ROOT)/ms-tpm-20-ref
 
 # default high verbosity. slow uarts shall specify lower if prefered
 CFG_TEE_CORE_LOG_LEVEL		?= 3
@@ -274,6 +276,10 @@ endif
 
 ifeq ($(XEN_BOOT),y)
 DEFCONFIG_XEN=--br-defconfig build/br-ext/configs/xen.conf
+endif
+
+ifeq ($(MEASURED_BOOT_FTPM),y)
+DEFCONFIG_TSS ?= --br-defconfig build/br-ext/configs/tss
 endif
 
 BR2_PER_PACKAGE_DIRECTORIES ?= y
@@ -521,12 +527,7 @@ OPTEE_OS_COMMON_EXTRA_FLAGS	+= CFG_USER_TA_TARGETS=ta_arm32
 endif
 ifeq ($(COMPILE_S_USER),64)
 OPTEE_OS_TA_DEV_KIT_DIR	?= $(OPTEE_OS_PATH)/out/arm/export-ta_arm64
-ifeq ($(MEASURED_BOOT_FTPM),y)
-# The fTPM TA can only be built for 32-bit so enable the 32-bit libraries as well
-OPTEE_OS_COMMON_EXTRA_FLAGS	+= CFG_USER_TA_TARGETS="ta_arm64 ta_arm32"
-else
 OPTEE_OS_COMMON_EXTRA_FLAGS	+= CFG_USER_TA_TARGETS=ta_arm64
-endif
 endif
 
 ifeq ($(COMPILE_S_KERNEL),64)
@@ -572,6 +573,11 @@ OPTEE_OS_COMMON_FLAGS ?= \
 	CFG_IN_TREE_EARLY_TAS="$(CFG_IN_TREE_EARLY_TAS)"
 
 .PHONY: optee-os-common
+ifeq ($(MEASURED_BOOT_FTPM),y)
+OPTEE_OS_COMMON_EXTRA_FLAGS += EARLY_TA_PATHS=$(OPTEE_FTPM_PATH)/out/bc50d971-d4c9-42c4-82cb-343fb7f37896.stripped.elf
+optee-os-common: ftpm
+endif
+
 optee-os-common:
 	$(MAKE) -C $(OPTEE_OS_PATH) $(OPTEE_OS_COMMON_FLAGS)
 
@@ -587,26 +593,23 @@ optee-os-devkit:
 # fTPM Rules
 ################################################################################
 
-# The fTPM implementation is based on ARM32 architecture whereas the rest of the
-# system is built to run on 64-bit mode (COMPILE_S_USER = 64). Therefore set
-# TA_DEV_KIT_DIR manually to the arm32 OPTEE toolkit rather than relying on
-# OPTEE_OS_TA_DEV_KIT_DIR variable.
 FTPM_FLAGS ?= 						\
-	TA_CPU=cortex-a9				\
-	TA_CROSS_COMPILE=$(AARCH32_CROSS_COMPILE)	\
-	TA_DEV_KIT_DIR=$(OPTEE_OS_PATH)/out/arm/export-ta_arm32 \
-	CFG_TA_DEBUG=y CFG_TEE_TA_LOG_LEVEL=4 CFG_TA_MEASURED_BOOT=y
+	CROSS_COMPILE=$(CROSS_COMPILE_S_USER)	\
+	TA_DEV_KIT_DIR=$(OPTEE_OS_TA_DEV_KIT_DIR) \
+	CFG_MS_TPM_20_REF=$(MS_TPM_20_REF_PATH) \
+	CFG_TA_MEASURED_BOOT=y $(if $(filter 1,$(DEBUG)),CFG_TA_DEBUG=y) \
+	O=out
 
 .PHONY: ftpm
 ftpm:
 ifeq ($(MEASURED_BOOT_FTPM),y)
 ftpm: optee-os-devkit
-	$(FTPM_FLAGS) $(MAKE) -C $(FTPM_PATH)
+	$(FTPM_FLAGS) $(MAKE) -C $(OPTEE_FTPM_PATH)
 endif
 
 .PHONY: ftpm-clean
 ftpm-clean:
 ifeq ($(MEASURED_BOOT_FTPM),y)
 ftpm-clean:
-	-$(FTPM_FLAGS) $(MAKE) -C $(FTPM_PATH) clean
+	-$(FTPM_FLAGS) $(MAKE) -C $(OPTEE_FTPM_PATH) clean
 endif
