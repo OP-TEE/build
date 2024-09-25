@@ -275,7 +275,7 @@ ifeq ($(XEN_BOOT),y)
 DEFCONFIG_XEN=--br-defconfig build/br-ext/configs/xen.conf
 endif
 
-ifneq ($(CFG_MS_TPM_20_REF),y)
+ifneq ($(CFG_MS_TPM_20_REF),)
 DEFCONFIG_TSS ?= --br-defconfig build/br-ext/configs/tss
 endif
 
