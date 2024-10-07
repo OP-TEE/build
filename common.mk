@@ -59,7 +59,7 @@ CCACHE ?= $(shell which ccache) # Don't remove this comment (space is needed)
 # 1) make QEMU_VIRTFS_AUTOMOUNT=y run
 #    will mount the project's root on the host as /mnt/host in QEMU.
 # 2) mkdir -p /tmp/qemu-data-tee && make QEMU_PSS_AUTOMOUNT=y run
-#    will mount the host directory /tmp/qemu-data-tee as /data/tee
+#    will mount the host directory /tmp/qemu-data-tee as /var/lib/tee
 #    in QEMU, thus creating persistent secure storage.
 
 ifeq ($(QEMU_VIRTFS_AUTOMOUNT),y)
@@ -85,7 +85,7 @@ QEMU_VIRTFS_HOST_DIR	?= $(ROOT)
 # Persistent Secure Storage via shared folder
 # # Set QEMU_PSS_ENABLE to 'y' and adjust QEMU_PSS_HOST_DIR
 # # Then in QEMU, run:
-# # $ mount -t 9p -o trans=virtio secure /data/tee
+# # $ mount -t 9p -o trans=virtio secure /var/lib/tee
 # # Or enable QEMU_PSS_AUTOMOUNT
 QEMU_PSS_ENABLE		?= n
 QEMU_PSS_HOST_DIR	?= /tmp/qemu-data-tee
