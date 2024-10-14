@@ -402,7 +402,7 @@ HAFNIUM_EXPORTS = PATH=$(TOOLCHAIN_ROOT)/clang-$(CLANG_BUILD_VER)/bin:$(PATH)
 hafnium: $(HAFNIUM_BIN)
 
 $(HAFNIUM_BIN): .hafnium_checkout | $(OUT_PATH)
-	$(HAFNIUM_EXPORTS) $(MAKE) -C $(HAFNIUM_PATH) $(HAFNIUM_FLAGS) all
+	$(HAFNIUM_EXPORTS) $(MAKE) -C $(HAFNIUM_PATH) $(HAFNIUM_FLAGS) PLATFORM=secure_qemu_aarch64
 
 
 ################################################################################
