@@ -184,7 +184,6 @@ TF_A_FLAGS_SPMC_AT_EL_1 += SPMC_OPTEE=1
 TF_A_FLAGS_SPMC_AT_EL_1 += QEMU_TOS_FW_CONFIG_DTS=../build/qemu_v8/spmc_el1_manifest.dts
 TF_A_FLAGS_SPMC_AT_EL_2  = SPD=spmd 
 TF_A_FLAGS_SPMC_AT_EL_2 += ENABLE_SPE_FOR_LOWER_ELS=0
-TF_A_FLAGS_SPMC_AT_EL_2 += ENABLE_SME_FOR_NS=0 ENABLE_SME_FOR_SWD=0
 TF_A_FLAGS_SPMC_AT_EL_2 += ENABLE_FEAT_SEL2=1
 TF_A_FLAGS_SPMC_AT_EL_2 += SP_LAYOUT_FILE=../build/qemu_v8/sp_layout.json
 TF_A_FLAGS_SPMC_AT_EL_2 += NEED_FDT=yes
@@ -513,6 +512,8 @@ endif
 ifeq ($(XEN_BOOT),y)
 QEMU_SME	= off
 else ifeq ($(SPMC_AT_EL),n)
+QEMU_SME	= on
+else ifeq ($(SPMC_AT_EL),2)
 QEMU_SME	= on
 else
 QEMU_SME	= off
