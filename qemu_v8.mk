@@ -392,7 +392,7 @@ optee-os-clean: optee-os-clean-common
 # Hafnium
 ################################################################################
 
-HAFNIUM_EXPORTS = PATH=$(HAFNIUM_PATH)/prebuilts/linux-x64/clang/bin:$(HAFNIUM_PATH)/prebuilts/linux-x64/dtc:$(PATH)
+HAFNIUM_EXPORTS = PATH=$(TOOLCHAIN_ROOT)/clang-$(CLANG_BUILD_VER)/bin:$(PATH)
 
 .hafnium_checkout:
 	git -C $(HAFNIUM_PATH) submodule update --init
