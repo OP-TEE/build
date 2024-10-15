@@ -70,4 +70,10 @@
 		device_type = "ns-memory";
 		reg = <0x0 0x40000000 0x80000000>;
 	};
+
+	/* Device memory */
+	memory@2 {
+		device_type = "device-memory";
+		reg = <0x0 0x0 0xe000000>;
+	};
 };

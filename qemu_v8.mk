@@ -166,6 +166,7 @@ TF_A_FLAGS ?= \
 	ENABLE_SME_FOR_SWD=1 \
 	ENABLE_FEAT_FGT=2 \
 	ENABLE_FEAT_HCX=2 \
+	ENABLE_FEAT_ECV=2 \
 	BL32_RAM_LOCATION=tdram \
 	DEBUG=$(TF_A_DEBUG) \
 	LOG_LEVEL=$(TF_A_LOGLVL)
@@ -182,8 +183,6 @@ TF_A_FLAGS_SPMC_AT_EL_1 += QEMU_TOS_FW_CONFIG_DTS=../build/qemu_v8/spmc_el1_mani
 TF_A_FLAGS_SPMC_AT_EL_1 += SPMC_OPTEE=1
 TF_A_FLAGS_SPMC_AT_EL_1 += QEMU_TOS_FW_CONFIG_DTS=../build/qemu_v8/spmc_el1_manifest.dts
 TF_A_FLAGS_SPMC_AT_EL_2  = SPD=spmd 
-TF_A_FLAGS_SPMC_AT_EL_2 += ENABLE_SPE_FOR_LOWER_ELS=0
-TF_A_FLAGS_SPMC_AT_EL_2 += ENABLE_SME_FOR_NS=0 ENABLE_SME_FOR_SWD=0
 TF_A_FLAGS_SPMC_AT_EL_2 += ENABLE_FEAT_SEL2=1
 TF_A_FLAGS_SPMC_AT_EL_2 += SP_LAYOUT_FILE=../build/qemu_v8/sp_layout.json
 TF_A_FLAGS_SPMC_AT_EL_2 += NEED_FDT=yes
@@ -191,10 +190,10 @@ TF_A_FLAGS_SPMC_AT_EL_2 += BL32=$(HAFNIUM_BIN)
 TF_A_FLAGS_SPMC_AT_EL_2 += QEMU_TOS_FW_CONFIG_DTS=../build/qemu_v8/spmc_el2_manifest.dts
 TF_A_FLAGS_SPMC_AT_EL_2 += QEMU_TB_FW_CONFIG_DTS=../build/qemu_v8/tb_fw_config.dts
 ifneq ($(PAUTH),y)
-TF_A_FLAGS_SPMC_AT_EL_2 += CTX_INCLUDE_PAUTH_REGS=1
+TF_A_FLAGS_SPMC_AT_EL_2 += BRANCH_PROTECTION=1
 endif
 ifneq ($(MEMTAG),y)
-TF_A_FLAGS_SPMC_AT_EL_2 += CTX_INCLUDE_MTE_REGS=1
+TF_A_FLAGS_SPMC_AT_EL_2 += ENABLE_FEAT_MTE2=2
 endif
 TF_A_FLAGS_SPMC_AT_EL_3  = SPD=spmd SPMC_AT_EL3=1
 TF_A_FLAGS_SPMC_AT_EL_3 += CTX_INCLUDE_EL2_REGS=0 SPMD_SPM_AT_SEL2=0
@@ -212,10 +211,10 @@ TF_A_FLAGS += \
 endif
 
 ifeq ($(PAUTH),y)
-TF_A_FLAGS += CTX_INCLUDE_PAUTH_REGS=1
+TF_A_FLAGS += BRANCH_PROTECTION=1
 endif
 ifeq ($(MEMTAG),y)
-TF_A_FLAGS += CTX_INCLUDE_MTE_REGS=1
+TF_A_FLAGS += ENABLE_FEAT_MTE2=2
 endif
 
 arm-tf: $(BL32_DEPS) $(BL33_DEPS)
@@ -392,7 +391,7 @@ optee-os-clean: optee-os-clean-common
 # Hafnium
 ################################################################################
 
-HAFNIUM_EXPORTS = PATH=$(HAFNIUM_PATH)/prebuilts/linux-x64/clang/bin:$(HAFNIUM_PATH)/prebuilts/linux-x64/dtc:$(PATH)
+HAFNIUM_EXPORTS = PATH=$(TOOLCHAIN_ROOT)/clang-$(CLANG_BUILD_VER)/bin:$(PATH)
 
 .hafnium_checkout:
 	git -C $(HAFNIUM_PATH) submodule update --init
@@ -401,7 +400,7 @@ HAFNIUM_EXPORTS = PATH=$(HAFNIUM_PATH)/prebuilts/linux-x64/clang/bin:$(HAFNIUM_P
 hafnium: $(HAFNIUM_BIN)
 
 $(HAFNIUM_BIN): .hafnium_checkout | $(OUT_PATH)
-	$(HAFNIUM_EXPORTS) $(MAKE) -C $(HAFNIUM_PATH) $(HAFNIUM_FLAGS) all
+	$(HAFNIUM_EXPORTS) $(MAKE) -C $(HAFNIUM_PATH) $(HAFNIUM_FLAGS) PLATFORM=secure_qemu_aarch64
 
 
 ################################################################################
@@ -512,6 +511,8 @@ endif
 ifeq ($(XEN_BOOT),y)
 QEMU_SME	= off
 else ifeq ($(SPMC_AT_EL),n)
+QEMU_SME	= on
+else ifeq ($(SPMC_AT_EL),2)
 QEMU_SME	= on
 else
 QEMU_SME	= off
