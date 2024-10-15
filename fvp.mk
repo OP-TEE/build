@@ -237,6 +237,8 @@ optee-os-clean: ftpm-clean optee-os-clean-common
 # Hafnium
 ################################################################################
 
+HAFNIUM_EXPORTS = PATH=$(TOOLCHAIN_ROOT)/clang-$(CLANG_BUILD_VER)/bin:$(PATH)
+
 .hafnium_checkout:
 	git -C $(HAFNIUM_PATH) submodule update --init
 	touch $@
@@ -244,7 +246,7 @@ optee-os-clean: ftpm-clean optee-os-clean-common
 hafnium: $(HAFNIUM_BIN)
 
 $(HAFNIUM_BIN): .hafnium_checkout | $(OUT_PATH)
-	$(MAKE) -C $(HAFNIUM_PATH) $(HAFNIUM_FLAGS) PLATFORM=secure_aem_v8a_fvp_vhe
+	$(HAFNIUM_EXPORTS) $(MAKE) -C $(HAFNIUM_PATH) $(HAFNIUM_FLAGS) PLATFORM=secure_aem_v8a_fvp_vhe
 
 
 ################################################################################
