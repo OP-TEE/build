@@ -35,6 +35,9 @@ ifeq ($(shell uname -m),x86_64)
 RUST_ENABLE ?= y
 endif
 
+# Enable fTPM
+MEASURED_BOOT_FTPM ?= y
+
 include common.mk
 
 DEBUG ?= 1
@@ -57,6 +60,7 @@ PAUTH ?= n
 
 # Option to configure Memory Tagging Extension
 MEMTAG ?= n
+
 
 ################################################################################
 # Paths to git projects and various binaries
