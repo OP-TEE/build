@@ -557,7 +557,6 @@ endif
 
 CFG_IN_TREE_EARLY_TAS ?= trusted_keys/f04a0fe7-1f5d-4b9b-abf7-619b85b4ce8c
 
-
 OPTEE_OS_COMMON_FLAGS ?= \
 	$(OPTEE_OS_COMMON_EXTRA_FLAGS) \
 	PLATFORM=$(OPTEE_OS_PLATFORM) \
@@ -568,11 +567,12 @@ OPTEE_OS_COMMON_FLAGS ?= \
 	DEBUG=$(DEBUG) \
 	CFG_IN_TREE_EARLY_TAS="$(CFG_IN_TREE_EARLY_TAS)"
 
+.PHONY: optee-os-common
 ifeq ($(MEASURED_BOOT_FTPM),y)
 OPTEE_OS_COMMON_EXTRA_FLAGS += EARLY_TA_PATHS=$(OPTEE_FTPM_PATH)/out/bc50d971-d4c9-42c4-82cb-343fb7f37896.stripped.elf
 optee-os-common: ftpm
 endif
-.PHONY: optee-os-common
+
 optee-os-common:
 	$(MAKE) -C $(OPTEE_OS_PATH) $(OPTEE_OS_COMMON_FLAGS)
 
@@ -592,6 +592,7 @@ FTPM_FLAGS ?= 						\
 	CROSS_COMPILE=$(CROSS_COMPILE_S_USER)	\
 	TA_DEV_KIT_DIR=$(OPTEE_OS_TA_DEV_KIT_DIR) \
 	CFG_MS_TPM_20_REF=$(MS_TPM_20_REF_PATH) \
+	CFG_TA_MEASURED_BOOT=y $(if $(filter 1,$(DEBUG)),CFG_TA_DEBUG=y) \
 	O=out
 
 .PHONY: ftpm
@@ -605,5 +606,5 @@ endif
 ftpm-clean:
 ifeq ($(MEASURED_BOOT_FTPM),y)
 ftpm-clean:
-	-$(FTPM_FLAGS) $(MAKE) -C $(OPTEE_FTPM_PATH)
+	-$(FTPM_FLAGS) $(MAKE) -C $(OPTEE_FTPM_PATH) clean
 endif
