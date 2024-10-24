@@ -61,7 +61,6 @@ PAUTH ?= n
 # Option to configure Memory Tagging Extension
 MEMTAG ?= n
 
-
 ################################################################################
 # Paths to git projects and various binaries
 ################################################################################
