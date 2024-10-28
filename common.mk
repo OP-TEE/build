@@ -500,7 +500,7 @@ define launch-terminal
 	$(xterm) -title $(2) -e $(BASH) -c "$(BUILD_PATH)/soc_term.py $(1)" &
 endef
 else
-check-terminal := @echo "Error: could not find gnome-terminal, konsole nor xterm" ; false
+check-terminal := @echo "Error: could not find tmux, gnome-terminal, konsole nor xterm" ; false
 endif # xterm
 endif # konsole
 endif # gnome-terminal
