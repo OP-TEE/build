@@ -16,6 +16,7 @@ U_BOOT_DT         ?= imx8mq-evk.dtb
 U_BOOT_OFFSET     ?= 33
 LINUX_DT          ?= imx8mq-evk.dtb
 MKIMAGE_SOC       ?= iMX8MQ
+IMX_BOOT_SCRIPT   ?= u-boot_boot_script
 
 BR2_TARGET_GENERIC_GETTY_PORT ?= ttymxc0
 BR2_TARGET_ROOTFS_EXT2 ?= y
@@ -186,7 +187,7 @@ $(ROOT)/out-br/images/ramdisk.img: $(ROOT)/out-br/images/rootfs.cpio.gz
 $(ROOT)/out:
 	mkdir -p $@
 
-$(ROOT)/out/boot.scr: $(BUILD_PATH)/imx/u-boot_boot_script | $(ROOT)/out
+$(ROOT)/out/boot.scr: $(BUILD_PATH)/imx/$(IMX_BOOT_SCRIPT) | $(ROOT)/out
 	$(UBOOT_PATH)/tools/mkimage -T script -C none -n 'Boot script' \
 		-d $< $@
 

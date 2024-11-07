@@ -1,0 +1,11 @@
+setenv loadfdt "load ${devtype} ${devnum}:${distro_bootpart} ${fdt_addr_r} ${fdtfile}.dtb"
+setenv loadimage "load ${devtype} ${devnum}:${distro_bootpart} ${kernel_addr_r} Image"
+setenv bootargs "console=${console} root=/dev/mmcblk${devnum}p2 rootwait rw"
+run loadfdt;
+run loadimage;
+if load ${devtype} ${devnum}:${distro_bootpart} ${ramdisk_addr_r} ramdisk.img; then
+	booti ${kernel_addr_r} ${ramdisk_addr_r} ${fdt_addr_r};
+else
+	echo "Booting on the persistent file system ..."
+	booti ${kernel_addr_r} - ${fdt_addr_r};
+fi;
