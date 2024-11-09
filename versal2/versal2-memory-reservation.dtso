@@ -1,0 +1,30 @@
+// SPDX-License-Identifier: BSD-2-Clause
+/*
+ * Copyright (C) 2024, Advanced Micro Devices, Inc.
+ *
+ */
+
+/dts-v1/;
+/plugin/;
+
+&{/} {
+	reserved-memory {
+		#address-cells = <2>;
+		#size-cells = <2>;
+
+		tfa: tf-a@1600000 {
+			no-map;
+			reg = <0 0x1600000 0 0x200000>;
+		};
+
+		optee_addr: memory@1800000 {
+			no-map;
+			reg = <0 0x1800000 0 0x8000000>;
+		};
+
+		transfer_list: memory@1000000 {
+			no-map;
+			reg = <0 0x1000000 0 0x600000>;
+		};
+	};
+};
