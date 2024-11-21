@@ -135,7 +135,9 @@ BR2_ROOTFS_POST_SCRIPT_ARGS = "$(FVP_VIRTFS_AUTOMOUNT) $(FVP_VIRTFS_MOUNTPOINT)"
 # ARM Trusted Firmware
 ################################################################################
 TF_A_EXPORTS ?= \
-	CROSS_COMPILE="$(CCACHE)$(AARCH64_CROSS_COMPILE)"
+	CROSS_COMPILE="$(CCACHE)$(AARCH64_CROSS_COMPILE)" \
+	CC="$(CCACHE)$(AARCH64_CROSS_COMPILE)gcc" \
+	LD="$(CCACHE)$(AARCH64_CROSS_COMPILE)gcc"
 
 TF_A_FLAGS ?= \
 	BL33=$(UBOOT_BIN) \
