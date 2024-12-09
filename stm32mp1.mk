@@ -192,7 +192,8 @@ optee-os-clean: optee-os-clean-common
 ################################################################################
 # TrustedFirmware-A
 ################################################################################
-TFA_EXPORTS ?= CROSS_COMPILE="$(CCACHE)$(AARCH32_CROSS_COMPILE)"
+TFA_EXPORTS ?= CROSS_COMPILE="$(CCACHE)$(AARCH32_CROSS_COMPILE)" \
+	       CC="$(CCACHE)$(AARCH32_CROSS_COMPILE)gcc"
 
 TFA_DEBUG ?= $(DEBUG)
 ifeq ($(TFA_DEBUG),0)
