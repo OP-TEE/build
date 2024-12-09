@@ -146,7 +146,8 @@ include toolchain.mk
 ################################################################################
 TF_A_EXPORTS ?= \
 	CROSS_COMPILE="$(CCACHE)$(AARCH64_CROSS_COMPILE)" \
-	CC="$(CCACHE)$(AARCH64_CROSS_COMPILE)gcc"
+	CC="$(CCACHE)$(AARCH64_CROSS_COMPILE)gcc" \
+	LD="$(CCACHE)$(AARCH64_CROSS_COMPILE)ld"
 
 TF_A_DEBUG ?= $(DEBUG)
 ifeq ($(TF_A_DEBUG),0)
