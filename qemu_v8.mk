@@ -35,9 +35,6 @@ ifeq ($(shell uname -m),x86_64)
 RUST_ENABLE ?= y
 endif
 
-# Enable fTPM
-MEASURED_BOOT_FTPM ?= y
-
 include common.mk
 
 DEBUG ?= 1
