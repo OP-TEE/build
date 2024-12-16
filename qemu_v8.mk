@@ -563,6 +563,10 @@ QEMU_RUN_ARGS = $(QEMU_BASE_ARGS) $(QEMU_SCMI_ARGS)
 QEMU_RUN_ARGS += $(QEMU_RUN_ARGS_COMMON)
 QEMU_RUN_ARGS += -s -S -serial tcp:127.0.0.1:$(QEMU_NW_PORT) -serial tcp:127.0.0.1:$(QEMU_SW_PORT) 
 
+# The aarch64-softmmu part of the path to qemu-system-aarch64 was removed
+# somewhere between 8.1.2 and 9.1.2
+QEMU_BIN = $(or $(wildcard $(QEMU_BUILD)/qemu-system-aarch64),$(wildcard $(QEMU_BUILD)/aarch64-softmmu/qemu-system-aarch64),qemu-system-aarch64-not-found)
+
 .PHONY: run-only
 run-only:
 	ln -sf $(ROOT)/out-br/images/rootfs.cpio.gz $(BINARIES_PATH)/
@@ -571,8 +575,7 @@ run-only:
 	$(call launch-terminal,$(QEMU_NW_PORT),"Normal World")
 	$(call launch-terminal,$(QEMU_SW_PORT),"Secure World")
 	$(call wait-for-ports,$(QEMU_NW_PORT),$(QEMU_SW_PORT))
-	cd $(BINARIES_PATH) && $(QEMU_BUILD)/aarch64-softmmu/qemu-system-aarch64 \
-		$(QEMU_RUN_ARGS)
+	cd $(BINARIES_PATH) && $(QEMU_BIN) $(QEMU_RUN_ARGS)
 
 ifneq ($(filter check check-rust,$(MAKECMDGOALS)),)
 CHECK_DEPS := all
