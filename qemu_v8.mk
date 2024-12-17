@@ -600,7 +600,7 @@ endif
 check: $(CHECK_DEPS)
 	ln -sf $(ROOT)/out-br/images/rootfs.cpio.gz $(BINARIES_PATH)/
 	cd $(BINARIES_PATH) && \
-		export QEMU=$(QEMU_BUILD)/aarch64-softmmu/qemu-system-aarch64 && \
+		export QEMU=$(QEMU_BIN) && \
 		export QEMU_CHECK_ARGS="$(QEMU_CHECK_ARGS)" && \
 		export XEN_BOOT=$(XEN_BOOT) && \
 		export XEN_FFA=$(XEN_FFA) && \
