@@ -62,7 +62,7 @@ proc check_test_result arg {
 			info " $expect_out(1,string) FAIL\n"
 			exit 1
 		}
-		-re {rcu_sched detected stalls} {
+		-re {rcu.*detected stalls} {
 			info " Kernel error: '$expect_out(0,string)'\n"
 			exit 1
 		}
