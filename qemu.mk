@@ -170,9 +170,9 @@ QEMU_RUN_ARGS = $(QEMU_BASE_ARGS)
 QEMU_RUN_ARGS += $(QEMU_RUN_ARGS_COMMON)
 QEMU_RUN_ARGS += -s -S -serial tcp:127.0.0.1:$(QEMU_NW_PORT) -serial tcp:127.0.0.1:$(QEMU_SW_PORT)
 
-# The aarch64-softmmu part of the path to qemu-system-aarch64 was removed
+# The arm-softmmu part of the path to qemu-system-arm was removed
 # somewhere between 8.1.2 and 9.1.2
-QEMU_BIN = $(or $(wildcard $(QEMU_BUILD)/qemu-system-aarch64),$(wildcard $(QEMU_BUILD)/aarch64-softmmu/qemu-system-aarch64),qemu-system-aarch64-not-found)
+QEMU_BIN = $(or $(wildcard $(QEMU_BUILD)/qemu-system-arm),$(wildcard $(QEMU_BUILD)/arm-softmmu/qemu-system-arm),qemu-system-arm-not-found)
 
 .PHONY: run-only
 run-only:
