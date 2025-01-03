@@ -1,0 +1,45 @@
+#!/bin/sh
+
+ARM_FFA_USER_DIR=/mnt/host/out/linux-arm-ffa-user
+
+start() {
+	if [ -x $ARM_FFA_USER_DIR/load_module.sh ]; then
+		if ! grep -qs arm_ffa_user /proc/modules; then
+			echo "Loading arm-ffa-user kernel module"
+			$ARM_FFA_USER_DIR/load_module.sh
+			# Needed to test as non-root
+			chmod 755 /sys/kernel/debug
+			chmod 666 /sys/kernel/debug/arm_ffa_user
+		fi
+	fi
+
+	return $?
+}
+
+stop() {
+	if [ -x $ARM_FFA_USER_DIR/load_module.sh ]; then
+		if grep -qs arm_ffa_user /proc/modules; then
+			echo "Unloading arm-ffa-user kernel module"
+			rmmod arm-ffa-user
+		fi
+	fi
+
+	return $?
+}
+
+restart() {
+	stop
+	sleep 1
+	start
+}
+
+case "$1" in
+        start|stop|restart)
+		"$1";;
+	reload)
+		# Restart, since there is no "reload" feature
+		restart;;
+        *)
+                echo "Usage: $0 {start|stop|restart|reload}"
+                exit 1
+esac

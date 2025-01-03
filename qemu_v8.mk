@@ -38,12 +38,22 @@ endif
 # Enable fTPM
 MEASURED_BOOT_FTPM ?= y
 
-include common.mk
-
 DEBUG ?= 1
 
 # Option to build with GICV3 enabled
 GICV3 ?= y
+
+
+SEL0_SPS ?= n
+ifeq ($(SEL0_SPS),y)
+SPMC_AT_EL = 1
+ifneq ($(SPMC_AT_EL),1)
+$(error Unsupported SPMC_AT_EL value $(SPMC_AT_EL) for SEL0_SPS=y)
+endif
+# Needed for arm-ffa-user.ko
+QEMU_VIRTFS_AUTOMOUNT = y
+LINUX_COMMON_TARGETS += modules
+endif
 
 # Option to configure FF-A and SPM:
 # n:	disabled
@@ -61,11 +71,14 @@ PAUTH ?= n
 # Option to configure Memory Tagging Extension
 MEMTAG ?= n
 
+include common.mk
+
 ################################################################################
 # Paths to git projects and various binaries
 ################################################################################
 TF_A_PATH		?= $(ROOT)/trusted-firmware-a
-BINARIES_PATH		?= $(ROOT)/out/bin
+OUT_PATH		?= $(ROOT)/out
+BINARIES_PATH		?= $(OUT_PATH)/bin
 QEMU_PATH		?= $(ROOT)/qemu
 QEMU_BUILD		?= $(QEMU_PATH)/build
 MODULE_OUTPUT		?= $(ROOT)/out/kernel_modules
@@ -347,6 +360,25 @@ linux-clean: linux-clean-common
 LINUX_CLEANER_COMMON_FLAGS += ARCH=arm64
 
 linux-cleaner: linux-cleaner-common
+
+################################################################################
+# Trusted Services
+################################################################################
+ifeq ($(SEL0_SPS),y)
+SP_PACKAGING_METHOD = embedded
+SPMC_TESTS=y
+include trusted-services.mk
+
+# SPMC test SPs
+OPTEE_OS_COMMON_EXTRA_FLAGS     += CFG_SPMC_TESTS=y CFG_SECURE_PARTITION=y
+OPTEE_OS_COMMON_EXTRA_FLAGS     += CFG_SP_SKIP_FAILED=y
+OPTEE_OS_COMMON_EXTRA_FLAGS     += CFG_DT=y CFG_MAP_EXT_DT_SECURE=y
+SP_SPMC_TEST_EXTRA_FLAGS	+= -DCFG_TEST_MEM_REGION_ADDRESS=0x0efff000
+$(eval $(call build-sp,spm-test1,opteesp,5c9edbc3-7b3a-4367-9f83-7c191ae86a37,$(SP_SPMC_TEST_EXTRA_FLAGS)))
+$(eval $(call build-sp,spm-test2,opteesp,7817164c-c40c-4d1a-867a-9bb2278cf41a,$(SP_SPMC_TEST_EXTRA_FLAGS)))
+$(eval $(call build-sp,spm-test3,opteesp,23eb0100-e32a-4497-9052-2f11e584afa6,$(SP_SPMC_TEST_EXTRA_FLAGS)))
+$(eval $(call build-sp,spm-test4,opteesp,423762ed-7772-406f-99d8-0c27da0abbf8,$(SP_SPMC_TEST_EXTRA_FLAGS)))
+endif
 
 ################################################################################
 # OP-TEE
