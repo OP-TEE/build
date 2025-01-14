@@ -1,3 +1,5 @@
+env set fdt_addr 0x45000000;
+env set initrd_addr 0x45800000;
 run loadfdt;
 fdt addr ${fdt_addr};
 fdt get value optee_compatible /firmware/optee compatible;
