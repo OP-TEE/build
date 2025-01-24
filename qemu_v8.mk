@@ -38,8 +38,6 @@ endif
 # Enable fTPM
 MEASURED_BOOT_FTPM ?= y
 
-DEBUG ?= 1
-
 # Option to build with GICV3 enabled
 GICV3 ?= y
 
