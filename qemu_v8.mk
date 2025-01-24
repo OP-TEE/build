@@ -580,6 +580,10 @@ QEMU_BASE_ARGS += $(QEMU_XEN)
 QEMU_BASE_ARGS += $(QEMU_EXTRA_ARGS)
 QEMU_BASE_ARGS += -machine virt,acpi=off,secure=on,mte=$(QEMU_MTE),gic-version=$(QEMU_GIC_VERSION),virtualization=$(QEMU_VIRT)
 
+# The aarch64-softmmu part of the path to qemu-system-aarch64 was removed
+# somewhere between 8.1.2 and 9.1.2
+QEMU_BIN = $(or $(wildcard $(QEMU_BUILD)/qemu-system-aarch64),$(wildcard $(QEMU_BUILD)/aarch64-softmmu/qemu-system-aarch64),qemu-system-aarch64-not-found)
+
 ifeq ($(WITH_SCMI),y)
 QEMU_SCMI_ARGS 	= -dtb $(SCMI_DTB)
 
@@ -589,7 +593,7 @@ $(SCMI_DTBO): $(SCMI_DTSO)
 
 $(SCMI_DTB): $(SCMI_DTBO) $(QEMU_BUILD)/.stamp_qemu linux arm-tf buildroot
 	ln -sf $(ROOT)/out-br/images/rootfs.cpio.gz $(BINARIES_PATH)/
-	cd $(BINARIES_PATH) && $(QEMU_BUILD)/aarch64-softmmu/qemu-system-aarch64 \
+	cd $(BINARIES_PATH) && $(QEMU_BIN) \
 		$(QEMU_BASE_ARGS) -machine dumpdtb=qemu_v8.dtb
 	cd $(BINARIES_PATH) && fdtoverlay -i qemu_v8.dtb -o $(SCMI_DTB) $(SCMI_DTBO)
 endif
@@ -597,10 +601,6 @@ endif
 QEMU_RUN_ARGS = $(QEMU_BASE_ARGS) $(QEMU_SCMI_ARGS)
 QEMU_RUN_ARGS += $(QEMU_RUN_ARGS_COMMON)
 QEMU_RUN_ARGS += -s -S -serial tcp:127.0.0.1:$(QEMU_NW_PORT) -serial tcp:127.0.0.1:$(QEMU_SW_PORT) 
-
-# The aarch64-softmmu part of the path to qemu-system-aarch64 was removed
-# somewhere between 8.1.2 and 9.1.2
-QEMU_BIN = $(or $(wildcard $(QEMU_BUILD)/qemu-system-aarch64),$(wildcard $(QEMU_BUILD)/aarch64-softmmu/qemu-system-aarch64),qemu-system-aarch64-not-found)
 
 .PHONY: run-only
 run-only:
