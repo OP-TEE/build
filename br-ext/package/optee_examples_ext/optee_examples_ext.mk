@@ -6,6 +6,13 @@ OPTEE_EXAMPLES_EXT_INSTALL_STAGING = YES
 OPTEE_EXAMPLES_EXT_DEPENDENCIES = optee_client_ext host-python-cryptography
 OPTEE_EXAMPLES_EXT_SDK = $(BR2_PACKAGE_OPTEE_EXAMPLES_EXT_SDK)
 
+# Avoid CMake warnings on these unused variables set by Buildroot
+OPTEE_EXAMPLES_EXT_CONF_OPTS += -DBUILD_DOC=OFF -DBUILD_DOCS=OFF \
+				-DBUILD_EXAMPLE=OFF -DBUILD_EXAMPLES=OFF \
+				-DBUILD_TEST=OFF -DBUILD_TESTING=OFF \
+				-DBUILD_TESTS=OFF
+
+
 define OPTEE_EXAMPLES_EXT_BUILD_TAS
 	@$(foreach f,$(wildcard $(@D)/*/ta/Makefile), \
 		echo Building $f && \

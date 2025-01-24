@@ -5,6 +5,12 @@ FTPM_OPTEE_EXT_SRC = $(BR2_PACKAGE_FTPM_OPTEE_PACKAGE_SITE)
 FTPM_OPTEE_EXT_SITE_METHOD = local
 FTPM_OPTEE_EXT_TA_SRC = $(BR2_PACKAGE_FTPM_OPTEE_EXT_TA_SRC)
 
+# Avoid CMake warnings on these unused variables set by Buildroot
+FTPM_OPTEE_EXT_CONF_OPTS += -DBUILD_DOC=OFF -DBUILD_DOCS=OFF \
+			    -DBUILD_EXAMPLE=OFF -DBUILD_EXAMPLES=OFF \
+			    -DBUILD_TEST=OFF -DBUILD_TESTING=OFF \
+			    -DBUILD_TESTS=OFF
+
 define FTPM_OPTEE_EXT_INSTALL_TA
 	echo "Installing fTPM based on OPTEE" && \
 		mkdir -p $(TARGET_DIR)/lib/optee_armtz && \
