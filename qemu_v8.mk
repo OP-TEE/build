@@ -155,6 +155,9 @@ clean: $(TARGET_CLEAN)
 $(BINARIES_PATH):
 	mkdir -p $@
 
+$(OUT_PATH):
+	mkdir -p $@
+
 include toolchain.mk
 
 ################################################################################
