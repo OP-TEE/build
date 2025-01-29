@@ -31,8 +31,7 @@
 	"stderr=serial,vidconsole\0"
 
 #define RKIMG_DET_BOOTDEV \
-	"bootcmd=setenv bootdev unknown; setenv kernel_addr_gz 0xa2080000; setenv fdt_addr_r 0x08300000; setenv kernel /boot/Image.gz; setenv fdtfile rk3588-nanopi6-rev01.dtb; for d in 1 0; do test ${bootdev} = unknown && echo .. Looking for ${kernel} in mmc ${d}:5 && test -e mmc ${d}:5 ${kernel} && setenv bootdev ${d} && echo .. Found; done; if test ${bootdev} = unknown; then echo .. Kernel not found; else echo .. Loading kernel; ext2load mmc ${bootdev}:5 ${kernel_addr_gz} ${kernel}; unzip ${kernel_addr_gz} ${kernel_addr_r}; echo .. Loading DTB: mmc ${bootdev}:5 ${fdtfile}; ext2load mmc ${bootdev}:5 ${fdt_addr_r} /boot/${fdtfile}; echo .. Booting kernel; booti ${kernel_addr_r} - ${fdt_addr_r}; fi; \0"
-
+	"bootcmd=setenv bootdev unknown; setenv kernel_addr_gz 0xa2080000; setenv fdt_addr_r 0x08300000; setenv kernel /boot/Image.gz; setenv fdtfile rk3588-nanopi6-rev01.dtb; setenv overlayfile rk3588-nanopi6-optee.dtbo; for d in 1 0; do test ${bootdev} = unknown && echo .. Looking for ${kernel} in mmc ${d}:5 && test -e mmc ${d}:5 ${kernel} && setenv bootdev ${d} && echo .. Found; done; if test ${bootdev} = unknown; then echo .. Kernel not found; else echo .. Loading kernel; ext2load mmc ${bootdev}:5 ${kernel_addr_gz} ${kernel}; unzip ${kernel_addr_gz} ${kernel_addr_r}; echo .. Loading DTB: mmc ${bootdev}:5 ${fdtfile}; ext2load mmc ${bootdev}:5 ${fdt_addr_r} /boot/${fdtfile}; echo .. Resizing DTB to 320K; fdt addr ${fdt_addr_r}; fdt resize 0x50000; echo .. Loading overlay: mmc ${bootdev}:5 ${overlayfile}; ext2load mmc ${bootdev}:5 0x083C0000 /boot/${overlayfile}; echo .. Applying overlay; fdt apply 0x083C0000; echo .. Booting kernel; booti ${kernel_addr_r} - ${fdt_addr_r}; fi; \0"
 #define RKIMG_BOOTCOMMAND \
 	"run bootcmd;"
 

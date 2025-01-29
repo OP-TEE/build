@@ -162,7 +162,7 @@ LINUX_COMMON_TARGETS += Image rockchip/rk3588-nanopi6-rev01.dtb \
 
 .PHONY: linux-apply-dtso
 linux-apply-dtso: linux-common
-	$(LINUX_PATH)/scripts/dtc/dtc -I dts -O dtb \
+	$(LINUX_PATH)/scripts/dtc/dtc -I dts -O dtb -@ \
 		-o $(LINUX_PATH)/arch/arm64/boot/dts/rockchip/rk3588-nanopi6-optee.dtbo \
 		$(BOARD_DTSO)
 
