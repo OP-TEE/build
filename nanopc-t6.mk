@@ -22,8 +22,10 @@ BOOT_IMG		?= $(ROOT)/out/nanopc-t6.img
 TPL_BIN			?= $(BINARIES_PATH)/rk3588_ddr_lp4_2112MHz_lp5_2400MHz_v1.18.bin
 BOOT_CMD		?= $(ROOT)/build/nanopc-t6/nanopi6.h
 BOARD_DTSO		?= $(ROOT)/build/nanopc-t6/rk3588-nanopi6-optee.dtso
+FIT_WRAPPER		?= $(ROOT)/build/nanopc-t6/fit_wrapper.sh
 LINUX_DTSI		?= $(LINUX_PATH)/arch/arm64/boot/dts/rockchip/rk3588-nanopi6-common.dtsi
 UBOOT_HEADER		?= $(UBOOT_PATH)/include/configs/nanopi6.h
+UBOOT_FIT		?= $(UBOOT_PATH)/arch/arm/mach-rockchip/fit_wrapper.sh
 
 LINUX_MODULES ?= n
 
@@ -132,12 +134,15 @@ u-boot-proper: $(TPL_BIN) $(UBOOT_PATH)/.config u-boot-config
 u-boot-apply-bootcmd:
 	cp $(BOOT_CMD) $(UBOOT_HEADER)
 
+$(UBOOT_FIT): $(FIT_WRAPPER)
+	cp $< $@
+
 .PHONY: u-boot-loader
 u-boot-loader: u-boot-proper
 	$(UBOOT_PATH)/tools/mkimage -n rk3588 -T rksd -d $(UBOOT_PATH)/tpl/u-boot-tpl.bin:$(UBOOT_PATH)/spl/u-boot-spl.bin $(UBOOT_PATH)/idbloader.img
 
 .PHONY: u-boot
-u-boot: u-boot-apply-bootcmd $(TPL_BIN) $(UBOOT_PATH)/.config u-boot-loader
+u-boot: u-boot-apply-bootcmd $(UBOOT_FIT) $(TPL_BIN) $(UBOOT_PATH)/.config u-boot-loader
 	$(UBOOT_EXPORTS) $(MAKE) -C $(UBOOT_PATH) $(UBOOT_FLAGS) u-boot.itb
 
 .PHONY: u-boot-clean
