@@ -1,0 +1,9 @@
+config BR2_PACKAGE_VERAISON_RUST_APICLIENT_EXT
+    bool "veraison_rust_apiclient"
+    depends on BR2_PACKAGE_HOST_RUSTC_TARGET_ARCH_SUPPORTS
+    select BR2_PACKAGE_HOST_RUSTC
+    select BR2_PACKAGE_OPENSSL
+    help
+      This package builds Veraison API client.
+
+      https://github.com/veraison/apiclient
