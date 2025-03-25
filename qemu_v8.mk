@@ -38,6 +38,9 @@ endif
 # Enable fTPM
 MEASURED_BOOT_FTPM ?= y
 
+# Enable Arm Firmware Handoff
+ARM_FIRMWARE_HANDOFF ?= n
+
 # Option to build with GICV3 enabled
 GICV3 ?= y
 
@@ -61,6 +64,12 @@ endif
 SPMC_AT_EL ?= n
 ifneq ($(filter-out n 1 2 3,$(SPMC_AT_EL)),)
 $(error Unsupported SPMC_AT_EL value $(SPMC_AT_EL))
+endif
+
+ifeq ($(ARM_FIRMWARE_HANDOFF),y)
+ifneq ($(SPMC_AT_EL),n)
+$(error ARM_FIRMWARE_HANDOFF not supported with SPMC_AT_EL value $(SPMC_AT_EL))
+endif
 endif
 
 # Option to configure Pointer Authentication for TA's
@@ -190,6 +199,10 @@ TF_A_FLAGS ?= \
 	DEBUG=$(TF_A_DEBUG) \
 	LOG_LEVEL=$(TF_A_LOGLVL)
 
+ifeq ($(ARM_FIRMWARE_HANDOFF),y)
+TF_A_FLAGS += TRANSFER_LIST=1
+endif
+
 TF_A_FLAGS_BL32_OPTEE  = BL32=$(OPTEE_OS_HEADER_V2_BIN)
 TF_A_FLAGS_BL32_OPTEE += BL32_EXTRA1=$(OPTEE_OS_PAGER_V2_BIN)
 TF_A_FLAGS_BL32_OPTEE += BL32_EXTRA2=$(OPTEE_OS_PAGEABLE_V2_BIN)
@@ -314,6 +327,10 @@ UBOOT_DEFCONFIG_FILES := $(UBOOT_PATH)/configs/qemu_arm64_defconfig		\
 			 $(ROOT)/build/kconfigs/u-boot_qemu_v8.conf
 endif
 
+ifeq ($(ARM_FIRMWARE_HANDOFF),y)
+UBOOT_DEFCONFIG_FILES += $(ROOT)/build/kconfigs/u-boot_tl.conf
+endif
+
 UBOOT_COMMON_FLAGS ?= CROSS_COMPILE=$(CROSS_COMPILE_NS_KERNEL)
 
 $(UBOOT_PATH)/.config: $(UBOOT_DEFCONFIG_FILES)
@@ -422,6 +439,10 @@ OPTEE_OS_COMMON_FLAGS += CFG_SCP_FIRMWARE=$(ROOT)/SCP-firmware
 endif
 
 OPTEE_OS_COMMON_FLAGS += $(OPTEE_OS_COMMON_FLAGS_SPMC_AT_EL_$(SPMC_AT_EL))
+
+ifeq ($(ARM_FIRMWARE_HANDOFF),y)
+OPTEE_OS_COMMON_FLAGS += CFG_TRANSFER_LIST=y
+endif
 
 optee-os: optee-os-common
 
