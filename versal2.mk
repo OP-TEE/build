@@ -49,8 +49,8 @@ ROOTFS_SIGN	?= $(BINARIES_PATH)/rootfs.cpio.gz.u-boot
 # Targets
 ################################################################################
 
-all: tfa optee-os dtbo u-boot linux buildroot buildroot_mkimg
-clean: tfa-clean optee-os-clean dtbo-clean u-boot-clean linux-clean buildroot-clean
+all: tfa optee-os u-boot linux dtbo buildroot buildroot_mkimg
+clean: tfa-clean optee-os-clean u-boot-clean linux-clean dtbo-clean buildroot-clean
 
 $(BINARIES_PATH):
 	mkdir -p $@
@@ -64,7 +64,7 @@ include toolchain.mk
 TF_A_EXPORTS = CROSS_COMPILE="$(CCACHE)$(AARCH64_CROSS_COMPILE)"
 TF_A_FLAGS = PLAT=versal2 CONSOLE=pl011 RESET_TO_BL31=1 SPD=opteed DEBUG=0 \
 	     MEM_BASE=0x1600000 MEM_SIZE=0x200000 \
-	     XILINX_OF_BOARD_DTB_ADDR=0x1000 \
+	     XILINX_OF_BOARD_DTB_ADDR=0x1000000 \
 	     BL32_MEM_BASE=0x1800000 BL32_MEM_SIZE=0x8000000
 
 tfa:
@@ -79,7 +79,8 @@ tfa-clean:
 # OP-TEE
 ################################################################################
 
-OPTEE_OS_COMMON_FLAGS += CFG_TEE_CORE_LOG_LEVEL=2 CFG_TEE_TA_LOG_LEVEL=2
+OPTEE_OS_COMMON_FLAGS += CFG_TEE_CORE_LOG_LEVEL=2 CFG_TEE_TA_LOG_LEVEL=2 \
+			 CFG_DT=y
 
 optee-os: optee-os-common
 	mkdir -p $(BINARIES_PATH)
@@ -115,7 +116,7 @@ u-boot-clean: u-boot-defconfig-clean
 ###############################################################################
 # Device-Tree
 ###############################################################################
-dtbo: u-boot
+dtbo: linux u-boot
 	mkdir -p $(BINARIES_PATH)
 	${LINUX_PATH}/scripts/dtc/dtc -@ -I dts \
 		-O dtb -o $(BINARIES_PATH)/versal2-memory-reservation.dtbo \
