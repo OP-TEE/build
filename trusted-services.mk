@@ -111,7 +111,8 @@ linux-arm-ffa-user: linux
 	5c9edbc3-7b3a-4367-9f83-7c191ae86a37,\
 	7817164c-c40c-4d1a-867a-9bb2278cf41a,\
 	23eb0100-e32a-4497-9052-2f11e584afa6,\
-	bdcd76d7-825e-4751-963b-86d4f84943ac" > \
+	bdcd76d7-825e-4751-963b-86d4f84943ac,\
+	54b5440e-a3d2-48d1-872a-7b6cbfc34855" > \
 		$(OUT_PATH)/linux-arm-ffa-user/sp_uuid_list.txt
 
 linux-arm-ffa-user-clean:
