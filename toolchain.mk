@@ -131,23 +131,23 @@ AARCH32_GCC_TAG 		?= 14.2.rel1
 AARCH32_GCC_VERSION 		?= arm-gnu-toolchain-$(AARCH32_GCC_TAG)-aarch64-arm-none-linux-gnueabihf
 SRC_AARCH32_GCC 		?= https://developer.arm.com/-/media/Files/downloads/gnu/$(AARCH32_GCC_TAG)/binrel/$(AARCH32_GCC_VERSION).tar.xz
 
-# There isn't any native aarch64 toolchain released from Arm and buildroot
-# doesn't support distribution toolchain [1]. So we are left with no choice
-# but to build buildroot toolchain from source and use it.
-#
-# [1] https://buildroot.org/downloads/manual/manual.html#_cross_compilation_toolchain
+# Please keep in sync with br-ext/configs/toolchain-aarch64
 AARCH64_PATH 			?= $(TOOLCHAIN_ROOT)/aarch64
-AARCH64_CROSS_COMPILE 		?= $(AARCH64_PATH)/bin/aarch64-linux-
+AARCH64_CROSS_COMPILE 		?= $(AARCH64_PATH)/bin/aarch64-linux-gnu-
+AARCH64_GCC_TAG 		?= 14.2.rel1
+AARCH64_GCC_VERSION 		?= arm-gnu-toolchain-$(AARCH64_GCC_TAG)-aarch64-aarch64-none-linux-gnu
+SRC_AARCH64_GCC 		?= https://developer.arm.com/-/media/Files/downloads/gnu/$(AARCH64_GCC_TAG)/binrel/$(AARCH64_GCC_VERSION).tar.xz
 
 .PHONY: toolchains
-toolchains: aarch32-toolchain $(AARCH64_PATH)/.done rust-toolchain
+toolchains: aarch32-toolchain aarch64-toolchain rust-toolchain
 
 .PHONY: aarch32-toolchain
 aarch32-toolchain:
 	$(call dltc,$(AARCH32_PATH),$(SRC_AARCH32_GCC),$(AARCH32_GCC_VERSION))
 
-$(AARCH64_PATH)/.done:
-	$(call build_toolchain,aarch64,$(AARCH64_PATH),aarch64,gnu)
+.PHONY: aarch64-toolchain
+aarch64-toolchain:
+	$(call dltc,$(AARCH64_PATH),$(SRC_AARCH64_GCC),$(AARCH64_GCC_VERSION))
 
 .PHONY: rust-toolchain
 rust-toolchain:

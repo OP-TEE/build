@@ -265,7 +265,7 @@ BUILDROOT_TOOLCHAIN=toolchain-riscv$(COMPILE_NS_USER)
 endif
 else ifeq ($(UNAME_M),aarch64)
 ifeq ($(COMPILE_NS_USER),64)
-BUILDROOT_TOOLCHAIN=toolchain-aarch64-sdk toolchain-common-sdk
+BUILDROOT_TOOLCHAIN=toolchain-aarch64
 else
 BUILDROOT_TOOLCHAIN=toolchain-aarch32
 endif
