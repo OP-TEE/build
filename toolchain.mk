@@ -61,14 +61,16 @@ ifeq ($(ARCH),arm)
 # and below for aarch64 host
 AARCH32_PATH 			?= $(TOOLCHAIN_ROOT)/aarch32
 AARCH32_CROSS_COMPILE 		?= $(AARCH32_PATH)/bin/arm-linux-gnueabihf-
-AARCH32_GCC_VERSION 		?= arm-gnu-toolchain-11.3.rel1-x86_64-arm-none-linux-gnueabihf
-SRC_AARCH32_GCC 		?= https://developer.arm.com/-/media/Files/downloads/gnu/11.3.rel1/binrel/$(AARCH32_GCC_VERSION).tar.xz
+AARCH32_GCC_TAG 		?= 14.2.rel1
+AARCH32_GCC_VERSION 		?= arm-gnu-toolchain-$(AARCH32_GCC_TAG)-x86_64-arm-none-linux-gnueabihf
+SRC_AARCH32_GCC 		?= https://developer.arm.com/-/media/Files/downloads/gnu/$(AARCH32_GCC_TAG)/binrel/$(AARCH32_GCC_VERSION).tar.xz
 
 # Please keep in sync with br-ext/configs/toolchain-aarch64
 AARCH64_PATH 			?= $(TOOLCHAIN_ROOT)/aarch64
 AARCH64_CROSS_COMPILE 		?= $(AARCH64_PATH)/bin/aarch64-linux-gnu-
-AARCH64_GCC_VERSION 		?= arm-gnu-toolchain-11.3.rel1-x86_64-aarch64-none-linux-gnu
-SRC_AARCH64_GCC 		?= https://developer.arm.com/-/media/Files/downloads/gnu/11.3.rel1/binrel/$(AARCH64_GCC_VERSION).tar.xz
+AARCH64_GCC_TAG 		?= 14.2.rel1
+AARCH64_GCC_VERSION 		?= arm-gnu-toolchain-$(AARCH64_GCC_TAG)-x86_64-aarch64-none-linux-gnu
+SRC_AARCH64_GCC 		?= https://developer.arm.com/-/media/Files/downloads/gnu/$(AARCH64_GCC_TAG)/binrel/$(AARCH64_GCC_VERSION).tar.xz
 
 .PHONY: toolchains
 toolchains: aarch32-toolchain aarch64-toolchain rust-toolchain
@@ -104,7 +106,9 @@ clang-toolchains:
 else ifeq ($(ARCH),riscv)
 RISCV64_PATH 			?= $(TOOLCHAIN_ROOT)/riscv64
 RISCV64_CROSS_COMPILE 		?= $(RISCV64_PATH)/bin/riscv64-unknown-linux-gnu-
-RISCV64_GCC_RELEASE_DATE	?= 2023.07.07
+# starts from 2024.10.23, gcc is 14.2
+# check: https://github.com/riscv-collab/riscv-gnu-toolchain/commit/2fc58ccebf3c8eb325543bb12c2c58ee7cb1b11e
+RISCV64_GCC_RELEASE_DATE	?= 2025.01.20
 RISCV64_GCC_VERSION		?= riscv64-glibc-ubuntu-22.04-gcc-nightly-$(RISCV64_GCC_RELEASE_DATE)-nightly
 SRC_RISCV64_GCC			?= https://github.com/riscv-collab/riscv-gnu-toolchain/releases/download/$(RISCV64_GCC_RELEASE_DATE)/$(RISCV64_GCC_VERSION).tar.gz
 
@@ -123,8 +127,9 @@ else ifeq ($(UNAME_M),aarch64)
 # and above for x86_64 host
 AARCH32_PATH 			?= $(TOOLCHAIN_ROOT)/aarch32
 AARCH32_CROSS_COMPILE 		?= $(AARCH32_PATH)/bin/arm-linux-gnueabihf-
-AARCH32_GCC_VERSION 		?= arm-gnu-toolchain-11.3.rel1-aarch64-arm-none-linux-gnueabihf
-SRC_AARCH32_GCC 		?= https://developer.arm.com/-/media/Files/downloads/gnu/11.3.rel1/binrel/$(AARCH32_GCC_VERSION).tar.xz
+AARCH32_GCC_TAG 		?= 14.2.rel1
+AARCH32_GCC_VERSION 		?= arm-gnu-toolchain-$(AARCH32_GCC_TAG)-aarch64-arm-none-linux-gnueabihf
+SRC_AARCH32_GCC 		?= https://developer.arm.com/-/media/Files/downloads/gnu/$(AARCH32_GCC_TAG)/binrel/$(AARCH32_GCC_VERSION).tar.xz
 
 # There isn't any native aarch64 toolchain released from Arm and buildroot
 # doesn't support distribution toolchain [1]. So we are left with no choice
