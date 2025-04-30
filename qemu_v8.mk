@@ -131,7 +131,7 @@ endif
 ################################################################################
 TARGET_DEPS := arm-tf buildroot linux optee-os qemu
 TARGET_CLEAN := arm-tf-clean buildroot-clean linux-clean optee-os-clean \
-	qemu-clean check-clean
+	qemu-clean check-clean hafnium-clean
 
 TARGET_DEPS 		+= $(BL33_DEPS)
 
@@ -442,6 +442,9 @@ hafnium: $(HAFNIUM_BIN)
 $(HAFNIUM_BIN): .hafnium_checkout | $(OUT_PATH)
 	$(HAFNIUM_EXPORTS) $(MAKE) -C $(HAFNIUM_PATH) $(HAFNIUM_FLAGS) PLATFORM=secure_qemu_aarch64
 
+hafnium-clean:
+	$(HAFNIUM_EXPORTS) $(MAKE) -C $(HAFNIUM_PATH) $(HAFNIUM_FLAGS) clean
+	rm -f .hafnium_checkout
 
 ################################################################################
 # mkimage - create images to be loaded by U-Boot
