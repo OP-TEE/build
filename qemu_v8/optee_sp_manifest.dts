@@ -48,8 +48,8 @@
 			base-address = <0x00000000 0x09040000>;
 			pages-count = <1>;
 			attributes = <0x3>; /* read-write */
-			/* SPI, level-triggered, secure, priority=1 */
-			interrupts = <0x28 0xb01>;
+			/* SPI, edge-triggered, secure, priority=1 */
+			interrupts = <0x28 0x901>;
 		};
 	};
 };
