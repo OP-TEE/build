@@ -8,6 +8,8 @@ override COMPILE_NS_KERNEL	:= 64
 override COMPILE_S_USER		:= 64
 override COMPILE_S_KERNEL	:= 64
 
+PLATFORM = AMD Versal Gen 2
+
 # Network support related packages:
 BR2_PACKAGE_DHCPCD	?= y
 BR2_PACKAGE_ETHTOOL	?= y
@@ -22,7 +24,15 @@ BR2_PACKAGE_OPENSSH_KEY_UTILS	?= y
 BR2_PACKAGE_LIBOPENSSL_BIN	?= y
 BR2_PACKAGE_LIBP11	?= y
 
-PLATFORM = AMD Versal Gen 2
+# Busybox
+BR2_PACKAGE_BUSYBOX_WATCHDOG    ?= y
+
+# Target specific
+BR2_TARGET_GENERIC_ISSUE	?= "OP-TEE embedded distrib for $(PLATFORM)"
+BR2_TARGET_GENERIC_GETTY_PORT   ?= "console"
+BR2_TARGET_ROOTFS_EXT2		?= y
+
+# OP-TEE
 OPTEE_OS_PLATFORM = versal2
 OPTEE_OS_COMMON_EXTRA_FLAGS ?= CFG_PKCS11_TA=y CFG_USER_TA_TARGET_pkcs11=ta_arm64 O=out/arm
 
@@ -160,10 +170,6 @@ linux-cleaner: linux-cleaner-common
 ################################################################################
 # Buildroot
 ################################################################################
-
-BR2_TARGET_GENERIC_ISSUE	?= "OP-TEE embedded distrib for $(PLATFORM)"
-BR2_TARGET_ROOTFS_EXT2	?= y
-BR2_PACKAGE_BUSYBOX_WATCHDOG	?= y
 
 buildroot_mkimg: buildroot
 	mkdir -p $(BINARIES_PATH)
