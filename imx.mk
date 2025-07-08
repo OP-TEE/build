@@ -47,10 +47,14 @@ BOOT_IMG		?= $(ROOT)/out/boot.img
 
 # Set the variable to include the board config snippet
 # Default value is empty, will select the imx8mq-evk board.
-# Possible values: "imx8mp-evk", "imx8mp-verdin" or "imx8mp-phyboard-pollux"
+# Possible values:
+# "imx8mp-evk",
+# "imx8mp-verdin",
+# "imx8mp-phyboard-pollux"
+# "imx8mp-libra-fpsc"
 IMX_BOARD ?=
 ifneq (,$(IMX_BOARD))
-include $(IMX_BOARD).inc.mk
+include imx/$(IMX_BOARD).inc.mk
 endif
 
 ################################################################################
