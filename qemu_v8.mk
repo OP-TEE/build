@@ -542,7 +542,8 @@ xen-create-image: linux buildroot | $(XEN_TMP)
 	cp $(XEN_CFG) $(XEN_TMP)
 	cp $(ROOT)/out-br/images/rootfs.cpio.gz $(XEN_TMP)
 	rm -f $(XEN_EXT4)
-	mke2fs -t ext4 -d $(XEN_TMP) $(XEN_EXT4) 100M
+	SZ=$$(du -shm $(XEN_TMP) | awk '{print int($$1 * 1.2)"M"}') && echo SZ=$${SZ} && \
+		mke2fs -t ext4 -d $(XEN_TMP) $(XEN_EXT4) $${SZ}
 
 
 ################################################################################
