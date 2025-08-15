@@ -448,9 +448,12 @@ endif
 ifeq ($(GDBSERVER),y)
 HOSTFWD := ,hostfwd=tcp::12345-:12345
 endif
+
+ifneq ($(PLAT_QEMU),sbsa)
 # Enable QEMU SLiRP user networking
 QEMU_EXTRA_ARGS +=\
 	-netdev user,id=vmnic$(HOSTFWD) -device virtio-net-device,netdev=vmnic
+endif
 
 define run-help
 	@echo
