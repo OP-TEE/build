@@ -5,9 +5,10 @@ TFA_PLATFORM      := imx8mp
 OPTEE_OS_PLATFORM := imx-mx8mpevk
 U_BOOT_DEFCONFIG  := imx8mp_evk_defconfig
 U_BOOT_DT         := imx8mp-evk.dtb
+U_BOOT_OFFSET     := 32
 LINUX_DT          := imx8mp-evk.dtb
-MKIMAGE_DT        := fsl-imx8mp-evk.dtb
 MKIMAGE_SOC       := iMX8MP
+IMX_BOOT_SCRIPT   := imx8m_boot_script
 
 BR2_TARGET_GENERIC_GETTY_PORT := ttymxc2
 

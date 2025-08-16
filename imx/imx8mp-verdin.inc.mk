@@ -7,13 +7,14 @@ TFA_PLATFORM      := imx8mp
 OPTEE_OS_PLATFORM := imx-mx8mpevk
 U_BOOT_DEFCONFIG  := verdin-imx8mp_defconfig
 U_BOOT_DT         := imx8mp-verdin-wifi-dev.dtb
+U_BOOT_OFFEST     := 32
 LINUX_DT          := imx8mp-verdin-wifi-dev.dtb
-MKIMAGE_DT        := fsl-imx8mp-evk.dtb
 MKIMAGE_SOC       := iMX8MP
 ATF_LOAD_ADDR     := 0x00970000
 TEE_LOAD_ADDR     := 0xfe000000
 UART_BASE         := 0x30880000
 DDR_SIZE          := 0x100000000
+IMX_BOOT_SCRIPT   := imx8m_boot_script
 
 BR2_TARGET_GENERIC_GETTY_PORT := ttymxc2
 
