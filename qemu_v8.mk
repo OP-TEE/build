@@ -204,7 +204,7 @@ TF_A_FLAGS += DEBUG=$(TF_A_DEBUG)
 TF_A_FLAGS += LOG_LEVEL=$(TF_A_LOGLVL)
 TF_A_FLAGS += ENABLE_SME_FOR_NS=2 ENABLE_SME_FOR_SWD=1
 TF_A_FLAGS += ENABLE_SVE_FOR_NS=2 ENABLE_SVE_FOR_SWD=1
-TF_A_FLAGS += ENABLE_FEAT_FGT=2 ENABLE_FEAT_HCX=2 ENABLE_FEAT_ECV=2 \
+TF_A_FLAGS += ENABLE_FEAT_FGT=2 ENABLE_FEAT_HCX=2 ENABLE_FEAT_ECV=2
 
 ifeq ($(PLAT_QEMU),virt)
 TF_A_FLAGS += BL33=$(BL33_BIN)
@@ -335,7 +335,7 @@ boot-img: linux buildroot
 	mcopy -i $(BOOT_IMG)@@1M $(ROOT)/out-br/images/efi-part/EFI/BOOT/bootaa64.efi ::/EFI/BOOT/
 	mcopy -i $(BOOT_IMG)@@1M $(ROOT)/build/qemu_v8/grub.cfg ::/EFI/BOOT/grub.cfg
 	mcopy -i $(BOOT_IMG)@@1M $(ROOT)/out-br/images/rootfs.cpio.gz ::/initrd.img
-endif # ifeq ($(TF_A_PLAT),sbsa)
+endif # ifeq ($(PLAT_QEMU),sbsa)
 
 .PHONY: boot-img-clean
 boot-img-clean:
@@ -376,7 +376,7 @@ endif
 ifeq ($(ARM_FIRMWARE_HANDOFF),y)
 UBOOT_DEFCONFIG_FILES += $(ROOT)/build/kconfigs/u-boot_tl.conf
 endif
-endif
+endif #PLAT_QEMU
 
 UBOOT_COMMON_FLAGS ?= CROSS_COMPILE=$(CROSS_COMPILE_NS_KERNEL)
 
@@ -412,6 +412,7 @@ endif
 .PHONY: u-boot-clean
 u-boot-clean:
 	$(MAKE) -C $(UBOOT_PATH) $(UBOOT_COMMON_FLAGS) distclean
+	rm -f $(TF_A_OUT)/{bl1,fip}.bin
 
 ################################################################################
 

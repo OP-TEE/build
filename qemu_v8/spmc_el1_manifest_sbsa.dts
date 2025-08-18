@@ -49,17 +49,17 @@
 	};
 
 	/* Secure memory */
-	memory@e000000 {
+	memory@20002000 {
 		device_type = "memory";
 		reg = <0x0 0x20002000 0x0 0x1fbcf000>;
 	};
 
 	/* NS memory */
-	memory@1 {
+	memory@10000000000 {
 		device_type = "ns-memory";
 		/*
 		 * For QEMU-sbsa, OP-TEE doesn't recieve a usable system
-		 * DTB to extrace the amount of available non-secure
+		 * DTB to extract the amount of available non-secure
 		 * memory. This information is instead provided by the
 		 * manifest, that is, this file. In practice, allow any
 		 * non-seucre memory that might be accessible the normal
