@@ -1,0 +1,70 @@
+/*
+ * Copyright 2022 The Hafnium Authors.
+ *
+ * Use of this source code is governed by a BSD-style
+ * license that can be found in the LICENSE file or at
+ * https://opensource.org/licenses/BSD-3-Clause.
+ */
+
+/dts-v1/;
+
+/ {
+	compatible = "arm,ffa-core-manifest-1.0";
+	#address-cells = <2>;
+	#size-cells = <2>;
+
+	attribute {
+		spmc_id = <0x8000>;
+		maj_ver = <0x1>;
+		min_ver = <0x1>;
+		exec_state = <0x0>;
+		load_address = <0x0 0x20002000>;
+		entrypoint = <0x0 0x20002000>;
+		binary_size = <0x80000>;
+	};
+
+	cpus {
+		#address-cells = <0x02>;
+		#size-cells = <0x00>;
+
+		cpu@0 {
+			device_type = "cpu";
+			reg = <0x0 0x0>;
+		};
+
+		cpu@3 {
+			device_type = "cpu";
+			reg = <0x0 0x3>;
+		};
+
+		cpu@2 {
+			device_type = "cpu";
+			reg = <0x0 0x2>;
+		};
+
+		cpu@1 {
+			device_type = "cpu";
+			reg = <0x0 0x1>;
+		};
+	};
+
+	/* Secure memory */
+	memory@20002000 {
+		device_type = "memory";
+		reg = <0x0 0x20002000 0x0 0x1fbcf000>;
+	};
+
+	/* NS memory */
+	memory@10000000000 {
+		device_type = "ns-memory";
+		/*
+		 * For QEMU-sbsa, OP-TEE doesn't recieve a usable system
+		 * DTB to extract the amount of available non-secure
+		 * memory. This information is instead provided by the
+		 * manifest, that is, this file. In practice, allow any
+		 * non-seucre memory that might be accessible the normal
+		 * world to cover any -m parameter passed to QEMU.
+		 */
+		reg = <0x100 0x0 0x100 0x0>;
+	};
+};

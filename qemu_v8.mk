@@ -17,7 +17,20 @@ BR2_ROOTFS_OVERLAY = $(ROOT)/build/br-ext/board/qemu/overlay
 BR2_ROOTFS_POST_BUILD_SCRIPT = $(ROOT)/build/br-ext/board/qemu/post-build.sh
 BR2_ROOTFS_POST_SCRIPT_ARGS = "$(QEMU_VIRTFS_AUTOMOUNT) $(QEMU_VIRTFS_MOUNTPOINT) $(QEMU_PSS_AUTOMOUNT)"
 
+PLAT_QEMU ?= virt
+ifeq ($(PLAT_QEMU),virt)
 OPTEE_OS_PLATFORM = vexpress-qemu_armv8a
+TF_A_PLAT = qemu
+else ifeq ($(PLAT_QEMU),sbsa)
+BR2_TARGET_GRUB2 = y
+GICV3 = y
+OPTEE_OS_PLATFORM = vexpress-qemu_sbsa
+TF_A_PLAT = qemu_sbsa
+SPMC_AT_EL = 1
+else
+$(error Unsupported PLAT_QEMU value $(PLAT_QEMU))
+endif
+
 
 ########################################################################################
 # If you change this, you MUST run `make arm-tf-clean optee-os-clean` before rebuilding
@@ -102,6 +115,8 @@ KERNEL_IMAGE		?= $(LINUX_PATH)/arch/arm64/boot/Image
 KERNEL_IMAGEGZ		?= $(LINUX_PATH)/arch/arm64/boot/Image.gz
 KERNEL_UIMAGE		?= $(BINARIES_PATH)/uImage
 
+BOOT_IMG		?= $(BINARIES_PATH)/boot.img
+
 SCMI_DTSO 		?= $(ROOT)/build/qemu_v8/qemu-v8-scmi-overlay.dtso
 SCMI_DTBO 		?= $(BINARIES_PATH)/qemu-v8-scmi-overlay.dtbo
 SCMI_DTB 		?= $(BINARIES_PATH)/qemu-v8-scmi.dtb
@@ -178,29 +193,43 @@ TF_A_EXPORTS ?= \
 TF_A_DEBUG ?= $(DEBUG)
 ifeq ($(TF_A_DEBUG),0)
 TF_A_LOGLVL ?= 30
-TF_A_OUT = $(TF_A_PATH)/build/qemu/release
+TF_A_OUT = $(TF_A_PATH)/build/$(TF_A_PLAT)/release
 else
 TF_A_LOGLVL ?= 40
-TF_A_OUT = $(TF_A_PATH)/build/qemu/debug
+TF_A_OUT = $(TF_A_PATH)/build/$(TF_A_PLAT)/debug
 endif
 
-TF_A_FLAGS ?= \
-	BL33=$(BL33_BIN) \
-	PLAT=qemu \
-	QEMU_USE_GIC_DRIVER=$(TFA_GIC_DRIVER) \
-	ENABLE_SVE_FOR_NS=2 \
-	ENABLE_SME_FOR_NS=2 \
-	ENABLE_SVE_FOR_SWD=1 \
-	ENABLE_SME_FOR_SWD=1 \
-	ENABLE_FEAT_FGT=2 \
-	ENABLE_FEAT_HCX=2 \
-	ENABLE_FEAT_ECV=2 \
-	BL32_RAM_LOCATION=tdram \
-	DEBUG=$(TF_A_DEBUG) \
-	LOG_LEVEL=$(TF_A_LOGLVL)
+TF_A_FLAGS = PLAT=$(TF_A_PLAT)
+TF_A_FLAGS += DEBUG=$(TF_A_DEBUG)
+TF_A_FLAGS += LOG_LEVEL=$(TF_A_LOGLVL)
+TF_A_FLAGS += ENABLE_SME_FOR_NS=2 ENABLE_SME_FOR_SWD=1
+TF_A_FLAGS += ENABLE_SVE_FOR_NS=2 ENABLE_SVE_FOR_SWD=1
+TF_A_FLAGS += ENABLE_FEAT_FGT=2 ENABLE_FEAT_HCX=2 ENABLE_FEAT_ECV=2
+
+ifeq ($(PLAT_QEMU),virt)
+TF_A_FLAGS += BL33=$(BL33_BIN)
+TF_A_FLAGS += QEMU_USE_GIC_DRIVER=$(TFA_GIC_DRIVER)
+TF_A_FLAGS += BL32_RAM_LOCATION=tdram
+arm-tf: $(BL33_DEPS)
+endif # ifeq ($(PLAT_QEMU),virt)
 
 ifeq ($(ARM_FIRMWARE_HANDOFF),y)
 TF_A_FLAGS += TRANSFER_LIST=1
+endif
+
+ifeq ($(TF_A_TRUSTED_BOARD_BOOT),y)
+TF_A_FLAGS += \
+	MBEDTLS_DIR=$(ROOT)/mbedtls \
+	TRUSTED_BOARD_BOOT=1 \
+	GENERATE_COT=1
+endif
+
+ifeq ($(PAUTH),y)
+TF_A_FLAGS += BRANCH_PROTECTION=1
+TF_A_FLAGS += ARM_ARCH_MAJOR=8 ARM_ARCH_MINOR=3
+endif
+ifeq ($(MEMTAG),y)
+TF_A_FLAGS += ENABLE_FEAT_MTE2=2
 endif
 
 TF_A_FLAGS_BL32_OPTEE  = BL32=$(OPTEE_OS_HEADER_V2_BIN)
@@ -211,9 +240,8 @@ TF_A_FLAGS_SPMC_AT_EL_n  = $(TF_A_FLAGS_BL32_OPTEE) SPD=opteed
 TF_A_FLAGS_SPMC_AT_EL_1  = $(TF_A_FLAGS_BL32_OPTEE) SPD=spmd
 TF_A_FLAGS_SPMC_AT_EL_1 += CTX_INCLUDE_EL2_REGS=0 SPMD_SPM_AT_SEL2=0
 TF_A_FLAGS_SPMC_AT_EL_1 += ENABLE_SME_FOR_NS=0 ENABLE_SME_FOR_SWD=0
-TF_A_FLAGS_SPMC_AT_EL_1 += QEMU_TOS_FW_CONFIG_DTS=../build/qemu_v8/spmc_el1_manifest.dts
 TF_A_FLAGS_SPMC_AT_EL_1 += SPMC_OPTEE=1
-TF_A_FLAGS_SPMC_AT_EL_1 += QEMU_TOS_FW_CONFIG_DTS=../build/qemu_v8/spmc_el1_manifest.dts
+TF_A_FLAGS_SPMC_AT_EL_1 += QEMU_TOS_FW_CONFIG_DTS=../build/qemu_v8/spmc_el1_manifest_$(PLAT_QEMU).dts
 TF_A_FLAGS_SPMC_AT_EL_2  = SPD=spmd 
 TF_A_FLAGS_SPMC_AT_EL_2 += ENABLE_FEAT_SEL2=1
 TF_A_FLAGS_SPMC_AT_EL_2 += SP_LAYOUT_FILE=../build/qemu_v8/sp_layout.json
@@ -236,24 +264,9 @@ TF_A_FLAGS_SPMC_AT_EL_3 += QEMU_TOS_FW_CONFIG_DTS=../build/qemu_v8/spmc_el3_mani
 
 TF_A_FLAGS += $(TF_A_FLAGS_SPMC_AT_EL_$(SPMC_AT_EL))
 
-ifeq ($(TF_A_TRUSTED_BOARD_BOOT),y)
-TF_A_FLAGS += \
-	MBEDTLS_DIR=$(ROOT)/mbedtls \
-	TRUSTED_BOARD_BOOT=1 \
-	GENERATE_COT=1
-endif
-
-ifeq ($(PAUTH),y)
-TF_A_FLAGS += BRANCH_PROTECTION=1
-TF_A_FLAGS += ARM_ARCH_MAJOR=8 ARM_ARCH_MINOR=3
-endif
-ifeq ($(MEMTAG),y)
-TF_A_FLAGS += ENABLE_FEAT_MTE2=2
-endif
-
-arm-tf: $(BL32_DEPS) $(BL33_DEPS)
+arm-tf: $(BL32_DEPS) | $(BINARIES_PATH)
 	$(TF_A_EXPORTS) $(MAKE) -C $(TF_A_PATH) $(TF_A_FLAGS) all fip
-	mkdir -p $(BINARIES_PATH)
+ifeq ($(PLAT_QEMU),virt)
 	ln -sf $(TF_A_OUT)/bl1.bin $(BINARIES_PATH)
 	ln -sf $(TF_A_OUT)/bl2.bin $(BINARIES_PATH)
 	ln -sf $(TF_A_OUT)/bl31.bin $(BINARIES_PATH)
@@ -273,7 +286,7 @@ endif
 	rm -f $(BINARIES_PATH)/tos_fw_config.dtb
 	rm -f $(BINARIES_PATH)/op-tee.pkg
 ifeq ($(SPMC_AT_EL),1)
-	ln -sf $(TF_A_OUT)/fdts/spmc_el1_manifest.dtb \
+	ln -sf $(TF_A_OUT)/fdts/spmc_el1_manifest_virt.dtb \
 		$(BINARIES_PATH)/tos_fw_config.dtb
 	ln -sf $(OPTEE_OS_HEADER_V2_BIN) $(BINARIES_PATH)/bl32.bin
 	ln -sf $(OPTEE_OS_PAGER_V2_BIN) $(BINARIES_PATH)/bl32_extra1.bin
@@ -295,9 +308,38 @@ else
 	ln -sf $(OPTEE_OS_PAGEABLE_V2_BIN) $(BINARIES_PATH)/bl32_extra2.bin
 endif
 	ln -sf $(BL33_BIN) $(BINARIES_PATH)/bl33.bin
+endif # ifeq ($(PLAT_QEMU),virt)
 
 arm-tf-clean:
 	$(TF_A_EXPORTS) $(MAKE) -C $(TF_A_PATH) $(TF_A_FLAGS) clean
+
+################################################################################
+# Boot image
+################################################################################
+
+ifeq ($(PLAT_QEMU),sbsa)
+all: boot-img
+.PHONY: boot-img
+boot-img: linux buildroot
+	rm -rf $(BOOT_IMG)
+	truncate $(BOOT_IMG) -s $(shell du -mc \
+			$(LINUX_PATH)/arch/arm64/boot/Image \
+			$(ROOT)/out-br/images/efi-part/EFI/BOOT/bootaa64.efi \
+			$(ROOT)/out-br/images/rootfs.cpio.gz | \
+		tail -1 | awk '{print int($$1 * 1.2 + 2)"M"}')
+	sgdisk --zap-all --new=1:2048: --typecode=1:EF00 $(BOOT_IMG)
+	mkfs.vfat -F 32 --offset=2048 $(BOOT_IMG)
+	mcopy -i $(BOOT_IMG)@@1M $(LINUX_PATH)/arch/arm64/boot/Image ::
+	mmd -i $(BOOT_IMG)@@1M ::/EFI
+	mmd -i $(BOOT_IMG)@@1M ::/EFI/BOOT
+	mcopy -i $(BOOT_IMG)@@1M $(ROOT)/out-br/images/efi-part/EFI/BOOT/bootaa64.efi ::/EFI/BOOT/
+	mcopy -i $(BOOT_IMG)@@1M $(ROOT)/build/qemu_v8/grub.cfg ::/EFI/BOOT/grub.cfg
+	mcopy -i $(BOOT_IMG)@@1M $(ROOT)/out-br/images/rootfs.cpio.gz ::/initrd.img
+endif # ifeq ($(PLAT_QEMU),sbsa)
+
+.PHONY: boot-img-clean
+boot-img-clean:
+	rm -f $(BOOT_IMG)
 
 ################################################################################
 # QEMU
@@ -319,6 +361,10 @@ qemu-clean:
 ################################################################################
 # U-Boot
 ################################################################################
+
+ifeq ($(PLAT_QEMU),sbsa)
+UBOOT_DEFCONFIG_FILES := $(UBOOT_PATH)/configs/qemu-arm-sbsa_defconfig
+else # virt
 ifeq ($(XEN_BOOT),y)
 UBOOT_DEFCONFIG_FILES := $(UBOOT_PATH)/configs/qemu_arm64_defconfig		\
 			 $(ROOT)/build/kconfigs/u-boot_xen_qemu_v8.conf
@@ -330,23 +376,43 @@ endif
 ifeq ($(ARM_FIRMWARE_HANDOFF),y)
 UBOOT_DEFCONFIG_FILES += $(ROOT)/build/kconfigs/u-boot_tl.conf
 endif
+endif #PLAT_QEMU
 
 UBOOT_COMMON_FLAGS ?= CROSS_COMPILE=$(CROSS_COMPILE_NS_KERNEL)
 
 $(UBOOT_PATH)/.config: $(UBOOT_DEFCONFIG_FILES)
+ifeq ($(PLAT_QEMU),sbsa)
+	$(MAKE) -C $(UBOOT_PATH) qemu-arm-sbsa_defconfig
+else
 	cd $(UBOOT_PATH) && \
                 scripts/kconfig/merge_config.sh $(UBOOT_DEFCONFIG_FILES)
+endif
 
 .PHONY: u-boot-defconfig
 u-boot-defconfig: $(UBOOT_PATH)/.config
 
+ifeq ($(PLAT_QEMU),sbsa)
+$(UBOOT_PATH)/bl1.bin: $(TF_A_OUT)/bl1.bin
+	cp $< $@
+
+$(UBOOT_PATH)/fip.bin: $(TF_A_OUT)/fip.bin
+	cp $< $@
+
+$(TF_A_OUT)/bl1.bin $(TF_A_OUT)/fip.bin: arm-tf
+u-boot: $(UBOOT_PATH)/bl1.bin $(UBOOT_PATH)/fip.bin
+endif
+
 .PHONY: u-boot
-u-boot: u-boot-defconfig
+u-boot: u-boot-defconfig | $(BINARIES_PATH)
 	$(MAKE) -C $(UBOOT_PATH) $(UBOOT_COMMON_FLAGS)
+ifeq ($(PLAT_QEMU),sbsa)
+	cp $(UBOOT_PATH)/{,un}secure-world.rom $(BINARIES_PATH)
+endif
 
 .PHONY: u-boot-clean
 u-boot-clean:
 	$(MAKE) -C $(UBOOT_PATH) $(UBOOT_COMMON_FLAGS) distclean
+	rm -f $(TF_A_OUT)/{bl1,fip}.bin
 
 ################################################################################
 
@@ -407,10 +473,12 @@ OPTEE_OS_COMMON_FLAGS += DEBUG=$(DEBUG) CFG_ARM_GICV3=$(GICV3)
 OPTEE_OS_COMMON_FLAGS_SPMC_AT_EL_1 = CFG_CORE_SEL1_SPMC=y
 OPTEE_OS_COMMON_FLAGS_SPMC_AT_EL_2 = CFG_CORE_SEL2_SPMC=y
 OPTEE_OS_COMMON_FLAGS_SPMC_AT_EL_2 += CFG_ARM_GICV3=n CFG_CORE_HAFNIUM_INTC=y
+ifeq ($(PLAT_QEMU),virt)
 # [0e00.0000 0e2f.ffff] is reserved to early boot and SPMC
 # [0e30.0000 0e33.ffff] is reserved manifest etc (op-tee.pkg)
 OPTEE_OS_COMMON_FLAGS_SPMC_AT_EL_2 += CFG_TZDRAM_START=0x0e304000
 OPTEE_OS_COMMON_FLAGS_SPMC_AT_EL_2 += CFG_TZDRAM_SIZE=0x00cfc000
+endif
 OPTEE_OS_COMMON_FLAGS_SPMC_AT_EL_2 += CFG_CORE_WORKAROUND_NSITR_CACHE_PRIME=n
 OPTEE_OS_COMMON_FLAGS_SPMC_AT_EL_3 = CFG_CORE_EL3_SPMC=y
 OPTEE_OS_COMMON_FLAGS_SPMC_AT_EL_3 += CFG_DT_ADDR=0x40000000
@@ -439,6 +507,13 @@ OPTEE_OS_COMMON_FLAGS += CFG_SCP_FIRMWARE=$(ROOT)/SCP-firmware
 endif
 
 OPTEE_OS_COMMON_FLAGS += $(OPTEE_OS_COMMON_FLAGS_SPMC_AT_EL_$(SPMC_AT_EL))
+ifeq ($(PLAT_QEMU),sbsa)
+# [0x20000000 .. 0x20001fff] is reserved for SHARED_RAM
+OPTEE_OS_COMMON_FLAGS += CFG_TZDRAM_START=0x20002000
+# Removing SHARED_RAM_SIZE, RME_GPT_DRAM_SIZE, BL1_SIZE, BL2_SIZE, and
+# BL31_SIZE from 0x20000000
+OPTEE_OS_COMMON_FLAGS += CFG_TZDRAM_SIZE=0x1fbcf000
+endif
 
 ifeq ($(ARM_FIRMWARE_HANDOFF),y)
 OPTEE_OS_COMMON_FLAGS += CFG_TRANSFER_LIST=y
@@ -597,13 +672,21 @@ QEMU_BASE_ARGS += -smp $(QEMU_SMP)
 QEMU_BASE_ARGS += -cpu $(QEMU_CPU)
 QEMU_BASE_ARGS += -d unimp -semihosting-config enable=on,target=native
 QEMU_BASE_ARGS += -m $(QEMU_MEM)
+ifeq ($(PLAT_QEMU),virt)
 QEMU_BASE_ARGS += -bios bl1.bin
 QEMU_BASE_ARGS += -initrd rootfs.cpio.gz
 QEMU_BASE_ARGS += -kernel Image
 QEMU_BASE_ARGS += -append 'console=ttyAMA0,38400 keep_bootcon root=/dev/vda2 $(QEMU_KERNEL_BOOTARGS)'
+QEMU_BASE_ARGS += -machine virt,acpi=off,secure=on,mte=$(QEMU_MTE),gic-version=$(QEMU_GIC_VERSION),virtualization=$(QEMU_VIRT)
+endif
 QEMU_BASE_ARGS += $(QEMU_XEN)
 QEMU_BASE_ARGS += $(QEMU_EXTRA_ARGS)
-QEMU_BASE_ARGS += -machine virt,acpi=off,secure=on,mte=$(QEMU_MTE),gic-version=$(QEMU_GIC_VERSION),virtualization=$(QEMU_VIRT)
+ifeq ($(PLAT_QEMU),sbsa)
+QEMU_BASE_ARGS += -machine sbsa-ref
+QEMU_BASE_ARGS += -drive file=secure-world.rom,format=raw,if=pflash
+QEMU_BASE_ARGS += -drive file=unsecure-world.rom,format=raw,if=pflash
+QEMU_BASE_ARGS += -drive file=boot.img,format=raw,index=0,media=disk
+endif
 
 # The aarch64-softmmu part of the path to qemu-system-aarch64 was removed
 # somewhere between 8.1.2 and 9.1.2
