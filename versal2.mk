@@ -47,7 +47,7 @@ include common.mk
 
 BINARIES_PATH	?= $(ROOT)/out/bin
 TF_A_ELF	?= $(TF_A_PATH)/build/$(OPTEE_OS_PLATFORM)/release/bl31/bl31.elf
-OPTEE_OS_ELF	?= $(OPTEE_OS_PATH)/out/arm/core/tee.elf
+OPTEE_OS_RAW_BIN ?= $(OPTEE_OS_PATH)/out/arm/core/tee-raw.bin
 U-BOOT_ELF	?= $(U-BOOT_PATH)/u-boot.elf
 U-BOOT_DTB	?= $(U-BOOT_PATH)/arch/arm/dts/versal2-*.dtb
 MKIMAGE_PATH	?= $(U-BOOT_PATH)/tools
@@ -94,7 +94,7 @@ OPTEE_OS_COMMON_FLAGS += CFG_TEE_CORE_LOG_LEVEL=2 CFG_TEE_TA_LOG_LEVEL=2 \
 
 optee-os: optee-os-common
 	mkdir -p $(BINARIES_PATH)
-	cp $(OPTEE_OS_ELF) $(BINARIES_PATH)
+	cp $(OPTEE_OS_RAW_BIN) $(BINARIES_PATH)
 
 optee-os-clean: optee-os-clean-common
 	rm -rf ${OPTEE_OS_PATH}/out/
