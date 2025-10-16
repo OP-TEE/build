@@ -238,11 +238,16 @@ $(LOADER_BIN):
 
 define flash-help
 	@echo
-	@echo "Please connect the board to the computer via a USB cable."
-	@echo "The cable must be connected to the upper USB 3 (blue) port."
-	@echo "Then press and hold the mask ROM button (first one on the left"
-	@echo "under the HDMI connector), apply power and release the button."
-	@echo "(More details at https://wiki.radxa.com/Rockpi4/dev/usb-install)"
+	@echo "Please connect the board to the computer via a USB-A to USB-A cable."
+	@echo "Note that USB-C to USB-A cables will most likely NOT work. You really"
+	@echo "need a A-to-A cable (yes they are somewhat difficult to find)."
+	@echo "- First, disconnect ALL USB cables (ethernet and UART can stay) so that"
+	@echo "  the board is really powered off."
+	@echo "- Then press and hold the mask ROM button (under the HDMI connector,"
+	@echo "  the closest to the USB-C port), apply power via the USB-C port then"
+	@echo "  release the button."
+	@echo "- Then connect the USB-A to USB-A cable to the top USB 3 (blue) port."
+	@echo "More details at https://wiki.radxa.com/Rockpi4/dev/usb-install"
 	@echo
 	@read -r -p "Press enter to continue, Ctrl-C to cancel:" dummy
 endef
