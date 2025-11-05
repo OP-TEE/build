@@ -46,12 +46,8 @@ CFG_TEE_CORE_LOG_LEVEL		?= 3
 
 # optee_test
 WITH_TLS_TESTS			?= y
-ifneq ($(COMPILER),clang)
-ifeq ($(UNAME_M),x86_64)
-# assuming GCC toolchain from toolchain.mk (GCC <= 11)
-WITH_CXX_TESTS			?= y
-endif
-endif
+# Legacy: depends on a specific toolchain: GCC <= 11
+WITH_CXX_TESTS			?= n
 
 # Only set CCACHE if it's pointing to something to avoid prefixing CROSS_COMPILE
 # with whitespace. TF-A will not build with whitespace first in CROSS_COMPILE.
@@ -257,17 +253,11 @@ BUILDROOT_TOOLCHAIN=toolchain-br # Use toolchain supplied by buildroot
 DEFCONFIG_GDBSERVER=--br-defconfig build/br-ext/configs/gdbserver.conf
 else
 # Local toolchains (downloaded by "make toolchains")
-ifeq ($(UNAME_M),x86_64)
+ifneq (,$(filter x86_64 aarch64,$(UNAME_M)))
 ifeq ($(ARCH),arm)
 BUILDROOT_TOOLCHAIN=toolchain-aarch$(COMPILE_NS_USER)
 else ifeq ($(ARCH),riscv)
 BUILDROOT_TOOLCHAIN=toolchain-riscv$(COMPILE_NS_USER)
-endif
-else ifeq ($(UNAME_M),aarch64)
-ifeq ($(COMPILE_NS_USER),64)
-BUILDROOT_TOOLCHAIN=toolchain-aarch64-sdk toolchain-common-sdk
-else
-BUILDROOT_TOOLCHAIN=toolchain-aarch32
 endif
 else
 BUILDROOT_TOOLCHAIN=toolchain-aarch$(COMPILE_NS_USER)-sdk toolchain-common-sdk
