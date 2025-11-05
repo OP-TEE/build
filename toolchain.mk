@@ -61,14 +61,14 @@ ifeq ($(ARCH),arm)
 # and below for aarch64 host
 AARCH32_PATH 			?= $(TOOLCHAIN_ROOT)/aarch32
 AARCH32_CROSS_COMPILE 		?= $(AARCH32_PATH)/bin/arm-linux-gnueabihf-
-AARCH32_GCC_VERSION 		?= arm-gnu-toolchain-11.3.rel1-x86_64-arm-none-linux-gnueabihf
-SRC_AARCH32_GCC 		?= https://developer.arm.com/-/media/Files/downloads/gnu/11.3.rel1/binrel/$(AARCH32_GCC_VERSION).tar.xz
+AARCH32_GCC_VERSION 		?= arm-gnu-toolchain-14.3.rel1-x86_64-arm-none-linux-gnueabihf
+SRC_AARCH32_GCC 		?= https://developer.arm.com/-/media/Files/downloads/gnu/14.3.rel1/binrel/$(AARCH32_GCC_VERSION).tar.xz
 
 # Please keep in sync with br-ext/configs/toolchain-aarch64
 AARCH64_PATH 			?= $(TOOLCHAIN_ROOT)/aarch64
 AARCH64_CROSS_COMPILE 		?= $(AARCH64_PATH)/bin/aarch64-linux-gnu-
-AARCH64_GCC_VERSION 		?= arm-gnu-toolchain-11.3.rel1-x86_64-aarch64-none-linux-gnu
-SRC_AARCH64_GCC 		?= https://developer.arm.com/-/media/Files/downloads/gnu/11.3.rel1/binrel/$(AARCH64_GCC_VERSION).tar.xz
+AARCH64_GCC_VERSION 		?= arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-linux-gnu
+SRC_AARCH64_GCC 		?= https://developer.arm.com/-/media/Files/downloads/gnu/14.3.rel1/binrel/$(AARCH64_GCC_VERSION).tar.xz
 
 .PHONY: toolchains
 toolchains: aarch32-toolchain aarch64-toolchain rust-toolchain
@@ -119,32 +119,32 @@ else ifeq ($(UNAME_M),aarch64)
 # and above for x86_64 host
 AARCH32_PATH 			?= $(TOOLCHAIN_ROOT)/aarch32
 AARCH32_CROSS_COMPILE 		?= $(AARCH32_PATH)/bin/arm-linux-gnueabihf-
-AARCH32_GCC_VERSION 		?= arm-gnu-toolchain-11.3.rel1-aarch64-arm-none-linux-gnueabihf
-SRC_AARCH32_GCC 		?= https://developer.arm.com/-/media/Files/downloads/gnu/11.3.rel1/binrel/$(AARCH32_GCC_VERSION).tar.xz
+AARCH32_GCC_VERSION 		?= arm-gnu-toolchain-14.3.rel1-aarch64-arm-none-linux-gnueabihf
+SRC_AARCH32_GCC 		?= https://developer.arm.com/-/media/Files/downloads/gnu/14.3.rel1/binrel/$(AARCH32_GCC_VERSION).tar.xz
 
-# There isn't any native aarch64 toolchain released from Arm and buildroot
-# doesn't support distribution toolchain [1]. So we are left with no choice
-# but to build buildroot toolchain from source and use it.
-#
-# [1] https://buildroot.org/downloads/manual/manual.html#_cross_compilation_toolchain
 AARCH64_PATH 			?= $(TOOLCHAIN_ROOT)/aarch64
-AARCH64_CROSS_COMPILE 		?= $(AARCH64_PATH)/bin/aarch64-linux-
+# The proper prefix should be aarch64-none-linux-gnu- but we have a symlink for consistency with
+# the x86_64 hosted toolchain (see br-ext/configs/toolchain-aarch64)
+AARCH64_CROSS_COMPILE 		?= $(AARCH64_PATH)/bin/aarch64-linux-gnu-
+AARCH64_GCC_VERSION 		?= arm-gnu-toolchain-14.3.rel1-aarch64-aarch64-none-linux-gnu
+SRC_AARCH64_GCC 		?= https://developer.arm.com/-/media/Files/downloads/gnu/14.3.rel1/binrel/$(AARCH64_GCC_VERSION).tar.xz
 
 .PHONY: toolchains
-toolchains: aarch32-toolchain $(AARCH64_PATH)/.done rust-toolchain
+toolchains: aarch32-toolchain aarch64-toolchain rust-toolchain
 
 .PHONY: aarch32-toolchain
 aarch32-toolchain:
 	$(call dltc,$(AARCH32_PATH),$(SRC_AARCH32_GCC),$(AARCH32_GCC_VERSION))
 
-$(AARCH64_PATH)/.done:
-	$(call build_toolchain,aarch64,$(AARCH64_PATH),aarch64,gnu)
+.PHONY: aarch64-toolchain
+aarch64-toolchain:
+	$(call dltc,$(AARCH64_PATH),$(SRC_AARCH64_GCC),$(AARCH64_GCC_VERSION))
 
 .PHONY: rust-toolchain
 rust-toolchain:
 	$(call dl-rust-toolchain,$(RUST_TOOLCHAIN_PATH))
 
-else # $(UNAME_M) != x86_64 or $(UNAME_M) != aarch64
+else # $(UNAME_M) != x86_64 and $(UNAME_M) != aarch64
 AARCH32_PATH 			:= $(TOOLCHAIN_ROOT)/aarch32
 AARCH32_CROSS_COMPILE 		:= $(AARCH32_PATH)/bin/arm-linux-
 AARCH64_PATH 			:= $(TOOLCHAIN_ROOT)/aarch64
