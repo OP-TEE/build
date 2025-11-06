@@ -170,6 +170,14 @@ ifeq ($(WITH_SCMI),y)
 TARGET_DEPS		+= $(SCMI_DTB)
 endif
 
+TARGET_DEPS += $(BINARIES_PATH)/mmc0.img
+TARGET_CLEAN += $(BINARIES_PATH)/mmcblk0.img $(BINARIES_PATH)/mmcblk0rpmb.img $(BINARIES_PATH)/mmc0.img
+
+$(BINARIES_PATH)/mmc0.img:
+	truncate --size 1M $(@D)/mmcblk0.img
+	truncate --size 1M $(@D)/mmcblk0rpmb.img
+	$(QEMU_PATH)/scripts/mkemmc.sh -r $(@D)/mmcblk0rpmb.img $(@D)/mmcblk0.img $(@D)/mmc0.img
+
 all: $(TARGET_DEPS)
 
 clean: $(TARGET_CLEAN)
@@ -687,6 +695,8 @@ QEMU_BASE_ARGS += -drive file=secure-world.rom,format=raw,if=pflash
 QEMU_BASE_ARGS += -drive file=unsecure-world.rom,format=raw,if=pflash
 QEMU_BASE_ARGS += -drive file=boot.img,format=raw,index=0,media=disk
 endif
+QEMU_BASE_ARGS += -drive file=mmc0.img,if=none,format=raw,id=emmc-img -device sdhci-pci
+QEMU_BASE_ARGS += -device emmc,boot-partition-size=0,rpmb-partition-size=1048576,drive=emmc-img
 
 # The aarch64-softmmu part of the path to qemu-system-aarch64 was removed
 # somewhere between 8.1.2 and 9.1.2
