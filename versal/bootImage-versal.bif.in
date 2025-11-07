@@ -1,0 +1,20 @@
+the_ROM_image:
+{
+	image {
+	      { type=bootimage, file=%PDI_PATH% }
+	      { type=bootloader, file=%PLM_PATH% }
+	      { core=psm, file=%PSM_PATH% }
+	}
+
+	image {
+	      id = 0x1c000000, name=apu_subsystem
+
+	      // overrides device tree built into U-Boot
+	      { type=raw, load=0x00001000, file=%DTB_PATH% }
+
+	      { core=a72-0, exception_level=el-3, trustzone, file=../arm-trusted-firmware/build/versal/debug/bl31/bl31.elf }
+	      { core=a72-0, exception_level=el-2, file=../u-boot/u-boot.elf }
+	      { type=raw, load=0x60000000, file=../optee_os/out/arm/core/tee-raw.bin }
+	      { type=raw, load=%IUB_LOAD%, file=%IUB_PATH% }
+	}
+}
