@@ -56,6 +56,72 @@ LINUX_PATH		?= $(ROOT)/linux
 
 include common.mk
 
+# for Boot Image(s)
+# BSP_PATH: path to PetaLinux project directory and/or extracted BSP
+# PLM_PATH: path to PLM firmware .elf file, derived from BSP_PATH if available
+# PSM_PATH: path to PSM firmware .elf file, derived from BSP_PATH if available
+# DTB_PATH: path to DeviceTree .dtb file, derived from BSP_PATH if available
+# IUB_PATH: path to U-Boot FIT image .ub file
+
+ifeq ($(PLATFORM),versal-vck190)
+BSP_PATH ?= ../versal-vck190-bsp
+endif
+
+ifneq ($(BSP_PATH),)
+PDI_PATH ?= $(wildcard $(BSP_PATH)/project-spec/hw-description/*.pdi)
+ifneq ($(wildcard $(BSP_PATH)/images/linux),)
+PLM_PATH ?= $(wildcard $(BSP_PATH)/images/linux/plm.elf)
+PSM_PATH ?= $(wildcard $(BSP_PATH)/images/linux/psmfw.elf)
+DTB_PATH ?= $(wildcard $(BSP_PATH)/images/linux/system.dtb)
+else
+PLM_PATH ?= $(wildcard $(BSP_PATH)/pre-built/linux/images/plm.elf)
+PSM_PATH ?= $(wildcard $(BSP_PATH)/pre-built/linux/images/psmfw.elf)
+DTB_PATH ?= $(wildcard $(BSP_PATH)/pre-built/linux/images/system.dtb)
+endif
+endif
+
+ifeq ($(PLATFORM),versal-vck190)
+DTB_PATH ?= ../u-boot/arch/arm/dts/versal-vck190-revA-x-ebm-01-revA.dtb
+else
+ifeq ($(PLATFORM),versal-net-vnx-b2197-revA)
+PDI_PATH ?= ../versal-net-bsp/design.pdi
+ifneq ($(wildcard ../versal-net-bsp/design.dtb),)
+DTB_PATH ?= ../versal-net-bsp/design.dtb
+else
+#DTB_PATH ?= ../u-boot/arch/arm/dts/versal-net-vn-x-b2197-00-revA.dtb
+DTB_PATH ?= ../linux/arch/arm64/boot/dts/xilinx/versal-net-vn-x-b2197-00-revA.dtb
+endif
+endif
+endif
+
+IUB_PATH ?= versal/$(PLATFORM).ub
+
+ifeq ($(OPTEE_OS_PLATFORM),versal-net)
+IUB_BIF_LOAD ?= 0x27200000
+else
+IUB_BIF_LOAD ?= 0x20000000
+endif
+
+
+_PDI_PATH := $(PDI_PATH)
+_PLM_PATH := $(PLM_PATH)
+_PSM_PATH := $(PSM_PATH)
+_DTB_PATH := $(DTB_PATH)
+ifeq ($(IUB_BIF_PATH),)
+_IUB_BIF_PATH := $(IUB_PATH)
+endif
+ifeq ($(IUB_BIF_PATH),n)
+_IUB_BIF_PATH :=
+endif
+_IUB_BIF_LOAD := $(IUB_BIF_LOAD)
+
+ifeq ($(_PDI_PATH);$(findstring image,$(MAKECMDGOALS)),;image)
+$(error PDI_PATH not set, use make PDI_PATH=<path-to-.pdi>)
+endif
+ifeq ($(_DTB_PATH);$(findstring image,$(MAKECMDGOALS)),;image)
+$(error DTB_PATH not set, use make DTB_PATH=<path-to-.dtb>)
+endif
+
 ################################################################################
 # Targets
 ################################################################################
@@ -103,7 +169,18 @@ U-BOOT_EXPORTS = CROSS_COMPILE="$(CCACHE)$(AARCH64_CROSS_COMPILE)"
 U-BOOT_CONFIGS = \
 	$(UBOOT_PATH)/configs/xilinx_$(TF_A_PLAT)_virt_defconfig \
 	$(CURDIR)/kconfigs/u-boot_$(TF_A_PLAT).conf
+U-BOOT_BOOTCMD_CONFIG = $(BUILD_PATH)/versal/u-boot_bootcmd.conf
 U-BOOT_DTS = xilinx-$(OPTEE_OS_PLATFORM)-virt
+
+$(U-BOOT_BOOTCMD_CONFIG):
+	truncate -s0 $@
+ifneq ($(_IUB_BIF_PATH),)
+	echo 'CONFIG_BOOTCOMMAND="bootm $(_IUB_BIF_LOAD)"' >>$@
+	echo 'CONFIG_BOOTDELAY=1' >>$@
+endif
+.PHONY: $(U-BOOT_BOOTCMD_CONFIG)
+
+U-BOOT_CONFIGS += $(U-BOOT_BOOTCMD_CONFIG)
 
 $(UBOOT_PATH)/.config: $(U-BOOT_CONFIGS)
 	cd $(UBOOT_PATH) && \
@@ -117,6 +194,7 @@ u-boot: u-boot-defconfig
 
 u-boot-defconfig-clean:
 	rm -f $(UBOOT_PATH)/.config
+	rm -f $(U-BOOT_BOOTCMD_CONFIG)
 
 u-boot-clean: u-boot-defconfig-clean
 	$(U-BOOT_EXPORTS) $(MAKE) -C $(U-BOOT_PATH) clean
@@ -192,17 +270,38 @@ image-clean: bootimage-clean fitimage-clean
 # Boot Image
 ###############################################################################
 
-bootimage: bootgen tfa optee-os u-boot
-	$(BOOTGEN_PATH)/bootgen -arch $(BOOTGEN_ARCH) -image versal/bootImage-${PLATFORM}.bif -w -o versal/BOOT.BIN
+BIF_PATH := versal/bootImage-$(PLATFORM).bif
+
+$(BIF_PATH): versal/bootImage-$(OPTEE_OS_PLATFORM).bif.in \
+	$(_PDI_PATH) $(_PLM_PATH) $(_PSM_PATH) $(_DTB_PATH) $(_IUB_BIF_PATH)
+	cp -a $< $@
+# PLM firmware is optional, if already in .pdi file
+ifeq ($(_PLM_PATH),)
+	sed -i -e '/%PLM_PATH%/d' $@
+endif
+# PSM firmware is optional, if already in .pdi file
+ifeq ($(_PSM_PATH),)
+	sed -i -e '/%PSM_PATH%/d' $@
+endif
+ifeq ($(_IUB_BIF_PATH),)
+	sed -i -e '/%IUB_PATH%/d' $@
+endif
+	sed -i \
+		-e 's#%PDI_PATH%#$(shell realpath -m $(_PDI_PATH))#g' \
+		-e 's#%PLM_PATH%#$(shell realpath -m $(_PLM_PATH) 2>/dev/null)#g' \
+		-e 's#%PSM_PATH%#$(shell realpath -m $(_PSM_PATH) 2>/dev/null)#g' \
+		-e 's#%DTB_PATH%#$(shell realpath -m $(_DTB_PATH))#g' \
+		-e 's#%IUB_PATH%#$(shell realpath -m ${_IUB_BIF_PATH} 2>/dev/null)#g' \
+		-e 's#%IUB_LOAD%#$(_IUB_BIF_LOAD)#g' \
+		$@
+.PHONY: $(BIF_PATH)
+
+bootimage: $(BIF_PATH) bootgen tfa optee-os u-boot
+	$(BOOTGEN_PATH)/bootgen -arch $(BOOTGEN_ARCH) -image $< -w -o versal/BOOT.BIN
 
 bootimage-clean: bootgen-clean tfa-clean optee-os-clean u-boot-clean
 	rm -f versal/BOOT.BIN
-
-# Traditionally Versal NET boards have the U-Boot FIT image included in BOOT.BIN
-ifeq ($(OPTEE_OS_PLATFORM),versal-net)
-bootimage: fitimage
-bootimage-clean: fitimage-clean
-endif
+	rm -f versal/bootImage-${PLATFORM}.bif
 
 
 ###############################################################################
@@ -220,8 +319,23 @@ bootgen-clean:
 # FIT Image
 ###############################################################################
 
-fitimage: linux dtbo buildroot
-	${U-BOOT_PATH}/tools/mkimage -f versal/fitImage-${PLATFORM}.its versal/${PLATFORM}.ub
+_IUB_PATH := $(IUB_PATH)
+
+ITS_PATH := versal/fitImage-$(PLATFORM).its
+
+$(ITS_PATH): versal/fitImage-$(OPTEE_OS_PLATFORM).its.in
+	cp -a $< $@
+	sed -i \
+		-e 's#%DTB_PATH%#$(shell realpath -m $(_DTB_PATH))#g' \
+		$@
+.PHONY: $(ITS_PATH)
+
+$(_IUB_PATH): $(ITS_PATH) linux dtbo buildroot
+	$(U-BOOT_PATH)/tools/mkimage -f $< $@
+.PHONY: $(_IUB_PATH)
+
+fitimage: $(_IUB_PATH)
 
 fitimage-clean: linux-clean dtbo-clean buildroot-clean
 	rm -f versal/${PLATFORM}.ub
+	rm -f versal/fitImage-$(PLATFORM).its

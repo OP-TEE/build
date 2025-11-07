@@ -12,18 +12,18 @@
             arch = "arm64";
             os = "linux";
             compression = "none";
-            load = <0x80000>;
-            entry = <0x80000>;
+            load = <0x40200000>;
+            entry = <0x40200000>;
             hash1 {
                 algo = "sha1";
             };
         };
         fdt-1 {
             description = "Flattened Device Tree blob";
-            data = /incbin/("../../u-boot/arch/arm/dts/versal-vck190-revA-x-ebm-01-revA.dtb");
+            data = /incbin/("%DTB_PATH%");
             type = "flat_dt";
             arch = "arm64";
-            load = <0x10000000>;
+            load = <0x40000000>;
             compression = "none";
             hash1 {
                 algo = "sha1";
@@ -34,18 +34,7 @@
             data = /incbin/("versal-optee.dtbo");
             type = "flat_dt";
             arch = "arm64";
-            load = <0x11000000>;
-            compression = "none";
-            hash1 {
-                algo = "sha1";
-            };
-        };
-        fdt-3 {
-            description = "Flattened Device Tree overlay";
-            data = /incbin/("versal-optee-mem.dtbo");
-            type = "flat_dt";
-            arch = "arm64";
-            load = <0x12000000>;
+            load = <0x40100000>;
             compression = "none";
             hash1 {
                 algo = "sha1";
@@ -68,8 +57,8 @@
         conf1 {
             description = "Boot Linux kernel with FDT blob + ramdisk";
             kernel = "kernel";
-            fdt = "fdt-1", "fdt-2", "fdt-3";
-	    ramdisk = "ramdisk";
+            fdt = "fdt-1", "fdt-2";
+            ramdisk = "ramdisk";
             hash1 {
                 algo = "sha1";
             };
