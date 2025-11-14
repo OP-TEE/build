@@ -1,0 +1,30 @@
+/dts-v1/;
+/plugin/;
+/ {
+	fragment@1 {
+		target-path = "/";
+		__overlay__ {
+			/* Typical devicetrees for Versal boards do NOT have a
+			 * memory reservation for OP-TEE's TZDRAM and (static)
+			 * SHMEM areas. This snippet uses the default for
+			 * OP-TEE's CFG_TZDRAM_START and _SIZE, and
+			 * CFG_SHMEM_START and _SIZE on Versal (see
+			 * optee_os/core/arch/arm/plat-versal/conf.mk).
+			 */
+			reserved-memory {
+				#address-cells = <2>;
+				#size-cells = <2>;
+				ranges;
+
+				optee_tzdram: optee-tzdram@60000000 {
+					reg = <0x0 0x60000000 0x0 0x10000000>;
+					no-map;
+				};
+				optee_shm: optee-shm@70000000 {
+					reg = <0x0 0x70000000 0x0 0x08000000>;
+					no-map;
+				};
+			};
+		};
+	};
+};
