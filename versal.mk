@@ -124,11 +124,18 @@ u-boot-clean: u-boot-defconfig-clean
 ###############################################################################
 # Device-Tree
 ###############################################################################
-dtbo: linux
-	${LINUX_PATH}/scripts/dtc/dtc -@ -I dts -O dtb -o versal/versal-optee.dtbo versal/versal-optee.dtso
+%.dtbo: %.dtso linux
+	${LINUX_PATH}/scripts/dtc/dtc -@ -I dts -O dtb -o $@ $<
+
+DTBO_FILES = versal/versal-optee.dtbo
+ifeq ($(OPTEE_OS_PLATFORM),versal)
+dtbo: versal/versal-optee-mem.dtbo
+endif
+
+dtbo: $(DTBO_FILES)
 
 dtbo-clean:
-	rm -f versal/versal-optee.dtbo
+	rm -f $(DTBO_FILES)
 
 ################################################################################
 # Linux kernel

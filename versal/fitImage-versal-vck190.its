@@ -40,6 +40,17 @@
                 algo = "sha1";
             };
         };
+        fdt-3 {
+            description = "Flattened Device Tree overlay";
+            data = /incbin/("versal-optee-mem.dtbo");
+            type = "flat_dt";
+            arch = "arm64";
+            load = <0x12000000>;
+            compression = "none";
+            hash1 {
+                algo = "sha1";
+            };
+        };
         ramdisk {
             description = "ramdisk";
             data = /incbin/("../../out-br/images/rootfs.cpio.gz");
@@ -57,7 +68,7 @@
         conf1 {
             description = "Boot Linux kernel with FDT blob + ramdisk";
             kernel = "kernel";
-            fdt = "fdt-1", "fdt-2";
+            fdt = "fdt-1", "fdt-2", "fdt-3";
 	    ramdisk = "ramdisk";
             hash1 {
                 algo = "sha1";
