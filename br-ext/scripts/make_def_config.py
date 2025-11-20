@@ -14,7 +14,7 @@ def get_args():
     parser.add_argument('--out', required=True,
                         help='Path to buildroot out directory')
     parser.add_argument('--top-dir', required=True,
-                        help='Replaces %TOP_DIR% in defconfig files')
+                        help='Replaces %%TOP_DIR%% in defconfig files')
     parser.add_argument('--br-ext-optee', required=True,
                         help='Path the OP-TEE external buildroot tree')
     parser.add_argument('--br-defconfig', required=True, action='append',
