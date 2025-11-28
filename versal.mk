@@ -56,6 +56,22 @@ LINUX_PATH		?= $(ROOT)/linux
 
 include common.mk
 
+# for Firmware, if available
+ifeq ($(EMBEDDEDSW_PATH),)
+EMBEDDEDSW_PATH ?= $(wildcard $(ROOT)/embeddedsw)
+endif
+ifneq ($(EMBEDDEDSW_PATH),)
+PLM_APP_PATH := $(EMBEDDEDSW_PATH)/lib/sw_apps/versal_plm
+PLM_SRC_PATH := $(PLM_APP_PATH)/src/$(TF_A_PLAT)
+PLM_PATH_GEN := $(PLM_SRC_PATH)/plm.elf
+PSM_APP_PATH := $(EMBEDDEDSW_PATH)/lib/sw_apps/versal_psmfw
+PSM_SRC_PATH := $(PSM_APP_PATH)/src/$(TF_A_PLAT)
+PSM_PATH_GEN := $(PSM_SRC_PATH)/psmfw.elf
+else
+PLM_PATH_GEN :=
+PSM_PATH_GEN :=
+endif
+
 # for Boot Image(s)
 # BSP_PATH: path to PetaLinux project directory and/or extracted BSP
 # PLM_PATH: path to PLM firmware .elf file, derived from BSP_PATH if available
@@ -104,8 +120,16 @@ endif
 
 
 _PDI_PATH := $(PDI_PATH)
+ifeq ($(PLM_PATH),generate)
+_PLM_PATH := $(PLM_PATH_GEN)
+else
 _PLM_PATH := $(PLM_PATH)
+endif
+ifeq ($(PSM_PATH),generate)
+_PSM_PATH := $(PSM_PATH_GEN)
+else
 _PSM_PATH := $(PSM_PATH)
+endif
 _DTB_PATH := $(DTB_PATH)
 ifeq ($(IUB_BIF_PATH),)
 _IUB_BIF_PATH := $(IUB_PATH)
@@ -265,6 +289,124 @@ BR2_PACKAGE_OPTEE_BENCHMARK=n
 ###############################################################################
 image: bootimage fitimage
 image-clean: bootimage-clean fitimage-clean
+
+
+###############################################################################
+# Firmware
+###############################################################################
+
+ifneq ($(EMBEDDEDSW_PATH),)
+
+PLM_PARAMS_PATH := $(PLM_APP_PATH)/misc/$(TF_A_PLAT)/xparameters.h
+PLM_PARAMS_BAK_PATH := $(PLM_PARAMS_PATH).bak
+
+ifeq ($(OPTEE_OS_PLATFORM),versal)
+ifeq (${VERSAL_UART1},y)
+PLM_UART_BASEADDR ?= 0xFF010000
+else
+PLM_UART_BASEADDR ?= 0xFF000000
+endif
+else
+# versal-net
+ifeq (${VERSAL_UART1},y)
+PLM_UART_BASEADDR ?= 0xF1930000
+else
+PLM_UART_BASEADDR ?= 0xF1920000
+endif
+endif
+PLM_UART_HIGHADDR := $(shell printf 0x%08X $$(echo $$(($(PLM_UART_BASEADDR) + 0xFFFF))))
+
+$(PLM_PARAMS_BAK_PATH): $(PLM_PARAMS_PATH)
+	# backup original xparameters.h file before modification
+	cp -a $< $@
+	# adjust UART base address
+	sed -i \
+		-e 's#^\(.*\s\+STD\(IN\|OUT\)_BASEADDRESS\)\s\+.*\+$$#\1 $(PLM_UART_BASEADDR)#g' \
+		-e 's#^\(.*\(SBSAUART\|XUARTPSV\)_0_BASEADDR\)\s\+.*$$#\1 $(PLM_UART_BASEADDR)#g' \
+		-e 's#^\(.*\(SBSAUART\|XUARTPSV\)_0_HIGHADDR\)\s\+.*$$#\1 $(PLM_UART_HIGHADDR)#g' \
+		$<
+ifeq ($(OPTEE_OS_PLATFORM),versal)
+	# replace PLM_DEBUG by PLM_PRINT to save space on Versal
+	sed -i -e 's#^\(.*\)\s\+PLM_DEBUG$$#\1 PLM_PRINT#' $<
+	# disable QSPI and OSPI handlers to make room for NVM and PUF handlers on Versal
+	if ! grep -q -e '^.*\s\+PLM_QSPI_EXCLUDE$$' $<; then \
+		sed -i -e '/^.*\s\+XPAR_XILPM_ENABLED$$/a #define PLM_QSPI_EXCLUDE' $<; \
+	fi
+	if ! grep -q -e '^.*\s\+PLM_OSPI_EXCLUDE$$' $<; then \
+		sed -i -e '/^.*\s\+XPAR_XILPM_ENABLED$$/a #define PLM_OSPI_EXCLUDE' $<; \
+	fi
+endif
+	# re-enable NVM and PUF handlers
+	if grep -q -e '^.*\s\+PLM_NVM_EXCLUDE$$' $<; then \
+		sed -i -e '/^.*\s\+PLM_NVM_EXCLUDE$$/d' $<; \
+	fi
+	if grep -q -e '^.*\s\+PLM_PUF_EXCLUDE$$' $<; then \
+		sed -i -e '/^.*\s\+PLM_PUF_EXCLUDE$$/d' $<; \
+	fi
+	# enable ECC curves NIST P256 and P521
+	if ! grep -q -e '^.*\s\+XSECURE_ECC_SUPPORT_NIST_P256$$' $<; then \
+		sed -i -e '/^.*\s\+XPAR_XILPM_ENABLED$$/a #define XSECURE_ECC_SUPPORT_NIST_P256' $<; \
+	fi
+	if ! grep -q -e '^.*\s\+XSECURE_ECC_SUPPORT_NIST_P521$$' $<; then \
+		sed -i -e '/^.*\s\+XPAR_XILPM_ENABLED$$/a #define XSECURE_ECC_SUPPORT_NIST_P521' $<; \
+	fi
+.PHONY: $(PLM_PARAMS_BAK_PATH)
+
+$(PLM_PATH_GEN): $(PLM_PARAMS_BAK_PATH)
+	env PATH=$(PATH):$(shell dirname $(CROSS_COMPILE_FIRMWARE)) \
+		$(MAKE) -C $(PLM_SRC_PATH)/
+	# restore original xparameters.h file to avoid unstaged changes
+	mv $< $(PLM_PARAMS_PATH)
+
+
+ifeq ($(OPTEE_OS_PLATFORM),versal)
+PSM_PARAMS_PATH := $(PSM_APP_PATH)/misc/xparameters.h
+else
+PSM_PARAMS_PATH := $(PSM_APP_PATH)/misc/$(TF_A_PLAT)/xparameters.h
+endif
+PSM_PARAMS_BAK_PATH := $(PSM_PARAMS_PATH).bak
+
+PSM_UART_BASEADDR ?= $(PLM_UART_BASEADDR)
+PSM_UART_HIGHADDR ?= $(PLM_UART_HIGHADDR)
+
+$(PSM_PARAMS_BAK_PATH): $(PSM_PARAMS_PATH)
+	# backup original xparameters.h file before modification
+	cp -a $< $@
+	# adjust UART base address
+	sed -i \
+		-e 's#^\(.*\s\+STD\(IN\|OUT\)_BASEADDRESS\)\s\+.*\+$$#\1 $(PSM_UART_BASEADDR)#g' \
+		-e 's#^\(.*\(SBSAUART\|XUARTPSV\)_0_BASEADDR\)\s\+.*$$#\1 $(PSM_UART_BASEADDR)#g' \
+		-e 's#^\(.*\(SBSAUART\|XUARTPSV\)_0_HIGHADDR\)\s\+.*$$#\1 $(PSM_UART_HIGHADDR)#g' \
+		$<
+.PHONY: $(PSM_PARAMS_BAK_PATH)
+
+$(PSM_PATH_GEN): $(PSM_PARAMS_BAK_PATH)
+	env PATH=$(PATH):$(shell dirname $(CROSS_COMPILE_FIRMWARE)) \
+		$(MAKE) -C $(PSM_SRC_PATH)/
+	# restore original xparameters.h file to avoid unstaged changes
+	mv $< $(PSM_PARAMS_PATH)
+
+firmware: $(PLM_PATH_GEN) $(PSM_PATH_GEN)
+
+firmware-clean:
+	$(MAKE) -C $(PLM_SRC_PATH)/ clean
+	$(MAKE) -C $(PSM_SRC_PATH)/ clean
+	# restore original xparameters.h files to avoid unstaged changes
+	if [ -e $(PLM_PARAMS_BAK_PATH) ]; then \
+		mv $(PLM_PARAMS_BAK_PATH) $(PLM_PARAMS_PATH); \
+	fi
+	if [ -e $(PSM_PARAMS_BAK_PATH) ]; then \
+		mv $(PSM_PARAMS_BAK_PATH) $(PSM_PARAMS_PATH); \
+	fi
+else
+firmware:
+
+firmware-clean:
+
+endif
+
+.PHONY: firmware firmware-clean
+
 
 ###############################################################################
 # Boot Image
