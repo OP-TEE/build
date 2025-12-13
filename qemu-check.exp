@@ -135,6 +135,9 @@ if {$::env(XEN_BOOT) == "y"} {
 info ".\n"
 # Toolchain libraries might be here or there
 send -- "export LD_LIBRARY_PATH=/lib:/lib/arm-linux-gnueabihf\r"
+expect "# "
+send -- {if [ -e /dev/mmcblk0rpmb ]; then echo "Programming RPMB key"; printf "\\xD3\\xEB\\x3E\\xC3\\x6E\\x33\\x4C\\x9F\\x98\\x8C\\xE2\\xC0\\xB8\\x59\\x54\\x61\\x0D\\x2B\\xCF\\x86\\x64\\x84\\x4D\\xF2\\xAB\\x56\\xE6\\xC6\\x1B\\xB7\\x01\\xE4" >rpmb_key.bin && mmc rpmb write-key /dev/mmcblk0rpmb rpmb_key.bin; fi}
+send -- "\r"
 if {$tests == "all" || $tests == "xtest"} {
 	info "Running: $cmd...\n"
 	expect "# "
