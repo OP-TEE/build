@@ -21,9 +21,18 @@ BR2_PACKAGE_OPENSSH_KEY_UTILS ?= y
 # Openssl binary
 BR2_PACKAGE_LIBOPENSSL_BIN ?= y
 
-PLATFORM = versal-vck190
+PLATFORM ?= versal-vck190
+
+ifneq ($(filter versal-net%,$(PLATFORM)),)
+OPTEE_OS_PLATFORM = versal-net
+else
 OPTEE_OS_PLATFORM = versal
+endif
+
 OPTEE_OS_COMMON_EXTRA_FLAGS = CFG_PKCS11_TA=y CFG_USER_TA_TARGET_pkcs11=ta_arm64 O=out/arm
+
+TF_A_PLAT = $(subst -,_,$(OPTEE_OS_PLATFORM))
+BOOTGEN_ARCH = $(subst -,,$(OPTEE_OS_PLATFORM))
 
 ################################################################################
 # Paths to git projects and various binaries
@@ -49,7 +58,11 @@ include toolchain.mk
 ################################################################################
 
 TF_A_EXPORTS = CROSS_COMPILE="$(CCACHE)$(AARCH64_CROSS_COMPILE)"
-TF_A_FLAGS = PLAT=versal VERSAL_CONSOLE=pl011 RESET_TO_BL31=1 SPD=opteed DEBUG=1
+
+TF_A_FLAGS = PLAT=$(TF_A_PLAT) VERSAL_CONSOLE=pl011 RESET_TO_BL31=1 SPD=opteed DEBUG=1
+ifeq ($(OPTEE_OS_PLATFORM),versal-net)
+TF_A_FLAGS += VERSAL_NET_ATF_MEM_BASE=0x26200000 VERSAL_NET_ATF_MEM_SIZE=0x100000
+endif
 
 tfa:
 	$(TF_A_EXPORTS) $(MAKE) -C $(TF_A_PATH) $(TF_A_FLAGS) bl31
@@ -70,14 +83,25 @@ optee-os-clean: optee-os-clean-common
 ################################################################################
 
 U-BOOT_EXPORTS = CROSS_COMPILE="$(CCACHE)$(AARCH64_CROSS_COMPILE)"
-U-BOOT_CONFIG = xilinx_versal_virt_defconfig
-U-BOOT_DTS = versal-vck190-revA
+U-BOOT_CONFIGS = \
+	$(UBOOT_PATH)/configs/xilinx_$(TF_A_PLAT)_virt_defconfig \
+	$(CURDIR)/kconfigs/u-boot_$(TF_A_PLAT).conf
+U-BOOT_DTS = xilinx-$(OPTEE_OS_PLATFORM)-virt
 
-u-boot:
-	$(U-BOOT_EXPORTS) $(MAKE) -C $(U-BOOT_PATH) $(U-BOOT_CONFIG)
+$(UBOOT_PATH)/.config: $(U-BOOT_CONFIGS)
+	cd $(UBOOT_PATH) && \
+		$(U-BOOT_EXPORTS) \
+		scripts/kconfig/merge_config.sh $(U-BOOT_CONFIGS)
+
+u-boot-defconfig: $(UBOOT_PATH)/.config
+
+u-boot: u-boot-defconfig
 	$(U-BOOT_EXPORTS) $(MAKE) -C $(U-BOOT_PATH) DEVICE_TREE=$(U-BOOT_DTS) DTC_FLAGS="-@"
 
-u-boot-clean:
+u-boot-defconfig-clean:
+	rm -f $(UBOOT_PATH)/.config
+
+u-boot-clean: u-boot-defconfig-clean
 	$(U-BOOT_EXPORTS) $(MAKE) -C $(U-BOOT_PATH) clean
 
 ###############################################################################
@@ -95,7 +119,7 @@ dtbo-clean:
 
 LINUX_DEFCONFIG_COMMON_ARCH := arm64
 LINUX_DEFCONFIG_COMMON_FILES := \
-		$(LINUX_PATH)/arch/arm64/configs/xilinx_versal_defconfig \
+		$(LINUX_PATH)/arch/arm64/configs/xilinx_$(TF_A_PLAT)_defconfig \
 		$(CURDIR)/kconfigs/versal.conf
 
 linux-defconfig: $(LINUX_PATH)/.config
@@ -145,10 +169,16 @@ image-clean: bootimage-clean fitimage-clean
 ###############################################################################
 
 bootimage: bootgen tfa optee-os u-boot
-	$(BOOTGEN_PATH)/bootgen -arch versal -image versal/bootImage-${PLATFORM}.bif -w -o versal/BOOT.BIN
+	$(BOOTGEN_PATH)/bootgen -arch $(BOOTGEN_ARCH) -image versal/bootImage-${PLATFORM}.bif -w -o versal/BOOT.BIN
 
 bootimage-clean: bootgen-clean tfa-clean optee-os-clean u-boot-clean
 	rm -f versal/BOOT.BIN
+
+# Traditionally Versal NET boards have the U-Boot FIT image included in BOOT.BIN
+ifeq ($(OPTEE_OS_PLATFORM),versal-net)
+bootimage: fitimage
+bootimage-clean: fitimage-clean
+endif
 
 
 ###############################################################################
@@ -171,4 +201,3 @@ fitimage: linux dtbo buildroot
 
 fitimage-clean: linux-clean dtbo-clean buildroot-clean
 	rm -f versal/${PLATFORM}.ub
-
