@@ -8,8 +8,6 @@ override COMPILE_NS_KERNEL := 64
 override COMPILE_S_USER    := 64
 override COMPILE_S_KERNEL  := 64
 
-WITH_CXX_TESTS = n
-
 # Network support related packages:
 BR2_PACKAGE_DHCPCD ?= y
 BR2_PACKAGE_ETHTOOL ?= y
