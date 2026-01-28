@@ -115,7 +115,7 @@ LINUX_CLEANER_COMMON_FLAGS += ARCH=arm64
 linux-cleaner: linux-cleaner-common
 
 ###############################################################################
-# Bouildroot
+# Buildroot
 ###############################################################################
 
 BR2_TARGET_GENERIC_ISSUE="OP-TEE embedded distrib for $(PLATFORM)"
