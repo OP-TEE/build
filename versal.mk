@@ -64,7 +64,6 @@ tfa-clean:
 optee-os: optee-os-common
 
 optee-os-clean: optee-os-clean-common
-	rm -f ${OPTEE_OS_PATH}/out/arm/core/tee_raw.bin
 
 ################################################################################
 # U-Boot
