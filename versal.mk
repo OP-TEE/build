@@ -510,7 +510,7 @@ $(ITS_PATH): versal/fitImage-$(OPTEE_OS_PLATFORM).its.in
 		$@
 .PHONY: $(ITS_PATH)
 
-$(_IUB_PATH): $(ITS_PATH) linux dtbo buildroot
+$(_IUB_PATH): $(ITS_PATH) u-boot linux dtbo buildroot
 	$(U-BOOT_PATH)/tools/mkimage -f $< $@
 .PHONY: $(_IUB_PATH)
 
