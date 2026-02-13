@@ -79,11 +79,25 @@ endif
 # DTB_PATH: path to DeviceTree .dtb file, derived from BSP_PATH if available
 # IUB_PATH: path to U-Boot FIT image .ub file
 
+ifeq ($(BSP_PATH),)
+ifeq ($(OPTEE_OS_PLATFORM),versal-net)
+ifneq ($(wildcard ../versal-net-bsp/.petalinux),)
+BSP_PATH ?= ../versal-net-bsp
+endif
+else
+ifneq ($(wildcard ../versal-bsp/.petalinux),)
+BSP_PATH ?= ../versal-bsp
+endif
+endif
+endif
+
+# backward compat.
 ifeq ($(PLATFORM),versal-vck190)
 BSP_PATH ?= ../versal-vck190-bsp
 endif
 
 ifneq ($(BSP_PATH),)
+$(info Assuming PetaLinux BSP is in $(BSP_PATH))
 PDI_PATH ?= $(wildcard $(BSP_PATH)/project-spec/hw-description/*.pdi)
 ifneq ($(wildcard $(BSP_PATH)/images/linux),)
 PLM_PATH ?= $(wildcard $(BSP_PATH)/images/linux/plm.elf)
@@ -96,18 +110,21 @@ DTB_PATH ?= $(wildcard $(BSP_PATH)/pre-built/linux/images/system.dtb)
 endif
 endif
 
+ifeq ($(OPTEE_OS_PLATFORM),versal-net)
+PDI_PATH ?= $(wildcard ../versal-net-bsp/design.pdi)
+DTB_PATH ?= $(wildcard ../versal-net-bsp/design.dtb)
+else
+PDI_PATH ?= $(wildcard ../versal-bsp/design.pdi)
+DTB_PATH ?= $(wildcard ../versal-bsp/design.dtb)
+endif
+
+# backward compat.
 ifeq ($(PLATFORM),versal-vck190)
 DTB_PATH ?= ../u-boot/arch/arm/dts/versal-vck190-revA-x-ebm-01-revA.dtb
-else
+endif
 ifeq ($(PLATFORM),versal-net-vnx-b2197-revA)
-PDI_PATH ?= ../versal-net-bsp/design.pdi
-ifneq ($(wildcard ../versal-net-bsp/design.dtb),)
-DTB_PATH ?= ../versal-net-bsp/design.dtb
-else
 #DTB_PATH ?= ../u-boot/arch/arm/dts/versal-net-vn-x-b2197-00-revA.dtb
 DTB_PATH ?= ../linux/arch/arm64/boot/dts/xilinx/versal-net-vn-x-b2197-00-revA.dtb
-endif
-endif
 endif
 
 IUB_PATH ?= versal/$(PLATFORM).ub
