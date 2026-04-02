@@ -383,6 +383,23 @@ ifeq ($(FVP_NO_VISUALISATION),y)
 		    -C bp.terminal_2.start_telnet=0 \
 		    -C bp.terminal_3.mode=raw \
 		    -C bp.terminal_3.start_telnet=0
+else ifneq ($(FVP_TELNET_CMD),)
+	FVP_SERIAL_CMD_ARGS := -C bp.terminal_0.terminal_command="$(FVP_TELNET_CMD)"
+	FVP_SERIAL_CMD_ARGS += -C bp.terminal_1.terminal_command="$(FVP_TELNET_CMD)"
+	FVP_SERIAL_CMD_ARGS += -C bp.terminal_2.terminal_command="$(FVP_TELNET_CMD)"
+	FVP_SERIAL_CMD_ARGS += -C bp.terminal_3.terminal_command="$(FVP_TELNET_CMD)"
+else ifneq ($(TMUX),)
+	FVP_TELNET_CMD := tmux new-window -n \"%title\" \"telnet localhost %port\"
+	FVP_SERIAL_CMD_ARGS := -C bp.terminal_0.terminal_command="$(FVP_TELNET_CMD)"
+	FVP_SERIAL_CMD_ARGS += -C bp.terminal_1.terminal_command="$(FVP_TELNET_CMD)"
+	FVP_SERIAL_CMD_ARGS += -C bp.terminal_2.terminal_command="$(FVP_TELNET_CMD)"
+	FVP_SERIAL_CMD_ARGS += -C bp.terminal_3.terminal_command="$(FVP_TELNET_CMD)"
+else ifneq ($(STY),)
+	FVP_TELNET_CMD := screen -S $$STY -X screen -t \"%title\" -L telnet localhost %port
+	FVP_SERIAL_CMD_ARGS := -C bp.terminal_0.terminal_command="$(FVP_TELNET_CMD)"
+	FVP_SERIAL_CMD_ARGS += -C bp.terminal_1.terminal_command="$(FVP_TELNET_CMD)"
+	FVP_SERIAL_CMD_ARGS += -C bp.terminal_2.terminal_command="$(FVP_TELNET_CMD)"
+	FVP_SERIAL_CMD_ARGS += -C bp.terminal_3.terminal_command="$(FVP_TELNET_CMD)"
 endif
 ifeq ($(TS_LOGGING_SP),y)
 	FVP_ARGS += -C bp.pl011_uart2.out_file=$(TS_LOGGING_SP_LOG)
@@ -392,4 +409,4 @@ ifeq ($(FVP_VIRTFS_ENABLE),y)
 endif
 
 run-only:
-	$(FVP_PATH)/$(FVP_BIN) $(FVP_ARGS) $(FVP_EXTRA_ARGS)
+	$(FVP_PATH)/$(FVP_BIN) $(FVP_ARGS) $(FVP_EXTRA_ARGS) $(FVP_SERIAL_CMD_ARGS)
