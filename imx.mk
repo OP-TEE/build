@@ -62,7 +62,10 @@ include toolchain.mk
 ################################################################################
 # ARM Trusted Firmware
 ################################################################################
-TF_A_EXPORTS = CROSS_COMPILE="$(CCACHE)$(AARCH64_CROSS_COMPILE)"
+TF_A_EXPORTS ?= \
+	CROSS_COMPILE="$(CCACHE)$(AARCH64_CROSS_COMPILE)" \
+	CC="$(CCACHE)$(AARCH64_CROSS_COMPILE)gcc" \
+	LD="$(CCACHE)$(AARCH64_CROSS_COMPILE)ld"
 
 #	BL32=$(OPTEE_OS_HEADER_V2_BIN) \
 #	BL32_EXTRA1=$(OPTEE_OS_PAGER_V2_BIN) \
