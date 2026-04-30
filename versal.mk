@@ -429,56 +429,24 @@ endif
 # Boot Image
 ###############################################################################
 
-OPTEE_OS_ELF ?= $(shell dirname $(OPTEE_OS_BIN))/tee.elf
-OPTEE_OS_RAWBIN ?= $(shell dirname $(OPTEE_OS_BIN))/tee-raw.bin
-$(OPTEE_OS_ELF): optee-os-common
-$(OPTEE_OS_RAWBIN): optee-os-common
-
-OPTEE_OS_RAWBIN_OBJ ?= versal/$(shell basename $(OPTEE_OS_RAWBIN)).o
-OPTEE_OS_RAWBIN_ELF ?= versal/$(shell basename $(OPTEE_OS_RAWBIN)).elf
-
-# NOTE: Since we need to reference an ELF file in the .bif file to make PLM
-#       firmware really recognize OP-TEE OS as a SEL-1 binary and provide
-#       matching "handoff" parameters to ATF (API id 0x70b,
-#       get_atf_handoff_params), we wrap the regular tee-raw.bin file in ELF
-#       format with a single .text section and the appropriate entry point.
-#
-#       The tee.elf file cannot be used directly, since OP-TEE OS entry code
-#       (entry_a64.S) depends on a struct boot_embdata placed right at symbol
-#       __data_end. The script gen_tee_bin.py does this placement while crafting
-#       tee-raw.bin (and similarly tee.bin) from tee.elf.
-$(OPTEE_OS_RAWBIN_OBJ): $(OPTEE_OS_RAWBIN)
-	$(subst ",,$(CROSS_COMPILE_S_KERNEL))objcopy \
-		-I binary -O elf64-littleaarch64 -B aarch64 \
-		--rename-section .data=.text \
-		--set-section-flags .text=alloc,code,load,readonly,contents \
-		$< $@
-$(OPTEE_OS_RAWBIN_ELF).load: $(OPTEE_OS_ELF)
-	$(subst ",,$(CROSS_COMPILE_S_KERNEL))nm $< | \
-		awk '/\s_start$$/ {printf "0x%s\n", $$1}' >$@
-$(OPTEE_OS_RAWBIN_ELF): $(OPTEE_OS_RAWBIN_OBJ) $(OPTEE_OS_RAWBIN_ELF).load
-	$(subst ",,$(CROSS_COMPILE_S_KERNEL))ld \
-		-Ttext $(shell cat $(OPTEE_OS_RAWBIN_ELF).load) \
-		-e $(shell cat $(OPTEE_OS_RAWBIN_ELF).load) \
-		$< -o $@
-.PHONY: $(OPTEE_OS_RAWBIN_OBJ) $(OPTEE_OS_RAWBIN_ELF).load $(OPTEE_OS_RAWBIN_ELF)
+OPTEE_OS_RAWBIN_ELF ?= $(shell dirname $(OPTEE_OS_BIN))/tee-raw.bin.elf
 
 BIF_PATH := versal/bootImage-$(PLATFORM).bif
 
-$(BIF_PATH): versal/bootImage-$(OPTEE_OS_PLATFORM).bif.in \
+bif: versal/bootImage-$(OPTEE_OS_PLATFORM).bif.in \
 	$(_PDI_PATH) $(_PLM_PATH) $(_PSM_PATH) $(_DTB_PATH) $(_IUB_BIF_PATH) \
-	$(OPTEE_OS_RAWBIN_ELF)
-	cp -a $< $@
+	optee-os
+	cp -a $< $(BIF_PATH)
 # PLM firmware is optional, if already in .pdi file
 ifeq ($(_PLM_PATH),)
-	sed -i -e '/%PLM_PATH%/d' $@
+	sed -i -e '/%PLM_PATH%/d' $(BIF_PATH)
 endif
 # PSM firmware is optional, if already in .pdi file
 ifeq ($(_PSM_PATH),)
-	sed -i -e '/%PSM_PATH%/d' $@
+	sed -i -e '/%PSM_PATH%/d' $(BIF_PATH)
 endif
 ifeq ($(_IUB_BIF_PATH),)
-	sed -i -e '/%IUB_PATH%/d' $@
+	sed -i -e '/%IUB_PATH%/d' $(BIF_PATH)
 endif
 	sed -i \
 		-e 's#%PDI_PATH%#$(shell realpath -m $(_PDI_PATH))#g' \
@@ -488,17 +456,14 @@ endif
 		-e 's#%TEE_PATH%#$(shell realpath -m $(OPTEE_OS_RAWBIN_ELF))#g' \
 		-e 's#%IUB_PATH%#$(shell realpath -m ${_IUB_BIF_PATH} 2>/dev/null)#g' \
 		-e 's#%IUB_LOAD%#$(_IUB_BIF_LOAD)#g' \
-		$@
-.PHONY: $(BIF_PATH)
+		$(BIF_PATH)
 
-bootimage: $(BIF_PATH) bootgen tfa optee-os u-boot
-	$(BOOTGEN_PATH)/bootgen -arch $(BOOTGEN_ARCH) -image $< -w -o versal/BOOT.BIN
+bootimage: bif bootgen tfa optee-os u-boot
+	$(BOOTGEN_PATH)/bootgen -arch $(BOOTGEN_ARCH) -image $(BIF_PATH) -w -o versal/BOOT.BIN
 
 bootimage-clean: bootgen-clean tfa-clean optee-os-clean u-boot-clean
 	rm -f versal/BOOT.BIN
-	rm -f $(OPTEE_OS_RAWBIN_ELF) $(OPTEE_OS_RAWBIN_ELF).load \
-		$(OPTEE_OS_RAWBIN_OBJ)
-	rm -f versal/bootImage-${PLATFORM}.bif
+	rm -f $(BIF_PATH)
 
 
 ###############################################################################
