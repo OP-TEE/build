@@ -402,7 +402,9 @@ else ifneq ($(STY),)
 	FVP_SERIAL_CMD_ARGS += -C bp.terminal_3.terminal_command="$(FVP_TELNET_CMD)"
 endif
 ifeq ($(TS_LOGGING_SP),y)
+ifneq ($(TS_LOGGING_SP_LOG),)
 	FVP_ARGS += -C bp.pl011_uart2.out_file=$(TS_LOGGING_SP_LOG)
+endif
 endif
 ifeq ($(FVP_VIRTFS_ENABLE),y)
 	FVP_ARGS += -C bp.virtiop9device.root_path=$(FVP_VIRTFS_HOST_DIR)
