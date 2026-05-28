@@ -149,8 +149,7 @@ TF_A_FLAGS ?= \
 ifneq ($(MEASURED_BOOT),y)
 	TF_A_FLAGS += MEASURED_BOOT=0
 else
-	TF_A_FLAGS += MBEDTLS_DIR=$(ROOT)/mbedtls  \
-		      ARM_ROTPK_LOCATION=devel_rsa \
+	TF_A_FLAGS += ARM_ROTPK_LOCATION=devel_rsa \
 		      GENERATE_COT=1 \
 		      MEASURED_BOOT=1 \
 		      ROT_KEY=plat/arm/board/common/rotpk/arm_rotprivk_rsa.pem \
