@@ -339,7 +339,7 @@ ifeq ($(SPMC_AT_EL),2)
 	FVP_ARGS += -C cluster0.gicv3.extended-interrupt-range-support=1 \
 		    -C cluster0.has_generic_authentication=1 \
 		    -C cluster0.has_pointer_authentication=2 \
-		    -C cluster0.has_branch_target_exception=1 \
+		    -C cluster0.bti_support_level=1 \
 		    -C cluster0.has_arm_v8-4=1 \
 		    -C cluster0.has_large_system_ext=1 \
 		    -C cluster0.has_large_va=1 \
@@ -348,7 +348,7 @@ ifeq ($(SPMC_AT_EL),2)
 		    -C cluster1.gicv3.extended-interrupt-range-support=1 \
 		    -C cluster1.has_generic_authentication=1 \
 		    -C cluster1.has_pointer_authentication=2 \
-		    -C cluster1.has_branch_target_exception=1 \
+		    -C cluster1.bti_support_level=1 \
 		    -C cluster1.has_arm_v8-4=1 \
 		    -C cluster1.has_large_system_ext=1 \
 		    -C cluster1.has_large_va=1 \
