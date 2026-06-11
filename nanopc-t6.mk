@@ -19,7 +19,7 @@ UBOOT_PATH		?= $(ROOT)/u-boot
 UBOOT_BIN		?= $(UBOOT_PATH)/u-boot.bin
 ROOT_IMG		?= $(ROOT)/out-br/images/rootfs.ext2
 BOOT_IMG		?= $(ROOT)/out/nanopc-t6.img
-TPL_BIN			?= $(BINARIES_PATH)/rk3588_ddr_lp4_2112MHz_lp5_2400MHz_v1.19.bin
+TPL_BIN			?= $(BINARIES_PATH)/rk3588_ddr_lp4_2112MHz_lp5_2400MHz_v1.21.bin
 BOOT_CMD		?= $(ROOT)/build/nanopc-t6/nanopi6.h
 BOARD_DTSO		?= $(ROOT)/build/nanopc-t6/rk3588-nanopi6-optee.dtso
 FIT_WRAPPER		?= $(ROOT)/build/nanopc-t6/fit_wrapper.sh
@@ -107,7 +107,6 @@ UBOOT_FLAGS ?= CROSS_COMPILE=$(CROSS_COMPILE_NS_KERNEL) \
 
 $(TPL_BIN):
 	mkdir -p $(BINARIES_PATH)
-	wget -O $(TPL_BIN) https://github.com/rockchip-linux/rkbin/raw/master/bin/rk35/$(notdir $(TPL_BIN))
 
 UBOOT_EXPORTS ?= BL31=$(TF_A_OUT)/bl31/bl31.elf \
                  TEE=$(OPTEE_OS_BIN) \
