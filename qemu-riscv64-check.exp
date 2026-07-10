@@ -1,0 +1,114 @@
+#!/usr/bin/expect -f
+#
+# Start QEMU for the RISC-V OP-TEE setup, boot Linux, and run xtest.
+# This script currently targets the single-console setup used by qemu_riscv64.
+
+set quiet 0
+set xtest_args ""
+set tests "xtest"
+
+# Keep the default high enough for slow hosts and longer xtest cases.
+set timeout 900
+
+# Parse command line
+set myargs $argv
+while {[llength $myargs]} {
+	set myargs [lassign $myargs arg]
+	switch -exact -- $arg {
+		"--tests"       {set myargs [lassign $myargs ::tests]}
+		"--timeout"     {set myargs [lassign $myargs ::timeout]}
+		"-q"            {set ::quiet 1}
+		"--xtest-args"  {set myargs [lassign $myargs ::xtest_args]}
+	}
+}
+
+proc info arg {
+	if {$::quiet == 1} { return }
+	puts -nonewline $arg
+	flush stdout
+}
+
+proc fail_with_message {msg code} {
+	info "$msg\n"
+	exit $code
+}
+
+proc check_test_result {} {
+	set casenum "none"
+	set star 0
+	set ncases 0
+	expect {
+		-re {  ([^ ]+) FAIL} {
+			info " $expect_out(1,string) FAIL\n"
+			exit 1
+		}
+		-re {rcu.*detected stalls} {
+			info " Kernel error: '$expect_out(0,string)'\n"
+			exit 1
+		}
+		-re {(..TC:[^\n]*assertion[^\n]*failed at[^\n]*)} {
+			info "!!! $expect_out(1,string)\n"
+			exit 1
+		}
+		-re {(..TC:[^\n]*Panic at[^\n]*)} {
+			info "!!! $expect_out(1,string)\n"
+			exit 1
+		}
+		-re {([\*o]) ([^ ]+) } {
+			set casenum $expect_out(2,string)
+			if {$expect_out(1,string) == "o"} {
+				if {$star == 1} {
+					set star 0
+					exp_continue
+				}
+			} else {
+				set star 1
+			}
+			info "#"
+			incr ncases
+			if {$ncases % 50 == 0} { info "\n" }
+			exp_continue
+		}
+		"+-----------------------------------------------------\r\r" {}
+		timeout {
+			info "!!! Timeout\n"
+			info "TIMEOUT - test case too long or hung? (last test started: $casenum)\n"
+			exit 2
+		}
+	}
+	info "\nStatus: PASS ($ncases test cases)\n"
+}
+
+if {$tests != "xtest" && $tests != "all"} {
+	fail_with_message "Unsupported test set '$tests' for qemu_riscv64 check" 3
+}
+
+set cmd "xtest $xtest_args"
+
+log_user 0
+log_file -a -noappend "serial0.log"
+# Keep serial1.log present so existing dump logic can show an empty file.
+close [open "serial1.log" "w+"]
+
+info "Starting QEMU..."
+spawn sh -c "$::env(QEMU) $::env(QEMU_CHECK_ARGS)"
+
+expect {
+	"Kernel panic" {
+		fail_with_message "!!! Kernel panic" 1
+	}
+	timeout {
+		fail_with_message "!!! Timeout" 1
+	}
+	"ogin:"
+}
+
+send -- "root\r\r"
+expect "# "
+info " done, guest is booted.\n"
+
+if {$tests == "all" || $tests == "xtest"} {
+	info "Running: $cmd...\n"
+	send -- "$cmd\r"
+	check_test_result
+}

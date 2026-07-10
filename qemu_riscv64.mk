@@ -237,3 +237,43 @@ QEMU_RUN_ARGS = $(QEMU_BASE_ARGS)
 run-only:
 	ln -sf $(SDCARD_IMG) $(BINARIES_PATH)/sdcard.img
 	cd $(BINARIES_PATH) && $(QEMU_BIN) $(QEMU_RUN_ARGS)
+
+ifneq ($(filter check,$(MAKECMDGOALS)),)
+CHECK_DEPS := all
+endif
+
+CHECK_TESTS ?= xtest
+ifneq ($(TIMEOUT),)
+check-args := --timeout $(TIMEOUT)
+endif
+ifneq ($(CHECK_TESTS),)
+check-args += --tests $(CHECK_TESTS)
+endif
+ifneq ($(XTEST_ARGS),)
+check-args += --xtest-args "$(XTEST_ARGS)"
+endif
+
+QEMU_CHECK_ARGS = $(QEMU_BASE_ARGS)
+QEMU_CHECK_ARGS += -serial mon:stdio
+
+check: $(CHECK_DEPS)
+	ln -sf $(SDCARD_IMG) $(BINARIES_PATH)/sdcard.img
+	cd $(BINARIES_PATH) && \
+		export QEMU=$(QEMU_BIN) && \
+		export QEMU_CHECK_ARGS="$(QEMU_CHECK_ARGS)" && \
+		export XEN_BOOT=n && \
+		export RUST_ENABLE=n && \
+		expect $(ROOT)/build/qemu-riscv64-check.exp -- $(check-args) || \
+		(if [ "$(DUMP_LOGS_ON_ERROR)" ]; then \
+			echo "== $$PWD/serial0.log:"; \
+			cat serial0.log; \
+			echo "== end of $$PWD/serial0.log:"; \
+			echo "== $$PWD/serial1.log:"; \
+			cat serial1.log; \
+			echo "== end of $$PWD/serial1.log:"; \
+		fi; false)
+
+check-only: check
+
+check-clean:
+	rm -f serial0.log serial1.log
