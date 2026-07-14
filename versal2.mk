@@ -71,7 +71,10 @@ include toolchain.mk
 # ARM Trusted Firmware
 ################################################################################
 
-TF_A_EXPORTS = CROSS_COMPILE="$(CCACHE)$(AARCH64_CROSS_COMPILE)"
+TF_A_EXPORTS = CROSS_COMPILE="$(CCACHE)$(AARCH64_CROSS_COMPILE)" \
+	       CC="$(CCACHE)$(AARCH64_CROSS_COMPILE)gcc" \
+	       LD="$(CCACHE)$(AARCH64_CROSS_COMPILE)ld"
+
 TF_A_FLAGS = PLAT=versal2 CONSOLE=pl011 RESET_TO_BL31=1 SPD=opteed DEBUG=0 \
 	     MEM_BASE=0x1600000 MEM_SIZE=0x200000 \
 	     XILINX_OF_BOARD_DTB_ADDR=0x1000000 \
