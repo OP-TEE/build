@@ -102,14 +102,15 @@ opensbi-clean:
 ################################################################################
 # U-Boot
 ################################################################################
-UBOOT_DEFCONFIG := qemu-riscv64_spl_defconfig
+UBOOT_DEFCONFIG_FILES := $(UBOOT_PATH)/configs/qemu-riscv64_spl_defconfig \
+			 $(ROOT)/build/kconfigs/u-boot_qemu_riscv64.conf
 UBOOT_COMMON_FLAGS += CROSS_COMPILE=$(CROSS_COMPILE_NS_KERNEL)
 UBOOT_COMMON_FLAGS += OPENSBI=$(OPENSBI_FW_DYNAMIC_BIN)
 UBOOT_COMMON_FLAGS += TEE=$(OPTEE_OS_BIN)
 
-$(UBOOT_PATH)/.config:
-	$(MAKE) -C $(UBOOT_PATH) $(UBOOT_DEFCONFIG)
-	$(MAKE) -C $(UBOOT_PATH) olddefconfig
+$(UBOOT_PATH)/.config: $(UBOOT_DEFCONFIG_FILES)
+	cd $(UBOOT_PATH) && scripts/kconfig/merge_config.sh \
+		$(UBOOT_DEFCONFIG_FILES)
 
 .PHONY: u-boot-defconfig
 u-boot-defconfig: $(UBOOT_PATH)/.config
