@@ -42,6 +42,7 @@ OPTEE_OS_COMMON_EXTRA_FLAGS ?= CFG_PKCS11_TA=y CFG_USER_TA_TARGET_pkcs11=ta_arm6
 TF_A_PATH	?= $(ROOT)/arm-trusted-firmware
 U-BOOT_PATH	?= $(ROOT)/u-boot-xlnx
 LINUX_PATH	?= $(ROOT)/linux-xlnx
+BOOTGEN_PATH	?= $(ROOT)/bootgen
 
 include common.mk
 
@@ -59,8 +60,9 @@ ROOTFS_SIGN	?= $(BINARIES_PATH)/rootfs.cpio.gz.u-boot
 # Targets
 ################################################################################
 
-all: tfa optee-os u-boot linux dtbo buildroot buildroot_mkimg
-clean: tfa-clean optee-os-clean u-boot-clean linux-clean dtbo-clean buildroot-clean
+all: tfa optee-os u-boot linux dtbo buildroot buildroot_mkimg bootgen
+clean: tfa-clean optee-os-clean u-boot-clean linux-clean dtbo-clean \
+       buildroot-clean bootgen-clean
 
 $(BINARIES_PATH):
 	mkdir -p $@
@@ -180,3 +182,16 @@ buildroot_mkimg: buildroot
 				-T ramdisk \
 				-C gzip \
 				-d $(ROOTFS_GZ) $(ROOTFS_SIGN)
+
+################################################################################
+# Bootgen
+################################################################################
+
+bootgen:
+	$(MAKE) -C $(BOOTGEN_PATH)
+	mkdir -p $(BINARIES_PATH)
+	cp $(BOOTGEN_PATH)/build/bin/bootgen $(BINARIES_PATH)
+
+bootgen-clean:
+	$(MAKE) -C $(BOOTGEN_PATH) clean
+	rm -f $(BINARIES_PATH)/bootgen
