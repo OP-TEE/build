@@ -529,9 +529,12 @@ optee-os-clean: optee-os-clean-common
 ################################################################################
 
 HAFNIUM_EXPORTS = PATH=$(TOOLCHAIN_ROOT)/clang-$(CLANG_BUILD_VER)/bin:$(PATH)
+# The large prebuilts submodule has hit HTTP/2 stream resets in CI.
+HAFNIUM_SUBMODULE_UPDATE = git -c http.version=HTTP/1.1 \
+	-C $(HAFNIUM_PATH) submodule update --init
 
 .hafnium_checkout:
-	git -C $(HAFNIUM_PATH) submodule update --init
+	$(HAFNIUM_SUBMODULE_UPDATE) || $(HAFNIUM_SUBMODULE_UPDATE)
 	touch $@
 
 hafnium: $(HAFNIUM_BIN)
