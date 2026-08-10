@@ -197,16 +197,6 @@ buildroot_mkimg: buildroot
 
 bootimage: bootgen tfa optee-os u-boot dtbo
 	mkdir -p $(BINARIES_PATH)
-	@test -f $(BINARIES_PATH)/bl31.elf || \
-		(echo "Error: bl31.elf missing: run 'make tfa'." && exit 1)
-	@test -f $(BINARIES_PATH)/tee-raw.bin || \
-		(echo "Error: tee-raw.bin missing: run 'make optee-os'." && exit 1)
-	@test -f $(BINARIES_PATH)/u-boot.elf || \
-		(echo "Error: u-boot.elf missing: run 'make u-boot'." && exit 1)
-	@test -f $(BINARIES_PATH)/versal2-vek385-revA.dtb || \
-		(echo "Error: versal2-vek385-revA.dtb missing: run 'make dtbo'." && exit 1)
-	@test -f $(BOOTGEN_BIN) || \
-		(echo "Error: bootgen binary missing: run 'make bootgen'." && exit 1)
 	cp $(BUILD_PATH)/versal2/bootgen.bif $(BINARIES_PATH)
 	cp $(BUILD_PATH)/versal2/platconfig.pdi $(BINARIES_PATH)
 	cp $(BUILD_PATH)/versal2/platconfig.elf $(BINARIES_PATH)
@@ -269,6 +259,12 @@ qemu-clean:
 ################################################################################
 # QEMU Run-Only Recipe
 ################################################################################
+#
+# The targets below assume 'make all' (or 'make run'/'make run-only')
+# has already been run at least once, so all required binaries and
+# device trees are already present in $(BINARIES_PATH). They do not
+# declare Make prerequisites or perform existence checks.
+#
 
 # Path definitions for QEMU
 QEMU_BINARIES_PATH	:= $(QEMU_BUILD)
@@ -292,18 +288,6 @@ run-qemu-microblaze:
 	@echo "=== Starting MicroBlaze PMC QEMU ==="
 	@echo "Working directory: $(BOOT_IMAGES_PATH)"
 	@echo "Device tree: $(DEVICE_TREE_PATH)/board-versal2-pmxc-virt.dtb"
-	@test -f $(QEMU_MICROBLAZE_BIN) || \
-		(echo "Error: $(QEMU_MICROBLAZE_BIN) missing: run 'make qemu'." && exit 1)
-	@test -f $(DEVICE_TREE_PATH)/board-versal2-pmxc-virt.dtb || \
-		(echo "Error: pmxc-virt.dtb missing: run 'make qemu-devicetrees'." && exit 1)
-	@test -f $(BOOT_IMAGES_PATH)/BOOT_bh.bin || \
-		(echo "Error: BOOT_bh.bin missing: run 'make bootimage'." && exit 1)
-	@test -f $(BOOT_IMAGES_PATH)/HashBlock0.bin || \
-		(echo "Error: HashBlock0.bin missing: run 'make bootimage'." && exit 1)
-	@test -f $(BOOT_IMAGES_PATH)/pmc_cdo.bin || \
-		(echo "Error: pmc_cdo.bin missing: run 'make bootimage'." && exit 1)
-	@test -f $(BOOT_IMAGES_PATH)/plm.bin || \
-		(echo "Error: plm.bin missing: run 'make bootimage'." && exit 1)
 	@mkdir -p $(BOOT_IMAGES_PATH)/temp/qemu_temp
 	@echo "==================================="
 	cd $(BOOT_IMAGES_PATH) && $(QEMU_MICROBLAZE_BIN) -M microblaze-fdt \
@@ -325,10 +309,6 @@ run-qemu-riscv:
 	@echo "=== Starting RISC-V ASU QEMU ==="
 	@echo "Working directory: $(BOOT_IMAGES_PATH)"
 	@echo "Device tree: $(DEVICE_TREE_PATH)/board-versal2-asu-virt.dtb"
-	@test -f $(QEMU_RISCV_BIN) || \
-		(echo "Error: $(QEMU_RISCV_BIN) missing: run 'make qemu'." && exit 1)
-	@test -f $(DEVICE_TREE_PATH)/board-versal2-asu-virt.dtb || \
-		(echo "Error: asu-virt.dtb missing: run 'make qemu-devicetrees'." && exit 1)
 	@mkdir -p $(BOOT_IMAGES_PATH)/temp/qemu_temp
 	@echo "================================"
 	cd $(BOOT_IMAGES_PATH) && $(QEMU_RISCV_BIN) -M riscv-fdt \
@@ -341,16 +321,6 @@ run-qemu-aarch64:
 	@echo "=== Starting AArch64 PSXC QEMU ==="
 	@echo "Working directory: $(BOOT_IMAGES_PATH)"
 	@echo "Device tree: $(DEVICE_TREE_PATH)/board-versal2-psxc-vek385.dtb"
-	@test -f $(QEMU_AARCH64_BIN) || \
-		(echo "Error: $(QEMU_AARCH64_BIN) missing: run 'make qemu'." && exit 1)
-	@test -f $(DEVICE_TREE_PATH)/board-versal2-psxc-vek385.dtb || \
-		(echo "Error: psxc-vek385.dtb missing: run 'make qemu-devicetrees'." && exit 1)
-	@test -f $(BOOT_IMAGES_PATH)/qemu-ospi.bin || \
-		(echo "Error: qemu-ospi.bin missing: run 'make bootimage'." && exit 1)
-	@test -f $(BOOT_IMAGES_PATH)/Image || \
-		(echo "Error: Image missing: run 'make linux'." && exit 1)
-	@test -f $(BOOT_IMAGES_PATH)/rootfs.cpio.gz.u-boot || \
-		(echo "Error: rootfs image missing: run 'make buildroot_mkimg'." && exit 1)
 	@mkdir -p $(BOOT_IMAGES_PATH)/temp/qemu_temp
 	@echo "===================================="
 	cd $(BOOT_IMAGES_PATH) && $(QEMU_AARCH64_BIN) -machine arm-generic-fdt -m 8G \
