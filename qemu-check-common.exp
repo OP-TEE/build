@@ -1,0 +1,117 @@
+#
+# Common helpers shared by QEMU-based expect test runners.
+#
+
+proc parse_common_args {} {
+	set myargs $::argv
+	while {[llength $myargs]} {
+		set myargs [lassign $myargs arg]
+		switch -exact -- $arg {
+			"--tests"	{set myargs [lassign $myargs ::tests]}
+			"--timeout"	{set myargs [lassign $myargs ::timeout]}
+			"-q"		{set ::quiet 1}
+			"--xtest-args"	{set myargs [lassign $myargs ::xtest_args]}
+		}
+	}
+}
+
+proc info arg {
+	if {$::quiet == 1} { return }
+	puts -nonewline $arg
+	flush stdout
+}
+
+proc fail_with_message {msg code} {
+	info "$msg\n"
+	exit $code
+}
+
+proc check_test_result {{tee_core_id ""}} {
+	set casenum "none"
+	set star 0
+	set ncases 0
+	if {$tee_core_id eq ""} {
+		expect {
+			-re {  ([^ ]+) FAIL} {
+				info " $expect_out(1,string) FAIL\n"
+				exit 1
+			}
+			-re {rcu.*detected stalls} {
+				info " Kernel error: '$expect_out(0,string)'\n"
+				exit 1
+			}
+			-re {([\*o]) ([^ ]+) } {
+				set casenum $expect_out(2,string)
+				if {$expect_out(1,string) == "o"} {
+					if {$star == 1} {
+						set star 0
+						exp_continue
+					}
+				} else {
+					set star 1
+				}
+				info "#"
+				incr ncases
+				if {$ncases % 50 == 0} { info "\n" }
+				exp_continue
+			}
+			"+-----------------------------------------------------\r\r" {}
+			-re {(..TC:[^\n]*assertion[^\n]*failed at[^\n]*)} {
+				info "!!! $expect_out(1,string)\n"
+				exit 1
+			}
+			-re {(..TC:[^\n]*Panic at[^\n]*)} {
+				info "!!! $expect_out(1,string)\n"
+				exit 1
+			}
+			timeout {
+				info "!!! Timeout\n"
+				info "TIMEOUT - test case too long or hung? (last test started: $casenum)\n"
+				exit 2
+			}
+		}
+	} else {
+		expect {
+			-re {  ([^ ]+) FAIL} {
+				info " $expect_out(1,string) FAIL\n"
+				exit 1
+			}
+			-re {rcu.*detected stalls} {
+				info " Kernel error: '$expect_out(0,string)'\n"
+				exit 1
+			}
+			-re {([\*o]) ([^ ]+) } {
+				set casenum $expect_out(2,string)
+				if {$expect_out(1,string) == "o"} {
+					if {$star == 1} {
+						# Do not count first subcase ('o') since start
+						# of test ('*') was counted already
+						set star 0
+						exp_continue
+					}
+				} else {
+					set star 1
+				}
+				info "#"
+				incr ncases
+				if {$ncases % 50 == 0} { info "\n" }
+				exp_continue
+			}
+			"+-----------------------------------------------------\r\r" {}
+			-i $tee_core_id -re {(..TC:[^\n]*assertion[^\n]*failed at[^\n]*)} {
+				info "!!! $expect_out(1,string)\n"
+				exit 1
+			}
+			-i $tee_core_id -re {(..TC:[^\n]*Panic at[^\n]*)} {
+				info "!!! $expect_out(1,string)\n"
+				exit 1
+			}
+			timeout {
+				info "!!! Timeout\n"
+				info "TIMEOUT - test case too long or hung? (last test started: $casenum)\n"
+				exit 2
+			}
+		}
+	}
+	info "\nStatus: PASS ($ncases test cases)\n"
+}
