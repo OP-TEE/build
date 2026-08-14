@@ -33,78 +33,10 @@ if {[info exists ::env(RUST_ENABLE)] && $::env(RUST_ENABLE) == "y"} {
 set timeout 900
 set tests "all"
 set basedir [file dirname $argv0]
-
-# Parse command line
-set myargs $argv
-while {[llength $myargs]} {
-	set myargs [lassign $myargs arg]
-	switch -exact -- $arg {
-		"--tests"	{set myargs [lassign $myargs ::tests]}
-		"--timeout"	{set myargs [lassign $myargs ::timeout]}
-		"-q"		{set ::quiet 1}
-		"--xtest-args"  {set myargs [lassign $myargs ::xtest_args]}
-	}
-}
+source $basedir/qemu-check-common.exp
+parse_common_args
 
 set cmd "xtest $xtest_args"
-
-proc info arg {
-	if {$::quiet==1} { return }
-	puts -nonewline $arg
-	flush stdout
-}
-
-proc check_test_result arg {
-	set casenum "none"
-	set star 0
-	set ncases 0
-	expect {
-		# Exit with error status as soon as a test fails
-		-re {  ([^ ]+) FAIL} {
-			info " $expect_out(1,string) FAIL\n"
-			exit 1
-		}
-		-re {rcu.*detected stalls} {
-			info " Kernel error: '$expect_out(0,string)'\n"
-			exit 1
-		}
-		# Crude progress indicator: print one # when each test [sub]case starts
-		-re {([\*o]) ([^ ]+) } {
-			set casenum $expect_out(2,string)
-			if {$expect_out(1,string) == "o"} {
-				if {$star == 1} {
-					# Do not count first subcase ('o') since start
-					# of test ('*') was counted already
-					set star 0
-					exp_continue
-				}
-			} else {
-				set star 1
-			}
-			info "#"
-			incr ncases
-			if {$ncases % 50 == 0} { info "\n" }
-			exp_continue
-		}
-		# Exit when result separator is seen
-		"+-----------------------------------------------------\r\r" {}
-		# Handle errors in TEE core output
-		-i $arg -re {(..TC:[^\n]*assertion[^\n]*failed at[^\n]*)} {
-			info "!!! $expect_out(1,string)\n"
-			exit 1
-		}
-		-i $arg -re {(..TC:[^\n]*Panic at[^\n]*)} {
-			info "!!! $expect_out(1,string)\n"
-			exit 1
-		}
-		timeout {
-			info "!!! Timeout\n"
-			info "TIMEOUT - test case too long or hung? (last test started: $casenum)\n"
-			exit 2
-		}
-	}
-	info "\nStatus: PASS ($ncases test cases)\n"
-}
 
 # Disable echoing of guest output
 log_user 0
