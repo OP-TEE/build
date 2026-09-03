@@ -1,0 +1,14 @@
+the_ROM_image:
+{
+	image {
+	 { type=bootimage, file=platconfig.pdi }
+	 { type=bootloader, file=platconfig.elf }
+	}
+	image {
+	 id = 0x1c000000, name=apu_ss
+	 { type=raw, load=0x1000000, file=versal2-vek385-revA.dtb }
+	 { core=a78-0, cluster=0, exception_level = el-3, trustzone, file=bl31.elf }
+	 { core=a78-0, cluster=0, exception_level = el-1, trustzone, load=0x1800000, file=tee-raw.bin }
+	 { core=a78-0, cluster=0, exception_level = el-2, file=u-boot.elf }
+	}
+}
