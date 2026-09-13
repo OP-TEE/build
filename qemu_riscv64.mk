@@ -61,9 +61,9 @@ ROOTFS_EXT2		?= $(ROOT)/out-br/images/rootfs.ext2
 ################################################################################
 # Targets
 ################################################################################
-TARGET_DEPS := opensbi optee-os u-boot linux buildroot qemu
+TARGET_DEPS := opensbi optee-os u-boot linux buildroot $(QEMU_TARGET)
 TARGET_CLEAN := opensbi-clean optee-os-clean u-boot-clean linux-clean \
-	buildroot-clean qemu-clean check-clean
+	buildroot-clean $(QEMU_CLEAN_TARGET) check-clean
 
 all: $(TARGET_DEPS)
 
@@ -203,9 +203,11 @@ QEMU_LOADER_ADDR ?= 0x80200000
 QEMU_EXTRA_ARGS := -device virtio-net-pci,netdev=net0 \
 		   -netdev user,id=net0,hostfwd=tcp::2200-:22
 
-# The riscv64-softmmu part of the path to qemu-system-riscv64 was removed
-# somewhere between 8.1.2 and 9.1.2.
+ifeq ($(SELFBUILT_QEMU),y)
 QEMU_BIN = $(or $(wildcard $(QEMU_BUILD)/qemu-system-riscv64),$(wildcard $(QEMU_BUILD)/riscv64-softmmu/qemu-system-riscv64),qemu-system-riscv64-not-found)
+else
+QEMU_BIN = qemu-system-riscv64
+endif
 
 QEMU_BASE_ARGS = -nographic
 QEMU_BASE_ARGS += -machine $(PLAT_QEMU)

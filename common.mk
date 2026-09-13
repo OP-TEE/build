@@ -443,6 +443,11 @@ endif
 QEMU_PATH		?= $(ROOT)/qemu
 QEMU_BUILD		?= $(QEMU_PATH)/build
 
+ifeq ($(SELFBUILT_QEMU),y)
+QEMU_TARGET		:= qemu
+QEMU_CLEAN_TARGET	:= qemu-clean
+endif
+
 $(QEMU_BUILD)/config-host.mak:
 	cd $(QEMU_PATH); ./configure --target-list=$(QEMU_TARGET_LIST) \
 			$(QEMU_CONFIGURE_PARAMS_COMMON)
