@@ -100,9 +100,9 @@ endef
 else ifeq ($(ARCH),riscv)
 RISCV64_PATH 			?= $(TOOLCHAIN_ROOT)/riscv64
 RISCV64_CROSS_COMPILE 		?= $(RISCV64_PATH)/bin/riscv64-unknown-linux-gnu-
-RISCV64_GCC_RELEASE_DATE	?= 2023.07.07
-RISCV64_GCC_VERSION		?= riscv64-glibc-ubuntu-22.04-gcc-nightly-$(RISCV64_GCC_RELEASE_DATE)-nightly
-SRC_RISCV64_GCC			?= https://github.com/riscv-collab/riscv-gnu-toolchain/releases/download/$(RISCV64_GCC_RELEASE_DATE)/$(RISCV64_GCC_VERSION).tar.gz
+RISCV64_GCC_RELEASE_DATE	?= 2026.05.06
+RISCV64_GCC_VERSION		?= riscv64-glibc-ubuntu-22.04-gcc-$(RISCV64_GCC_RELEASE_DATE)
+SRC_RISCV64_GCC			?= https://github.com/riscv-collab/riscv-gnu-toolchain/releases/download/$(RISCV64_GCC_RELEASE_DATE)/riscv64-glibc-ubuntu-22.04-gcc.tar.xz
 
 .PHONY: toolchains
 toolchains: riscv64-toolchain
