@@ -440,6 +440,23 @@ QEMU_RUN_ARGS_COMMON +=\
 endif
 endif
 
+QEMU_PATH		?= $(ROOT)/qemu
+QEMU_BUILD		?= $(QEMU_PATH)/build
+
+$(QEMU_BUILD)/config-host.mak:
+	cd $(QEMU_PATH); ./configure --target-list=$(QEMU_TARGET_LIST) \
+			$(QEMU_CONFIGURE_PARAMS_COMMON)
+
+qemu: $(QEMU_BUILD)/.stamp_qemu
+
+$(QEMU_BUILD)/.stamp_qemu: $(QEMU_BUILD)/config-host.mak
+	$(MAKE) -C $(QEMU_PATH)
+	touch $@
+
+qemu-clean:
+	rm -f $(QEMU_BUILD)/.stamp_qemu
+	$(MAKE) -C $(QEMU_PATH) distclean
+
 ifeq ($(GDBSERVER),y)
 HOSTFWD := ,hostfwd=tcp::12345-:12345
 endif
