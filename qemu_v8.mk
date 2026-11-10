@@ -99,8 +99,6 @@ include common.mk
 TF_A_PATH		?= $(ROOT)/trusted-firmware-a
 OUT_PATH		?= $(ROOT)/out
 BINARIES_PATH		?= $(OUT_PATH)/bin
-QEMU_PATH		?= $(ROOT)/qemu
-QEMU_BUILD		?= $(QEMU_PATH)/build
 MODULE_OUTPUT		?= $(ROOT)/out/kernel_modules
 UBOOT_PATH		?= $(ROOT)/u-boot
 UBOOT_BIN		?= $(UBOOT_PATH)/u-boot.bin
@@ -344,19 +342,9 @@ boot-img-clean:
 ################################################################################
 # QEMU
 ################################################################################
-$(QEMU_BUILD)/config-host.mak:
-	cd $(QEMU_PATH); ./configure --target-list=aarch64-softmmu --enable-slirp\
-			$(QEMU_CONFIGURE_PARAMS_COMMON)
 
-qemu: $(QEMU_BUILD)/.stamp_qemu
-
-$(QEMU_BUILD)/.stamp_qemu: $(QEMU_BUILD)/config-host.mak
-	$(MAKE) -C $(QEMU_PATH)
-	touch $@
-
-qemu-clean:
-	rm -f $(QEMU_BUILD)/.stamp_qemu
-	$(MAKE) -C $(QEMU_PATH) distclean
+QEMU_TARGET_LIST := aarch64-softmmu
+QEMU_CONFIGURE_PARAMS_COMMON += --enable-slirp
 
 ################################################################################
 # U-Boot

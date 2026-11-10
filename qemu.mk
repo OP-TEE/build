@@ -22,8 +22,6 @@ include common.mk
 TF_A_PATH			?= $(ROOT)/trusted-firmware-a
 BINARIES_PATH			?= $(ROOT)/out/bin
 U-BOOT_PATH			?= $(ROOT)/u-boot
-QEMU_PATH			?= $(ROOT)/qemu
-QEMU_BUILD			?= $(QEMU_PATH)/build
 
 ################################################################################
 # Targets
@@ -81,15 +79,8 @@ arm-tf-clean:
 ################################################################################
 # QEMU
 ################################################################################
-$(QEMU_BUILD)/config-host.mak:
-	cd $(QEMU_PATH); ./configure --target-list=arm-softmmu\
-			$(QEMU_CONFIGURE_PARAMS_COMMON)
 
-qemu: $(QEMU_BUILD)/config-host.mak
-	$(MAKE) -C $(QEMU_PATH)
-
-qemu-clean:
-	$(MAKE) -C $(QEMU_PATH) distclean
+QEMU_TARGET_LIST := arm-softmmu
 
 ################################################################################
 # U-boot

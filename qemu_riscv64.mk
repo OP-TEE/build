@@ -46,8 +46,6 @@ OUT_PATH		?= $(ROOT)/out
 BINARIES_PATH		?= $(OUT_PATH)/bin
 OPENSBI_PATH		?= $(ROOT)/opensbi
 OPENSBI_OUT		?= $(OPENSBI_PATH)/build/platform/generic/firmware
-QEMU_PATH		?= $(ROOT)/qemu
-QEMU_BUILD		?= $(QEMU_PATH)/build
 UBOOT_PATH		?= $(ROOT)/u-boot
 
 LINUX_IMAGE		?= $(LINUX_PATH)/arch/riscv/boot/Image
@@ -187,19 +185,9 @@ update_rootfs: linux
 ################################################################################
 # QEMU
 ################################################################################
-$(QEMU_BUILD)/config-host.mak:
-	cd $(QEMU_PATH); ./configure --target-list=riscv64-softmmu \
-			$(QEMU_CONFIGURE_PARAMS_COMMON)
 
-qemu: $(QEMU_BUILD)/.stamp_qemu
-
-$(QEMU_BUILD)/.stamp_qemu: $(QEMU_BUILD)/config-host.mak
-	$(MAKE) -C $(QEMU_PATH)
-	touch $@
-
-qemu-clean:
-	rm -f $(QEMU_BUILD)/.stamp_qemu
-	$(MAKE) -C $(QEMU_PATH) distclean
+QEMU_TARGET_LIST := riscv64-softmmu
+QEMU_CONFIGURE_PARAMS_COMMON += --enable-slirp
 
 ################################################################################
 # Run targets
