@@ -22,15 +22,13 @@ include common.mk
 TF_A_PATH			?= $(ROOT)/trusted-firmware-a
 BINARIES_PATH			?= $(ROOT)/out/bin
 U-BOOT_PATH			?= $(ROOT)/u-boot
-QEMU_PATH			?= $(ROOT)/qemu
-QEMU_BUILD			?= $(QEMU_PATH)/build
 
 ################################################################################
 # Targets
 ################################################################################
-all: arm-tf u-boot buildroot linux optee-os qemu
+all: arm-tf u-boot buildroot linux optee-os $(QEMU_TARGET)
 clean: arm-tf-clean u-boot-clean buildroot-clean linux-clean optee-os-clean \
-	qemu-clean check-clean
+	$(QEMU_CLEAN_TARGET) check-clean
 
 include toolchain.mk
 
@@ -81,15 +79,8 @@ arm-tf-clean:
 ################################################################################
 # QEMU
 ################################################################################
-$(QEMU_BUILD)/config-host.mak:
-	cd $(QEMU_PATH); ./configure --target-list=arm-softmmu\
-			$(QEMU_CONFIGURE_PARAMS_COMMON)
 
-qemu: $(QEMU_BUILD)/config-host.mak
-	$(MAKE) -C $(QEMU_PATH)
-
-qemu-clean:
-	$(MAKE) -C $(QEMU_PATH) distclean
+QEMU_TARGET_LIST := arm-softmmu
 
 ################################################################################
 # U-boot
@@ -170,9 +161,11 @@ QEMU_RUN_ARGS = $(QEMU_BASE_ARGS)
 QEMU_RUN_ARGS += $(QEMU_RUN_ARGS_COMMON)
 QEMU_RUN_ARGS += -s -S -serial tcp:127.0.0.1:$(QEMU_NW_PORT) -serial tcp:127.0.0.1:$(QEMU_SW_PORT)
 
-# The arm-softmmu part of the path to qemu-system-arm was removed
-# somewhere between 8.1.2 and 9.1.2
+ifeq ($(SELFBUILT_QEMU),y)
 QEMU_BIN = $(or $(wildcard $(QEMU_BUILD)/qemu-system-arm),$(wildcard $(QEMU_BUILD)/arm-softmmu/qemu-system-arm),qemu-system-arm-not-found)
+else
+QEMU_BIN = qemu-system-arm
+endif
 
 .PHONY: run-only
 run-only:

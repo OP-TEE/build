@@ -44,8 +44,6 @@ U-BOOT_PATH	?= $(ROOT)/u-boot-xlnx
 LINUX_PATH	?= $(ROOT)/linux-xlnx
 SCMI_PATH	?= $(ROOT)/scmi-server
 BOOTGEN_PATH	?= $(ROOT)/bootgen
-QEMU_PATH		?= $(ROOT)/qemu
-QEMU_BUILD		?= $(QEMU_PATH)/build
 QEMU_DEVICETREES_PATH	?= $(ROOT)/qemu-devicetrees
 
 include common.mk
@@ -269,21 +267,9 @@ qemu-devicetrees-clean:
 # QEMU Build
 ################################################################################
 
-$(QEMU_BUILD)/config-host.mak:
-	mkdir -p $(QEMU_BUILD)
-	cd $(QEMU_BUILD) && $(QEMU_PATH)/configure \
-		--target-list="aarch64-softmmu,microblazeel-softmmu,riscv32-softmmu" \
-		--enable-fdt --disable-kvm --disable-xen --enable-gcrypt --enable-slirp
-
-qemu: $(QEMU_BUILD)/.stamp_qemu
-
-$(QEMU_BUILD)/.stamp_qemu: $(QEMU_BUILD)/config-host.mak
-	$(MAKE) -C $(QEMU_BUILD)
-	touch $@
-
-qemu-clean:
-	rm -f $(QEMU_BUILD)/.stamp_qemu
-	test -d $(QEMU_BUILD) && $(MAKE) -C $(QEMU_BUILD) distclean || true
+QEMU_TARGET_LIST := aarch64-softmmu,microblazeel-softmmu,riscv32-softmmu
+QEMU_CONFIGURE_PARAMS_COMMON += --enable-fdt --disable-kvm --disable-xen \
+				--enable-gcrypt --enable-slirp
 
 ################################################################################
 # QEMU Run-Only Recipe

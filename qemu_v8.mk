@@ -99,8 +99,6 @@ include common.mk
 TF_A_PATH		?= $(ROOT)/trusted-firmware-a
 OUT_PATH		?= $(ROOT)/out
 BINARIES_PATH		?= $(OUT_PATH)/bin
-QEMU_PATH		?= $(ROOT)/qemu
-QEMU_BUILD		?= $(QEMU_PATH)/build
 MODULE_OUTPUT		?= $(ROOT)/out/kernel_modules
 UBOOT_PATH		?= $(ROOT)/u-boot
 UBOOT_BIN		?= $(UBOOT_PATH)/u-boot.bin
@@ -153,9 +151,9 @@ endif
 ################################################################################
 # Targets
 ################################################################################
-TARGET_DEPS := arm-tf buildroot linux optee-os qemu
+TARGET_DEPS := arm-tf buildroot linux optee-os $(QEMU_TARGET)
 TARGET_CLEAN := arm-tf-clean buildroot-clean linux-clean optee-os-clean \
-	qemu-clean check-clean hafnium-clean
+	$(QEMU_CLEAN_TARGET) check-clean hafnium-clean
 
 TARGET_DEPS 		+= $(BL33_DEPS)
 
@@ -344,19 +342,9 @@ boot-img-clean:
 ################################################################################
 # QEMU
 ################################################################################
-$(QEMU_BUILD)/config-host.mak:
-	cd $(QEMU_PATH); ./configure --target-list=aarch64-softmmu --enable-slirp\
-			$(QEMU_CONFIGURE_PARAMS_COMMON)
 
-qemu: $(QEMU_BUILD)/.stamp_qemu
-
-$(QEMU_BUILD)/.stamp_qemu: $(QEMU_BUILD)/config-host.mak
-	$(MAKE) -C $(QEMU_PATH)
-	touch $@
-
-qemu-clean:
-	rm -f $(QEMU_BUILD)/.stamp_qemu
-	$(MAKE) -C $(QEMU_PATH) distclean
+QEMU_TARGET_LIST := aarch64-softmmu
+QEMU_CONFIGURE_PARAMS_COMMON += --enable-slirp
 
 ################################################################################
 # U-Boot
@@ -692,9 +680,11 @@ QEMU_BASE_ARGS += -drive file=unsecure-world.rom,format=raw,if=pflash
 QEMU_BASE_ARGS += -drive file=boot.img,format=raw,index=0,media=disk
 endif
 
-# The aarch64-softmmu part of the path to qemu-system-aarch64 was removed
-# somewhere between 8.1.2 and 9.1.2
+ifeq ($(SELFBUILT_QEMU),y)
 QEMU_BIN = $(or $(wildcard $(QEMU_BUILD)/qemu-system-aarch64),$(wildcard $(QEMU_BUILD)/aarch64-softmmu/qemu-system-aarch64),qemu-system-aarch64-not-found)
+else
+QEMU_BIN = qemu-system-aarch64
+endif
 
 ifeq ($(WITH_SCMI),y)
 QEMU_SCMI_ARGS 	= -dtb $(SCMI_DTB)
@@ -703,7 +693,7 @@ $(SCMI_DTBO): $(SCMI_DTSO)
 	mkdir -p $(BINARIES_PATH)
 	dtc -I dts -O dtb -o $(SCMI_DTBO) $(SCMI_DTSO)
 
-$(SCMI_DTB): $(SCMI_DTBO) $(QEMU_BUILD)/.stamp_qemu linux arm-tf buildroot
+$(SCMI_DTB): $(SCMI_DTBO) $(QEMU_TARGET) linux arm-tf buildroot
 	ln -sf $(ROOT)/out-br/images/rootfs.cpio.gz $(BINARIES_PATH)/
 	cd $(BINARIES_PATH) && $(QEMU_BIN) \
 		$(QEMU_BASE_ARGS) -machine dumpdtb=qemu_v8.dtb
