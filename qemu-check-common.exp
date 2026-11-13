@@ -60,7 +60,7 @@ proc check_test_result {{tee_core_id ""}} {
 				info "!!! $expect_out(1,string)\n"
 				exit 1
 			}
-			-re {(..TC:[^\n]*Panic at[^\n]*)} {
+			-re {(..TC:[^\n]*Panic ('[^\n]*' )?at[^\n]*)} {
 				info "!!! $expect_out(1,string)\n"
 				exit 1
 			}
@@ -102,7 +102,7 @@ proc check_test_result {{tee_core_id ""}} {
 				info "!!! $expect_out(1,string)\n"
 				exit 1
 			}
-			-i $tee_core_id -re {(..TC:[^\n]*Panic at[^\n]*)} {
+			-i $tee_core_id -re {(..TC:[^\n]*Panic ('[^\n]*' )?at[^\n]*)} {
 				info "!!! $expect_out(1,string)\n"
 				exit 1
 			}
